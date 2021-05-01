@@ -6,7 +6,7 @@
 [![tests](https://github.com/haesleinhuepf/napari-skimage-regionprops/workflows/tests/badge.svg)](https://github.com/haesleinhuepf/napari-skimage-regionprops/actions)
 [![codecov](https://codecov.io/gh/haesleinhuepf/napari-skimage-regionprops/branch/master/graph/badge.svg)](https://codecov.io/gh/haesleinhuepf/napari-skimage-regionprops)
 
-A regionprops table widget plugin for [napari] based on [scikit-image]
+A [napari] plugin for measuring properties of labeled objects based on [scikit-image]
 
 ![](images/screenshot.png)
 
