@@ -12,9 +12,6 @@ def napari_experimental_provide_function():
     return [regionprops]
 
 def regionprops(image: ImageData, labels: LabelsData, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
-    print(image)
-    print(labels)
-    print(napari_viewer)
 
     if image is not None and labels is not None:
 
