@@ -4,7 +4,8 @@ import numpy as np
 from napari_plugin_engine import napari_hook_implementation
 from napari.types import ImageData, LabelsData, LayerDataTuple
 from napari import Viewer
-from qtpy.QtWidgets import QTableWidget, QTableWidgetItem
+from pandas import DataFrame
+from qtpy.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QGridLayout, QPushButton
 from skimage.measure import regionprops_table
 
 @napari_hook_implementation
@@ -58,11 +59,25 @@ def regionprops(image: ImageData, labels: LabelsData, napari_viewer : Viewer, si
     else:
         warnings.warn("Image and labels must be set.")
 
-def table_to_widget(table: dict) -> QTableWidget:
+def table_to_widget(table: dict) -> QWidget:
+
+    copy_button = QPushButton("Copy to clipboard")
+    def trigger():
+        dataframe = DataFrame(table)
+        dataframe.to_clipboard()
+
+    copy_button.clicked.connect(trigger)
+
     view = QTableWidget(len(next(iter(table.values()))), len(table))
     for i, column in enumerate(table.keys()):
         view.setItem(0, i, QTableWidgetItem(column))
         for j, value in enumerate(table.get(column)):
             view.setItem(j + 1, i, QTableWidgetItem(str(value)))
-    return view
 
+    widget = QWidget()
+    widget.setWindowTitle("region properties")
+    widget.setLayout(QGridLayout())
+    widget.layout().addWidget(copy_button)
+    widget.layout().addWidget(view)
+
+    return widget
