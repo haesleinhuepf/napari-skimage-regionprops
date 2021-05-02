@@ -5,7 +5,7 @@ from napari_plugin_engine import napari_hook_implementation
 from napari.types import ImageData, LabelsData, LayerDataTuple
 from napari import Viewer
 from pandas import DataFrame
-from qtpy.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QGridLayout, QPushButton
+from qtpy.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
 from skimage.measure import regionprops_table
 
 @napari_hook_implementation
@@ -13,6 +13,9 @@ def napari_experimental_provide_function():
     return [regionprops]
 
 def regionprops(image: ImageData, labels: LabelsData, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
+    """
+    Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-labelimage pair.
+    """
 
     if image is not None and labels is not None:
 
@@ -60,13 +63,23 @@ def regionprops(image: ImageData, labels: LabelsData, napari_viewer : Viewer, si
         warnings.warn("Image and labels must be set.")
 
 def table_to_widget(table: dict) -> QWidget:
+    """
+    Takes a table given as dictionary with strings as keys and numeric arrays as values and returns a QWidget which
+    contains a QTableWidget with that data.
+    """
 
     copy_button = QPushButton("Copy to clipboard")
-    def trigger():
+    def copy_trigger():
         dataframe = DataFrame(table)
         dataframe.to_clipboard()
+    copy_button.clicked.connect(copy_trigger)
 
-    copy_button.clicked.connect(trigger)
+    save_button = QPushButton("Save as csv...")
+    def save_trigger():
+        filename, _ = QFileDialog.getSaveFileName(save_button, "Save as csv...", ".", "*.csv")
+        dataframe = DataFrame(table)
+        dataframe.to_csv(filename)
+    save_button.clicked.connect(save_trigger)
 
     view = QTableWidget(len(next(iter(table.values()))), len(table))
     for i, column in enumerate(table.keys()):
@@ -78,6 +91,7 @@ def table_to_widget(table: dict) -> QWidget:
     widget.setWindowTitle("region properties")
     widget.setLayout(QGridLayout())
     widget.layout().addWidget(copy_button)
+    widget.layout().addWidget(save_button)
     widget.layout().addWidget(view)
 
     return widget
