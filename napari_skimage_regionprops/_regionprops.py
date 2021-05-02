@@ -46,19 +46,23 @@ def regionprops(image: ImageData, labels: LabelsData, napari_viewer : Viewer, si
             properties = properties + ['centroid', 'bbox', 'weighted_centroid']
 
         if moments:
-            properties = properties + ['moments', 'moments_central', 'moments_hu']
+            properties = properties + ['moments', 'moments_central', 'moments_hu', 'moments_normalized']
 
         # todo:
-        # moments_normalized
         # weighted_local_centroid
         # weighted_moments
         # weighted_moments_central
         # weighted_moments_hu
         # weighted_moments_normalized
 
+        # quantitative analysis using scikit-image's regionprops
         table = regionprops_table(np.asarray(labels).astype(int), intensity_image=np.asarray(image),
                                   properties=properties, extra_properties=extra_properties)
+
+        # turn table into a widget
         dock_widget = table_to_widget(table)
+
+        # add widget to napari
         napari_viewer.window.add_dock_widget(dock_widget, area='right')
     else:
         warnings.warn("Image and labels must be set.")
@@ -83,19 +87,13 @@ def table_to_widget(table: dict) -> QWidget:
     save_button.clicked.connect(save_trigger)
 
 
-    #view = Table(value=table)
-
-    view = QTableWidget(len(next(iter(table.values()))), len(table))
-    for i, column in enumerate(table.keys()):
-        view.setItem(0, i, QTableWidgetItem(column))
-        for j, value in enumerate(table.get(column)):
-            view.setItem(j + 1, i, QTableWidgetItem(str(value)))
+    view = Table(value=table)
 
     widget = QWidget()
     widget.setWindowTitle("region properties")
     widget.setLayout(QGridLayout())
     widget.layout().addWidget(copy_button)
     widget.layout().addWidget(save_button)
-    widget.layout().addWidget(view)
+    widget.layout().addWidget(view.native)
 
     return widget

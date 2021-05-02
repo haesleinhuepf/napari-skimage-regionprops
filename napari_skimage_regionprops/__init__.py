@@ -6,4 +6,4 @@ except ImportError:
 
 
 
-from ._function import napari_experimental_provide_function
+from ._regionprops import napari_experimental_provide_function
