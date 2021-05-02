@@ -20,6 +20,8 @@ You can install `napari-skimage-regionprops` via [pip]:
     cd napari-skimage-regionprops
     pip install -e .
 
+If there is an error message suggesting that git is not installed, run `conda install git`.
+
 ## Contributing
 
 Contributions are very welcome. Tests can be run with [tox], please ensure
