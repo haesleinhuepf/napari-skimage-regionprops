@@ -72,22 +72,20 @@ def table_to_widget(table: dict) -> QWidget:
     Takes a table given as dictionary with strings as keys and numeric arrays as values and returns a QWidget which
     contains a QTableWidget with that data.
     """
+    view = Table(value=table)
 
     copy_button = QPushButton("Copy to clipboard")
+
+    @copy_button.clicked.connect
     def copy_trigger():
-        dataframe = DataFrame(table)
-        dataframe.to_clipboard()
-    copy_button.clicked.connect(copy_trigger)
+        view.to_dataframe().to_clipboard()
 
     save_button = QPushButton("Save as csv...")
+
+    @save_button.clicked.connect
     def save_trigger():
         filename, _ = QFileDialog.getSaveFileName(save_button, "Save as csv...", ".", "*.csv")
-        dataframe = DataFrame(table)
-        dataframe.to_csv(filename)
-    save_button.clicked.connect(save_trigger)
-
-
-    view = Table(value=table)
+        view.to_dataframe().to_csv(filename)
 
     widget = QWidget()
     widget.setWindowTitle("region properties")
