@@ -1,6 +1,7 @@
 import warnings
 
 import numpy as np
+from magicgui.widgets import Table
 from napari_plugin_engine import napari_hook_implementation
 from napari.types import ImageData, LabelsData, LayerDataTuple
 from napari import Viewer
@@ -80,6 +81,9 @@ def table_to_widget(table: dict) -> QWidget:
         dataframe = DataFrame(table)
         dataframe.to_csv(filename)
     save_button.clicked.connect(save_trigger)
+
+
+    #view = Table(value=table)
 
     view = QTableWidget(len(next(iter(table.values()))), len(table))
     for i, column in enumerate(table.keys()):
