@@ -16,18 +16,15 @@ This [napari] plugin was generated with [Cookiecutter] using with [@napari]'s [c
 
 You can install `napari-skimage-regionprops` via [pip]:
 
+    pip install napari-skimage-regionprops
+
+Or if you plan to developit:
+
     git clone https://github.com/haesleinhuepf/napari-skimage-regionprops
     cd napari-skimage-regionprops
     pip install -e .
 
 If there is an error message suggesting that git is not installed, run `conda install git`.
-
-Alternatively, you can install it directly from within napari from the menu `Plugins > Install/uninstall Package(s)...`. 
-Enter this ULR in the bottom of the installer and click on `Install`:
-```
-https://github.com/haesleinhuepf/napari-skimage-regionprops/archive/refs/tags/0.0.1.zip
-```
-![](images/install.png)
 
 ## Contributing
 
