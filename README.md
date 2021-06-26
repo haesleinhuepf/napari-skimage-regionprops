@@ -10,6 +10,40 @@ A [napari] plugin for measuring properties of labeled objects based on [scikit-i
 
 ![](images/screenshot.png)
 
+## Features
+The user can select categories of features for feature extraction in the user interface. These categories contain measurements from the scikit-image [regionprops list of measurements](https://scikit-image.org/docs/dev/api/skimage.measure.html#skimage.measure.regionprops) library:
+* size:
+  * area
+  * bbox_area
+  * convex_area
+  * equivalent_diameter
+* intensity:
+  * max_intensity 
+  * mean_intensity
+  * min_intensity
+  * standard_deviation_intensity (`extra_properties` implementation using numpy)
+* perimeter:
+  * perimeter
+  * perimeter_crofton
+* shape
+  * major_axis_length
+  * minor_axis_length
+  * orientation
+  * solidity
+  * eccentricity
+  * extent
+  * feret_diameter_max
+  * local_centroid
+* position:
+  * centroid
+  * bbox
+  * weighted_centroid
+* moments:
+  * moments
+  * moments_central
+  * moments_hu
+  * moments_normalized
+
 This [napari] plugin was generated with [Cookiecutter] using with [@napari]'s [cookiecutter-napari-plugin] template.
 
 ## Installation
@@ -18,7 +52,7 @@ You can install `napari-skimage-regionprops` via [pip]:
 
     pip install napari-skimage-regionprops
 
-Or if you plan to developit:
+Or if you plan to develop it:
 
     git clone https://github.com/haesleinhuepf/napari-skimage-regionprops
     cd napari-skimage-regionprops
