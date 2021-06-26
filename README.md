@@ -8,7 +8,7 @@
 
 A [napari] plugin for measuring properties of labeled objects based on [scikit-image]
 
-![](images/screenshot.png)
+![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/screenshot.png)
 
 ## Features
 The user can select categories of features for feature extraction in the user interface. These categories contain measurements from the scikit-image [regionprops list of measurements](https://scikit-image.org/docs/dev/api/skimage.measure.html#skimage.measure.regionprops) library:
