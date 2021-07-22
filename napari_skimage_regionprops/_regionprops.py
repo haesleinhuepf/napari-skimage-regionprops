@@ -20,6 +20,18 @@ def regionprops(image: ImageData, labels: LabelsData, napari_viewer : Viewer, si
 
     if image is not None and labels is not None:
 
+        # deal with dimensionality of data
+        if len(image.shape) > len(labels.shape):
+            dim = 0
+            subset = ""
+            while len(image.shape) > len(labels.shape):
+                current_dim_value = napari_viewer.dims.current_step[dim]
+                dim = dim + 1
+                image = image[current_dim_value]
+                subset = subset + ", " + str(current_dim_value)
+            warnings.warn("Not the full image was analysed, just the subset [" + subset[2:] + "] according to selected timepoint / slice.")
+
+
         properties = ['label']
         extra_properties = []
 
