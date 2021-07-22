@@ -11,7 +11,11 @@ from skimage.measure import regionprops_table
 
 @napari_hook_implementation
 def napari_experimental_provide_function():
-    return [regionprops]
+    return [regionprops, duplicate_current_frame]
+
+def duplicate_current_frame(image: ImageData, napari_viewer : Viewer, axis : int = 0) -> ImageData:
+    current_dim_value = napari_viewer.dims.current_step[axis]
+    return np.take(image, current_dim_value, axis)
 
 def regionprops(image: ImageData, labels: LabelsData, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
     """
