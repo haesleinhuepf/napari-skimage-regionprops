@@ -54,8 +54,8 @@ setup(
     ],
     entry_points={
         'napari.plugin': [
-            '4 Measurements (skimage) = napari_skimage_regionprops._regionprops',
-            '3 Utilities = napari_skimage_regionprops._utilities',
+            'Measurements = napari_skimage_regionprops._regionprops',
+            'Utilities = napari_skimage_regionprops._utilities',
         ],
     },
 )

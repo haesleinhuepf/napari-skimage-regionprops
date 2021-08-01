@@ -11,9 +11,9 @@ from skimage.measure import regionprops_table
 
 @napari_hook_implementation
 def napari_experimental_provide_function():
-    return [regionprops]
+    return [skimage_regionprops]
 
-def regionprops(image: ImageData, labels: LabelsData, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
+def skimage_regionprops(image: ImageData, labels: LabelsData, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-labelimage pair.
     """
