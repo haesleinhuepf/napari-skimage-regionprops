@@ -36,7 +36,7 @@ setup(
     packages=find_packages(),
     python_requires='>=3.6',
     install_requires=requirements,
-    version='0.1.5',
+    version='0.1.6',
     #use_scm_version=use_scm,
     setup_requires=['setuptools_scm'],
     classifiers=[
@@ -54,8 +54,8 @@ setup(
     ],
     entry_points={
         'napari.plugin': [
-            'Measurements = napari_skimage_regionprops._regionprops',
-            'Utilities = napari_skimage_regionprops._utilities',
+            'Measurements (skimage regionprops) = napari_skimage_regionprops._regionprops',
+            'Utilities (skimage regionprops) = napari_skimage_regionprops._utilities',
         ],
     },
 )
