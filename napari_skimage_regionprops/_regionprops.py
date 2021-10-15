@@ -8,11 +8,13 @@ from napari import Viewer
 from pandas import DataFrame
 from qtpy.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
 from skimage.measure import regionprops_table
+from napari_tools_menu import register_function
 
 @napari_hook_implementation
 def napari_experimental_provide_function():
     return [skimage_regionprops]
 
+@register_function(menu="Measurement > Regionprops (scikit-image)")
 def skimage_regionprops(image: ImageData, labels: LabelsData, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-labelimage pair.

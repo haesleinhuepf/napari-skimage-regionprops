@@ -3,3 +3,4 @@ numpy
 scikit-image
 napari
 pandas
+napari-tools-menu
