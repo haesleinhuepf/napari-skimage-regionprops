@@ -76,6 +76,9 @@ def skimage_regionprops(image: ImageData, labels_layer: napari.layers.Labels, na
         table = regionprops_table(np.asarray(labels).astype(int), intensity_image=np.asarray(image),
                                   properties=properties, extra_properties=extra_properties)
 
+        # Store results in the properties dictionary:
+        labels_layer.properties = table
+
         # turn table into a widget
         dock_widget = table_to_widget(table, labels_layer)
 
