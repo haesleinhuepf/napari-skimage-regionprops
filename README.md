@@ -8,7 +8,18 @@
 
 A [napari] plugin for measuring properties of labeled objects based on [scikit-image]
 
-![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/screenshot.png)
+![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/interactive.gif)
+
+## Usage
+
+From the menu `Tools > Measurement > Regionprops` you can open a dialog where you can choose an intensity image, a corresponding label image and the features you want to measure:
+
+![img.png](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/dialog.png)
+
+If you want to interace with the labels and see which table row corresponds to which labeled object, use the label picker and
+activate the `show selected` checkbox.
+
+![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/interactive.png)
 
 ## Features
 The user can select categories of features for feature extraction in the user interface. These categories contain measurements from the scikit-image [regionprops list of measurements](https://scikit-image.org/docs/dev/api/skimage.measure.html#skimage.measure.regionprops) library:

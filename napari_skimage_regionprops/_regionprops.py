@@ -6,19 +6,22 @@ from napari_plugin_engine import napari_hook_implementation
 from napari.types import ImageData, LabelsData, LayerDataTuple
 from napari import Viewer
 from pandas import DataFrame
+from qtpy.QtCore import QTimer
 from qtpy.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
 from skimage.measure import regionprops_table
 from napari_tools_menu import register_function
+import napari
 
 @napari_hook_implementation
 def napari_experimental_provide_function():
     return [skimage_regionprops]
 
 @register_function(menu="Measurement > Regionprops (scikit-image)")
-def skimage_regionprops(image: ImageData, labels: LabelsData, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
+def skimage_regionprops(image: ImageData, labels_layer: napari.layers.Labels, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-labelimage pair.
     """
+    labels = labels_layer.data
 
     if image is not None and labels is not None:
 
@@ -74,19 +77,43 @@ def skimage_regionprops(image: ImageData, labels: LabelsData, napari_viewer : Vi
                                   properties=properties, extra_properties=extra_properties)
 
         # turn table into a widget
-        dock_widget = table_to_widget(table)
+        dock_widget = table_to_widget(table, labels_layer)
 
         # add widget to napari
         napari_viewer.window.add_dock_widget(dock_widget, area='right')
     else:
         warnings.warn("Image and labels must be set.")
 
-def table_to_widget(table: dict) -> QWidget:
+def table_to_widget(table: dict, labels_layer: napari.layers.Labels) -> QWidget:
     """
     Takes a table given as dictionary with strings as keys and numeric arrays as values and returns a QWidget which
     contains a QTableWidget with that data.
     """
     view = Table(value=table)
+
+    if labels_layer is not None:
+
+        @view.native.clicked.connect
+        def clicked_table():
+            row = view.native.currentRow()
+            label = table["label"][row]
+            labels_layer.selected_label = label
+
+        def after_labels_clicked():
+            row = view.native.currentRow()
+            label = table["label"][row]
+            if label != labels_layer.selected_label:
+                for r, l in enumerate(table["label"]):
+                    if l ==  labels_layer.selected_label:
+                        view.native.setCurrentCell(r, view.native.currentColumn())
+                        break
+
+        @labels_layer.mouse_drag_callbacks.append
+        def clicked_labels(event, event1):
+            # We need to run this lagter as the labels_layer.selected_label isn't changed yet.
+            QTimer.singleShot(200, after_labels_clicked)
+
+
 
     copy_button = QPushButton("Copy to clipboard")
 
