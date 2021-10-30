@@ -156,23 +156,29 @@ def table_to_widget(table: dict, labels_layer: napari.layers.Labels) -> QWidget:
     Takes a table given as dictionary with strings as keys and numeric arrays as values and returns a QWidget which
     contains a QTableWidget with that data.
     """
-    view = Table(value=table)
+    # Using a custom widget because this one freezes napari:
+    # view = Table(value=table)
+    view = QTableWidget(len(next(iter(table.values()))), len(table))
+    for i, column in enumerate(table.keys()):
+        view.setItem(0, i, QTableWidgetItem(column))
+        for j, value in enumerate(table.get(column)):
+            view.setItem(j + 1, i, QTableWidgetItem(str(value)))
 
     if labels_layer is not None:
 
-        @view.native.clicked.connect
+        @view.clicked.connect
         def clicked_table():
-            row = view.native.currentRow()
+            row = view.currentRow()
             label = table["label"][row]
             labels_layer.selected_label = label
 
         def after_labels_clicked():
-            row = view.native.currentRow()
+            row = view.currentRow()
             label = table["label"][row]
             if label != labels_layer.selected_label:
                 for r, l in enumerate(table["label"]):
                     if l ==  labels_layer.selected_label:
-                        view.native.setCurrentCell(r, view.native.currentColumn())
+                        view.setCurrentCell(r, view.currentColumn())
                         break
 
         @labels_layer.mouse_drag_callbacks.append
@@ -200,6 +206,6 @@ def table_to_widget(table: dict, labels_layer: napari.layers.Labels) -> QWidget:
     widget.setLayout(QGridLayout())
     widget.layout().addWidget(copy_button)
     widget.layout().addWidget(save_button)
-    widget.layout().addWidget(view.native)
+    widget.layout().addWidget(view)
 
     return widget
