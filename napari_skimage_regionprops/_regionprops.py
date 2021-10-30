@@ -11,6 +11,7 @@ from qtpy.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QGridLayout,
 from skimage.measure import regionprops_table
 from napari_tools_menu import register_function
 import napari
+import math
 
 @napari_hook_implementation
 def napari_experimental_provide_function():
@@ -56,14 +57,21 @@ def skimage_regionprops(image: ImageData, labels_layer: napari.layers.Labels, na
             properties = properties + ['perimeter', 'perimeter_crofton']
 
         if shape:
-            properties = properties + ['major_axis_length', 'minor_axis_length', 'orientation', 'solidity', 'eccentricity', 'extent', 'feret_diameter_max', 'local_centroid']
-            # euler_number
+            properties = properties + ['solidity', 'extent', 'feret_diameter_max', 'local_centroid']
+            if len(labels_layer.data.shape) == 2:
+                properties = properties + ['major_axis_length', 'minor_axis_length', 'orientation', 'eccentricity']
+            else:
+                properties = properties + ['moments_central']
+
+            # euler_number,
 
         if position:
             properties = properties + ['centroid', 'bbox', 'weighted_centroid']
 
         if moments:
-            properties = properties + ['moments', 'moments_central', 'moments_hu', 'moments_normalized']
+            properties = properties + ['moments', 'moments_hu', 'moments_normalized']
+            if 'moments_central' not in properties:
+                properties = properties + ['moments_central']
 
         # todo:
         # weighted_local_centroid
@@ -76,6 +84,34 @@ def skimage_regionprops(image: ImageData, labels_layer: napari.layers.Labels, na
         table = regionprops_table(np.asarray(labels).astype(int), intensity_image=np.asarray(image),
                                   properties=properties, extra_properties=extra_properties)
 
+        if shape:
+            if len(labels_layer.data.shape) == 3:
+                axis_lengths_0 = []
+                axis_lengths_1 = []
+                axis_lengths_2 = []
+                for i in range(len(table['moments_central-0-0-0'])):
+                    table_temp = { # ugh
+                        'moments_central-0-0-0': table['moments_central-0-0-0'][i],
+                        'moments_central-2-0-0': table['moments_central-2-0-0'][i],
+                        'moments_central-0-2-0': table['moments_central-0-2-0'][i],
+                        'moments_central-0-0-2': table['moments_central-0-0-2'][i],
+                        'moments_central-1-1-0': table['moments_central-1-1-0'][i],
+                        'moments_central-1-0-1': table['moments_central-1-0-1'][i],
+                        'moments_central-0-1-1': table['moments_central-0-1-1'][i]
+                    }
+                    axis_lengths = ellipsoid_axis_lengths(table_temp)
+                    axis_lengths_0.append(axis_lengths[0]) # ugh
+                    axis_lengths_1.append(axis_lengths[1])
+                    axis_lengths_2.append(axis_lengths[2])
+
+                table["minor_axis_length"] = axis_lengths_2
+                table["intermediate_axis_length"] = axis_lengths_1
+                table["major_axis_length"] = axis_lengths_0
+
+                if not moments:
+                    # remove moment from table as we didn't ask for them
+                    table = {k: v for k, v in table.items() if not 'moments_central' in k}
+
         # Store results in the properties dictionary:
         labels_layer.properties = table
 
@@ -86,6 +122,34 @@ def skimage_regionprops(image: ImageData, labels_layer: napari.layers.Labels, na
         napari_viewer.window.add_dock_widget(dock_widget, area='right')
     else:
         warnings.warn("Image and labels must be set.")
+
+def ellipsoid_axis_lengths(table):
+    """Compute ellipsoid major, intermediate and minor axis length.
+
+    Adapted from https://forum.image.sc/t/scikit-image-regionprops-minor-axis-length-in-3d-gives-first-minor-radius-regardless-of-whether-it-is-actually-the-shortest/59273/2
+
+    Parameters
+    ----------
+    table from regionprops containing moments_central
+
+    Returns
+    -------
+    axis_lengths: tuple of float
+        The ellipsoid axis lengths in descending order.
+    """
+
+
+    m0 = table['moments_central-0-0-0']
+    sxx = table['moments_central-2-0-0'] / m0
+    syy = table['moments_central-0-2-0'] / m0
+    szz = table['moments_central-0-0-2'] / m0
+    sxy = table['moments_central-1-1-0'] / m0
+    sxz = table['moments_central-1-0-1'] / m0
+    syz = table['moments_central-0-1-1'] / m0
+    S = np.asarray([[sxx, sxy, sxz], [sxy, syy, syz], [sxz, syz, szz]])
+    # determine eigenvalues in descending order
+    eigvals = np.sort(np.linalg.eigvalsh(S))[::-1]
+    return tuple([math.sqrt(20.0 * e) for e in eigvals])
 
 def table_to_widget(table: dict, labels_layer: napari.layers.Labels) -> QWidget:
     """
