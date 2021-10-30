@@ -54,7 +54,10 @@ def skimage_regionprops(image: ImageData, labels_layer: napari.layers.Labels, na
             extra_properties.append(standard_deviation_intensity)
 
         if perimeter:
-            properties = properties + ['perimeter', 'perimeter_crofton']
+            if len(labels_layer.data.shape) == 2:
+                properties = properties + ['perimeter', 'perimeter_crofton']
+            else:
+                warnings.warn("Perimeter measurements are not supported in 3D")
 
         if shape:
             properties = properties + ['solidity', 'extent', 'feret_diameter_max', 'local_centroid']
@@ -62,16 +65,17 @@ def skimage_regionprops(image: ImageData, labels_layer: napari.layers.Labels, na
                 properties = properties + ['major_axis_length', 'minor_axis_length', 'orientation', 'eccentricity']
             else:
                 properties = properties + ['moments_central']
-
             # euler_number,
 
         if position:
             properties = properties + ['centroid', 'bbox', 'weighted_centroid']
 
         if moments:
-            properties = properties + ['moments', 'moments_hu', 'moments_normalized']
+            properties = properties + ['moments', 'moments_normalized']
             if 'moments_central' not in properties:
                 properties = properties + ['moments_central']
+            if len(labels_layer.data.shape) == 2:
+                properties = properties + ['moments_hu']
 
         # todo:
         # weighted_local_centroid
