@@ -1,7 +1,7 @@
 import napari
 from pandas import DataFrame
 from qtpy.QtCore import QTimer
-from qtpy.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
+from qtpy.QtWidgets import QTableWidget, QVBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
 
 class TableWidget(QWidget):
     """
@@ -53,8 +53,11 @@ class TableWidget(QWidget):
 
         self.setWindowTitle("Properties of " + labels_layer.name)
         self.setLayout(QGridLayout())
-        self.layout().addWidget(copy_button)
-        self.layout().addWidget(save_button)
+        action_widget = QWidget()
+        action_widget.setLayout(QVBoxLayout())
+        action_widget.layout().addWidget(copy_button)
+        action_widget.layout().addWidget(save_button)
+        self.layout().addWidget(action_widget)
         self.layout().addWidget(self._view)
 
     def set_content(self, table : dict):
