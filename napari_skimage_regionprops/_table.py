@@ -1,7 +1,7 @@
 import napari
 from pandas import DataFrame
 from qtpy.QtCore import QTimer
-from qtpy.QtWidgets import QTableWidget, QVBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
+from qtpy.QtWidgets import QTableWidget, QHBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
 
 class TableWidget(QWidget):
     """
@@ -54,11 +54,16 @@ class TableWidget(QWidget):
         self.setWindowTitle("Properties of " + labels_layer.name)
         self.setLayout(QGridLayout())
         action_widget = QWidget()
-        action_widget.setLayout(QVBoxLayout())
+        action_widget.setLayout(QHBoxLayout())
         action_widget.layout().addWidget(copy_button)
         action_widget.layout().addWidget(save_button)
         self.layout().addWidget(action_widget)
         self.layout().addWidget(self._view)
+
+        self._view.setContentsMargins(1, 1, 1, 1)
+        save_button.setContentsMargins(1, 1, 1, 1)
+        copy_button.setContentsMargins(1, 1, 1, 1)
+        action_widget.setContentsMargins(1, 1, 1, 1)
 
     def set_content(self, table : dict):
         """
@@ -102,10 +107,10 @@ def add_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> Table
     if dock_widget is None:
         dock_widget = TableWidget(labels_layer)
     else:
-        dock_widget.setContent(labels_layer.properties)
+        dock_widget.set_content(labels_layer.properties)
 
     # add widget to napari
-    viewer.window.add_dock_widget(dock_widget, area='right')
+    viewer.window.add_dock_widget(dock_widget, area='right', name="Properties of " + labels_layer.name)
 
     return dock_widget
 
