@@ -12,7 +12,7 @@ import math
 def napari_experimental_provide_function():
     return [regionprops]
 
-@register_function(menu="Measurement > Regionprops (scikit-image)")
+@register_function(menu="Measurement > Regionprops (nsr)")
 def regionprops(image_layer : napari.layers.Image, labels_layer: napari.layers.Labels, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-labelimage pair.

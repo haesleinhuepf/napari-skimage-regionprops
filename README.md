@@ -1,4 +1,4 @@
-# napari-skimage-regionprops
+# napari-skimage-regionprops (nsr)
 
 [![License](https://img.shields.io/pypi/l/napari-skimage-regionprops.svg?color=green)](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-skimage-regionprops.svg?color=green)](https://pypi.org/project/napari-skimage-regionprops)
@@ -12,7 +12,7 @@ A [napari] plugin for measuring properties of labeled objects based on [scikit-i
 
 ## Usage
 
-From the menu `Tools > Measurement > Regionprops` you can open a dialog where you can choose an intensity image, a corresponding label image and the features you want to measure:
+From the menu `Tools > Measurement > Regionprops (nsr)` you can open a dialog where you can choose an intensity image, a corresponding label image and the features you want to measure:
 
 ![img.png](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/dialog.png)
 
@@ -20,6 +20,9 @@ If you want to interface with the labels and see which table row corresponds to 
 activate the `show selected` checkbox.
 
 ![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/interactive.png)
+
+If you closed a table and want to reopen it, you can use the menu `Tools > Measruements > Show table (nsr)` to reopen it. 
+You just need to select the labels layer the properties are associated with.
 
 ## Usage, programmatically
 

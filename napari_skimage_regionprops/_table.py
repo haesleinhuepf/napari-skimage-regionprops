@@ -2,6 +2,7 @@ import napari
 from pandas import DataFrame
 from qtpy.QtCore import QTimer
 from qtpy.QtWidgets import QTableWidget, QHBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
+from napari_tools_menu import register_function
 
 class TableWidget(QWidget):
     """
@@ -97,7 +98,7 @@ class TableWidget(QWidget):
         """
         self.set_content(self._labels_layer.properties)
 
-
+@register_function(menu="Measurement > Show table (nsr)")
 def add_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> TableWidget:
     """
     Add a table to a viewer and return the table widget. The table will show the `properties` of the given layer.
@@ -106,11 +107,12 @@ def add_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> Table
     dock_widget = get_table(labels_layer, viewer)
     if dock_widget is None:
         dock_widget = TableWidget(labels_layer)
+        # add widget to napari
+        viewer.window.add_dock_widget(dock_widget, area='right', name="Properties of " + labels_layer.name)
     else:
         dock_widget.set_content(labels_layer.properties)
-
-    # add widget to napari
-    viewer.window.add_dock_widget(dock_widget, area='right', name="Properties of " + labels_layer.name)
+        if not dock_widget.parent().isVisible():
+            dock_widget.parent().setVisible(True)
 
     return dock_widget
 
