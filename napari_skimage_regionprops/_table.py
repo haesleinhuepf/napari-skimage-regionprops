@@ -4,29 +4,33 @@ from qtpy.QtCore import QTimer
 from qtpy.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
 
 class TableWidget(QWidget):
+    """
+    The table widget represents a table inside napari.
+    Tables are just views on `properties` of `layers`.
+    """
     def __init__(self, labels_layer: napari.layers.Labels):
         super().__init__()
 
-        self.labels_layer = labels_layer
+        self._labels_layer = labels_layer
 
-        self.view = QTableWidget()
+        self._view = QTableWidget()
         self.set_content(labels_layer.properties)
 
-        @self.view.clicked.connect
+        @self._view.clicked.connect
         def clicked_table():
-            row = self.view.currentRow()
-            label = self.table["label"][row]
+            row = self._view.currentRow()
+            label = self._table["label"][row]
             print("Table clicked, set label", label)
             labels_layer.selected_label = label
 
         def after_labels_clicked():
-            row = self.view.currentRow()
-            label = self.table["label"][row]
+            row = self._view.currentRow()
+            label = self._table["label"][row]
             print("labels clicked, set table", label)
             if label != labels_layer.selected_label:
-                for r, l in enumerate(self.table["label"]):
+                for r, l in enumerate(self._table["label"]):
                     if l == labels_layer.selected_label:
-                        self.view.setCurrentCell(r, self.view.currentColumn())
+                        self._view.setCurrentCell(r, self._view.currentColumn())
                         break
 
         @labels_layer.mouse_drag_callbacks.append
@@ -38,43 +42,43 @@ class TableWidget(QWidget):
 
         @copy_button.clicked.connect
         def copy_trigger():
-            DataFrame(self.table).to_clipboard()
+            DataFrame(self._table).to_clipboard()
 
         save_button = QPushButton("Save as csv...")
 
         @save_button.clicked.connect
         def save_trigger():
             filename, _ = QFileDialog.getSaveFileName(save_button, "Save as csv...", ".", "*.csv")
-            DataFrame(self.table).to_csv(filename)
+            DataFrame(self._table).to_csv(filename)
 
         self.setWindowTitle("Properties of " + labels_layer.name)
         self.setLayout(QGridLayout())
         self.layout().addWidget(copy_button)
         self.layout().addWidget(save_button)
-        self.layout().addWidget(self.view)
+        self.layout().addWidget(self._view)
 
     def set_content(self, table):
-        self.table = table
-        if self.table is None:
-            self.table = {}
+        self._table = table
+        if self._table is None:
+            self._table = {}
 
-        self.labels_layer.properties = table
+        self._labels_layer.properties = table
 
-        self.view.clear()
-        self.view.setRowCount(len(next(iter(table.values()))))
-        self.view.setColumnCount(len(table))
+        self._view.clear()
+        self._view.setRowCount(len(next(iter(table.values()))))
+        self._view.setColumnCount(len(table))
 
         for i, column in enumerate(table.keys()):
 
-            self.view.setHorizontalHeaderItem(i, QTableWidgetItem(column))
+            self._view.setHorizontalHeaderItem(i, QTableWidgetItem(column))
             for j, value in enumerate(table.get(column)):
-                self.view.setItem(j, i, QTableWidgetItem(str(value)))
+                self._view.setItem(j, i, QTableWidgetItem(str(value)))
 
     def get_content(self):
-        return self.table
+        return self._table
 
     def update_content(self):
-        self.set_content(self.labels_layer.properties)
+        self.set_content(self._labels_layer.properties)
 
 
 def add_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> TableWidget:
@@ -83,7 +87,7 @@ def add_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> Table
     if dock_widget is None:
         dock_widget = TableWidget(labels_layer)
     else:
-        dock_widget.setContent()
+        dock_widget.setContent(labels_layer.properties)
 
     # add widget to napari
     viewer.window.add_dock_widget(dock_widget, area='right')
@@ -92,5 +96,8 @@ def add_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> Table
 
 def get_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> TableWidget:
     for widget in list(viewer.window._dock_widgets.values()):
-        print()
-
+        potential_table_widget = widget.widget()
+        if isinstance(potential_table_widget, TableWidget):
+            if potential_table_widget._labels_layer is labels_layer:
+                return potential_table_widget
+    return None
