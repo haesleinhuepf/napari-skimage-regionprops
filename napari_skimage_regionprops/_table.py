@@ -5,6 +5,7 @@ from qtpy.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QGridLayout,
 
 class TableWidget(QWidget):
     def __init__(self, labels_layer: napari.layers.Labels):
+        super().__init__()
 
         self.labels_layer = labels_layer
 
@@ -15,11 +16,13 @@ class TableWidget(QWidget):
         def clicked_table():
             row = self.view.currentRow()
             label = self.table["label"][row]
+            print("Table clicked, set label", label)
             labels_layer.selected_label = label
 
         def after_labels_clicked():
             row = self.view.currentRow()
             label = self.table["label"][row]
+            print("labels clicked, set table", label)
             if label != labels_layer.selected_label:
                 for r, l in enumerate(self.table["label"]):
                     if l == labels_layer.selected_label:
@@ -57,12 +60,15 @@ class TableWidget(QWidget):
 
         self.labels_layer.properties = table
 
-        self.view.clear() #setRowsAndColumns(len(next(iter(table.values()))), len(table))
+        self.view.clear()
+        self.view.setRowCount(len(next(iter(table.values()))))
+        self.view.setColumnCount(len(table))
 
         for i, column in enumerate(table.keys()):
-            self.view.setItem(0, i, QTableWidgetItem(column))
+
+            self.view.setHorizontalHeaderItem(i, QTableWidgetItem(column))
             for j, value in enumerate(table.get(column)):
-                self.view.setItem(j + 1, i, QTableWidgetItem(str(value)))
+                self.view.setItem(j, i, QTableWidgetItem(str(value)))
 
     def get_content(self):
         return self.table
@@ -86,4 +92,5 @@ def add_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> Table
 
 def get_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> TableWidget:
     for widget in list(viewer.window._dock_widgets.values()):
-        if widget
+        print()
+

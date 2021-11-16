@@ -15,15 +15,15 @@ import math
 
 @napari_hook_implementation
 def napari_experimental_provide_function():
-    return [skimage_regionprops]
+    return [regionprops]
 
 @register_function(menu="Measurement > Regionprops (scikit-image)")
-def skimage_regionprops(image: ImageData, labels_layer: napari.layers.Labels, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
+def regionprops(image_layer : napari.layers.Image, labels_layer: napari.layers.Labels, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-labelimage pair.
     """
     labels = labels_layer.data
-
+    image = image_layer.data
     if image is not None and labels is not None:
 
         # deal with dimensionality of data
