@@ -57,7 +57,10 @@ class TableWidget(QWidget):
         self.layout().addWidget(save_button)
         self.layout().addWidget(self._view)
 
-    def set_content(self, table):
+    def set_content(self, table : dict):
+        """
+        Overwrites the content of the table with the content of a given dictionary.
+        """
         self._table = table
         if self._table is None:
             self._table = {}
@@ -74,14 +77,23 @@ class TableWidget(QWidget):
             for j, value in enumerate(table.get(column)):
                 self._view.setItem(j, i, QTableWidgetItem(str(value)))
 
-    def get_content(self):
+    def get_content(self) -> dict:
+        """
+        Returns the current content of the table
+        """
         return self._table
 
     def update_content(self):
+        """
+        Read the content of the table from the associated labels_layer and overwrites the current content.
+        """
         self.set_content(self._labels_layer.properties)
 
 
 def add_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> TableWidget:
+    """
+    Add a table to a viewer and return the table widget. The table will show the `properties` of the given layer.
+    """
 
     dock_widget = get_table(labels_layer, viewer)
     if dock_widget is None:
@@ -95,6 +107,10 @@ def add_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> Table
     return dock_widget
 
 def get_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> TableWidget:
+    """
+    Searches inside a viewer for a given table and returns it. If it cannot find it,
+    it will return None.
+    """
     for widget in list(viewer.window._dock_widgets.values()):
         potential_table_widget = widget.widget()
         if isinstance(potential_table_widget, TableWidget):
