@@ -16,10 +16,14 @@ From the menu `Tools > Measurement > Regionprops` you can open a dialog where yo
 
 ![img.png](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/dialog.png)
 
-If you want to interace with the labels and see which table row corresponds to which labeled object, use the label picker and
+If you want to interface with the labels and see which table row corresponds to which labeled object, use the label picker and
 activate the `show selected` checkbox.
 
 ![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/interactive.png)
+
+## Usage, programmatically
+
+You can also control the tables programmatically. See this [example notebook](https://github.com/haesleinhuepf/napari-skimage-regionprops/blob/master/demo/tables.ipynb) for details.
 
 ## Features
 The user can select categories of features for feature extraction in the user interface. These categories contain measurements from the scikit-image [regionprops list of measurements](https://scikit-image.org/docs/dev/api/skimage.measure.html#skimage.measure.regionprops) library:
