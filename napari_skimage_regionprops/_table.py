@@ -60,11 +60,8 @@ class TableWidget(QWidget):
         action_widget.layout().addWidget(save_button)
         self.layout().addWidget(action_widget)
         self.layout().addWidget(self._view)
-
-        self._view.setContentsMargins(1, 1, 1, 1)
-        save_button.setContentsMargins(1, 1, 1, 1)
-        copy_button.setContentsMargins(1, 1, 1, 1)
-        action_widget.setContentsMargins(1, 1, 1, 1)
+        action_widget.layout().setSpacing(3)
+        action_widget.layout().setContentsMargins(0, 0, 0, 0)
 
     def set_content(self, table : dict):
         """
