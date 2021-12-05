@@ -24,6 +24,13 @@ activate the `show selected` checkbox.
 If you closed a table and want to reopen it, you can use the menu `Tools > Measurements > Show table (nsr)` to reopen it. 
 You just need to select the labels layer the properties are associated with.
 
+For visualizing measurements with different grey values, as parametric images, you can use the menu `Tools > Visualization > Measurements on labels (nsr)`. 
+After performing measurements, use this dialog to select the layer where measurements were performed on and layer properties were stored.
+Also enter which column should be visualized.
+
+![img.png](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/parametric_images.png)
+
+
 ## Usage, programmatically
 
 You can also control the tables programmatically. See this [example notebook](https://github.com/haesleinhuepf/napari-skimage-regionprops/blob/master/demo/tables.ipynb) for details.

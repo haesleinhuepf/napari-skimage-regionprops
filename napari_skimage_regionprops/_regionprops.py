@@ -1,16 +1,12 @@
 import warnings
 
 import numpy as np
-from napari_plugin_engine import napari_hook_implementation
 from napari import Viewer
 from skimage.measure import regionprops_table
 from napari_tools_menu import register_function
 import napari
 import math
 
-@napari_hook_implementation
-def napari_experimental_provide_function():
-    return [regionprops]
 
 @register_function(menu="Measurement > Regionprops (nsr)")
 def regionprops(image_layer : napari.layers.Image, labels_layer: napari.layers.Labels, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
@@ -116,7 +112,7 @@ def regionprops(image_layer : napari.layers.Image, labels_layer: napari.layers.L
 
         # turn table into a widget
         from ._table import add_table
-        dock_widget = add_table(labels_layer, napari_viewer)
+        add_table(labels_layer, napari_viewer)
     else:
         warnings.warn("Image and labels must be set.")
 
