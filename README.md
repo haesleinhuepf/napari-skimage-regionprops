@@ -21,7 +21,7 @@ activate the `show selected` checkbox.
 
 ![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/interactive.png)
 
-If you closed a table and want to reopen it, you can use the menu `Tools > Measruements > Show table (nsr)` to reopen it. 
+If you closed a table and want to reopen it, you can use the menu `Tools > Measurements > Show table (nsr)` to reopen it. 
 You just need to select the labels layer the properties are associated with.
 
 ## Usage, programmatically
