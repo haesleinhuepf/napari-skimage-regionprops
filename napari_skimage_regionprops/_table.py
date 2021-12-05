@@ -9,32 +9,34 @@ class TableWidget(QWidget):
     The table widget represents a table inside napari.
     Tables are just views on `properties` of `layers`.
     """
-    def __init__(self, labels_layer: napari.layers.Labels):
+    def __init__(self, layer: napari.layers.Layer):
         super().__init__()
 
-        self._labels_layer = labels_layer
+        self._layer = layer
 
         self._view = QTableWidget()
-        self.set_content(labels_layer.properties)
+        self.set_content(layer.properties)
 
         @self._view.clicked.connect
         def clicked_table():
-            row = self._view.currentRow()
-            label = self._table["label"][row]
-            print("Table clicked, set label", label)
-            labels_layer.selected_label = label
+            if "label" in self._table.keys():
+                row = self._view.currentRow()
+                label = self._table["label"][row]
+                print("Table clicked, set label", label)
+                layer.selected_label = label
 
         def after_labels_clicked():
-            row = self._view.currentRow()
-            label = self._table["label"][row]
-            print("labels clicked, set table", label)
-            if label != labels_layer.selected_label:
-                for r, l in enumerate(self._table["label"]):
-                    if l == labels_layer.selected_label:
-                        self._view.setCurrentCell(r, self._view.currentColumn())
-                        break
+            if "label" in self._table.keys() and hasattr(layer, "selected_label"):
+                row = self._view.currentRow()
+                label = self._table["label"][row]
+                print("labels clicked, set table", label)
+                if label != layer.selected_label:
+                    for r, l in enumerate(self._table["label"]):
+                        if l == layer.selected_label:
+                            self._view.setCurrentCell(r, self._view.currentColumn())
+                            break
 
-        @labels_layer.mouse_drag_callbacks.append
+        @layer.mouse_drag_callbacks.append
         def clicked_labels(event, event1):
             # We need to run this later as the labels_layer.selected_label isn't changed yet.
             QTimer.singleShot(200, after_labels_clicked)
@@ -52,7 +54,7 @@ class TableWidget(QWidget):
             filename, _ = QFileDialog.getSaveFileName(save_button, "Save as csv...", ".", "*.csv")
             DataFrame(self._table).to_csv(filename)
 
-        self.setWindowTitle("Properties of " + labels_layer.name)
+        self.setWindowTitle("Properties of " + layer.name)
         self.setLayout(QGridLayout())
         action_widget = QWidget()
         action_widget.setLayout(QHBoxLayout())
@@ -71,7 +73,7 @@ class TableWidget(QWidget):
         if self._table is None:
             self._table = {}
 
-        self._labels_layer.properties = table
+        self._layer.properties = table
 
         self._view.clear()
         self._view.setRowCount(len(next(iter(table.values()))))
@@ -93,10 +95,10 @@ class TableWidget(QWidget):
         """
         Read the content of the table from the associated labels_layer and overwrites the current content.
         """
-        self.set_content(self._labels_layer.properties)
+        self.set_content(self._layer.properties)
 
 @register_function(menu="Measurement > Show table (nsr)")
-def add_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> TableWidget:
+def add_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableWidget:
     """
     Add a table to a viewer and return the table widget. The table will show the `properties` of the given layer.
     """
@@ -113,7 +115,7 @@ def add_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> Table
 
     return dock_widget
 
-def get_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> TableWidget:
+def get_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableWidget:
     """
     Searches inside a viewer for a given table and returns it. If it cannot find it,
     it will return None.
@@ -121,6 +123,6 @@ def get_table(labels_layer: napari.layers.Labels, viewer:napari.Viewer) -> Table
     for widget in list(viewer.window._dock_widgets.values()):
         potential_table_widget = widget.widget()
         if isinstance(potential_table_widget, TableWidget):
-            if potential_table_widget._labels_layer is labels_layer:
+            if potential_table_widget._layer is labels_layer:
                 return potential_table_widget
     return None
