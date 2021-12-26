@@ -206,3 +206,7 @@ def test_napari_api():
     from napari_skimage_regionprops import napari_experimental_provide_function
     napari_experimental_provide_function()
 
+def test_napari_api2():
+    from napari_skimage_regionprops._utilities import napari_experimental_provide_function
+    napari_experimental_provide_function()
+
