@@ -66,7 +66,7 @@ def test_regionprops(make_napari_viewer):
     table_widget.set_content(None)
     table_widget.update_content()
 
-def test_regionprops_withouth_moments(make_napari_viewer):
+def test_regionprops_without_moments(make_napari_viewer):
 
     viewer = make_napari_viewer()
 
@@ -93,7 +93,7 @@ def test_regionprops_withouth_moments(make_napari_viewer):
     regionprops(image_layer, labels_layer, viewer, True, True, True, True, True, False)
 
 
-def test_regionprops_withouth_moments(make_napari_viewer):
+def test_regionprops_without_data(make_napari_viewer):
 
     viewer = make_napari_viewer()
 
