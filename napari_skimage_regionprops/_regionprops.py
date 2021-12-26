@@ -11,11 +11,11 @@ import math
 @register_function(menu="Measurement > Regionprops (nsr)")
 def regionprops(image_layer : napari.layers.Layer, labels_layer: napari.layers.Labels, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
     """
-    Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-labelimage pair.
+    Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-label/image pair.
     """
-    labels = labels_layer.data
-    image = image_layer.data
-    if image is not None and labels is not None:
+    if image_layer is not None and labels_layer is not None:
+        labels = labels_layer.data
+        image = image_layer.data
 
         # deal with dimensionality of data
         if len(image.shape) > len(labels.shape):
