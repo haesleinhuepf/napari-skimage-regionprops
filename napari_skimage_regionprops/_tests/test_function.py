@@ -35,12 +35,15 @@ def test_regionprops(make_napari_viewer):
     table_widget = get_table(labels_layer, viewer)
     assert table_widget is not None
 
+    # save content
+    table_widget._save_clicked("test.csv")
+
     # select a cell, click the table and read out selected label
     table_widget._view.setCurrentCell(1, 1)
     table_widget._clicked_table()
     assert labels_layer.selected_label == 2
 
-    # select a lable, click the layer, read out selected row
+    # select a label, click the layer, read out selected row
     labels_layer.selected_label = 3
     table_widget._after_labels_clicked()
     assert table_widget._view.currentRow() == 2
@@ -54,6 +57,13 @@ def test_regionprops(make_napari_viewer):
     from napari_skimage_regionprops import visualize_measurement_on_labels
     layer = visualize_measurement_on_labels(labels_layer, "area")
     assert layer is not None
+
+    # replace table
+    from napari_skimage_regionprops import add_table
+    add_table(labels_layer, viewer)
+
+    # empty table
+    table_widget.set_content(None)
 
 def test_3d_2d(make_napari_viewer):
 
