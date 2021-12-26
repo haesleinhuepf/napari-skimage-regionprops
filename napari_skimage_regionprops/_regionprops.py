@@ -13,9 +13,9 @@ def regionprops(image_layer : napari.layers.Layer, labels_layer: napari.layers.L
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-label/image pair.
     """
-    labels = labels_layer.data
-    image = image_layer.data
-    if image is not None and labels is not None:
+    if image_layer is not None and labels_layer is not None:
+        labels = labels_layer.data
+        image = image_layer.data
 
         # deal with dimensionality of data
         if len(image.shape) > len(labels.shape):
