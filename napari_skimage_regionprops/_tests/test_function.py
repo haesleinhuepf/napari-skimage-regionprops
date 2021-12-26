@@ -35,13 +35,25 @@ def test_regionprops(make_napari_viewer):
     table_widget = get_table(labels_layer, viewer)
     assert table_widget is not None
 
+    # select a cell, click the table and read out selected label
+    table_widget._view.setCurrentCell(1, 1)
+    table_widget._clicked_table()
+    assert labels_layer.selected_label == 2
+
+    # select a lable, click the layer, read out selected row
+    labels_layer.selected_label = 3
+    table_widget._after_labels_clicked()
+    assert table_widget._view.currentRow() == 2
+
+    # check table results
     area_measurements = table_widget.get_content()['area']
     print(area_measurements)
     assert np.array_equal([9, 6, 6, 1], area_measurements)
 
     # generate a parametric image
     from napari_skimage_regionprops import visualize_measurement_on_labels
-    visualize_measurement_on_labels(labels_layer, "area")
+    layer = visualize_measurement_on_labels(labels_layer, "area")
+    assert layer is not None
 
 def test_3d_2d(make_napari_viewer):
 
