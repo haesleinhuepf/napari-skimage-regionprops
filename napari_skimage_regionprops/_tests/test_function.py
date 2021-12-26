@@ -64,6 +64,40 @@ def test_regionprops(make_napari_viewer):
 
     # empty table
     table_widget.set_content(None)
+    table_widget.update_content()
+
+def test_regionprops_withouth_moments(make_napari_viewer):
+
+    viewer = make_napari_viewer()
+
+    import numpy as np
+
+    image = np.asarray([
+        [0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 0, 0, 2, 2],
+        [1, 1, 1, 0, 0, 2, 2],
+        [1, 1, 1, 0, 0, 2, 2],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 3, 3, 3, 0, 0],
+        [0, 0, 3, 3, 3, 0, 4],
+    ])
+
+    image_layer = viewer.add_image(image)
+    labels_layer = viewer.add_labels(image)
+
+    # analyze everything we can
+    from napari_skimage_regionprops import regionprops
+    regionprops(image_layer, labels_layer, viewer, True, True, True, True, True, False)
+
+
+def test_regionprops_withouth_moments(make_napari_viewer):
+
+    viewer = make_napari_viewer()
+
+    # analyze everything we can
+    from napari_skimage_regionprops import regionprops
+    regionprops(None, None, viewer)
+
 
 def test_3d_2d(make_napari_viewer):
 
