@@ -21,13 +21,9 @@ class TableWidget(QWidget):
         layer.mouse_drag_callbacks.append(self._clicked_labels)
 
         copy_button = QPushButton("Copy to clipboard")
-
-        @copy_button.clicked.connect
-        def copy_trigger():
-            DataFrame(self._table).to_clipboard()
+        copy_button.clicked.connect(self._copy_clicked)
 
         save_button = QPushButton("Save as csv...")
-
         save_button.clicked.connect(self._save_clicked)
 
         self.setWindowTitle("Properties of " + layer.name)
@@ -69,6 +65,7 @@ class TableWidget(QWidget):
             filename, _ = QFileDialog.getSaveFileName(self, "Save as csv...", ".", "*.csv")
         DataFrame(self._table).to_csv(filename)
 
+    def _copy_clicked(self): DataFrame(self._table).to_clipboard()
 
     def set_content(self, table : dict):
         """
