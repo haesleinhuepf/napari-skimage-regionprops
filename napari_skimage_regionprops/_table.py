@@ -74,15 +74,18 @@ class TableWidget(QWidget):
         """
         Overwrites the content of the table with the content of a given dictionary.
         """
+        if table is None:
+            table = {}
         self._table = table
-        if self._table is None:
-            self._table = {}
 
         self._layer.properties = table
 
         self._view.clear()
-        self._view.setRowCount(len(next(iter(table.values()))))
-        self._view.setColumnCount(len(table))
+        try:
+            self._view.setRowCount(len(next(iter(table.values()))))
+            self._view.setColumnCount(len(table))
+        except StopIteration:
+            pass
 
         for i, column in enumerate(table.keys()):
 
