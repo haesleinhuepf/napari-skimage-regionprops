@@ -58,6 +58,19 @@ def test_regionprops(make_napari_viewer):
     layer = visualize_measurement_on_labels(labels_layer, "area")
     assert layer is not None
 
+    reference = np.asarray([
+        [0, 0, 0, 0, 0, 0, 0],
+        [9, 9, 9, 0, 0, 6, 6],
+        [9, 9, 9, 0, 0, 6, 6],
+        [9, 9, 9, 0, 0, 6, 6],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 6, 6, 6, 0, 0],
+        [0, 0, 6, 6, 6, 0, 1],
+    ])
+    print("layer.data: ", layer.data)
+    print("reference: ", np.asarray(reference))
+    assert np.array_equal(layer.data, reference)
+
     # replace table
     from napari_skimage_regionprops import add_table
     add_table(labels_layer, viewer)
