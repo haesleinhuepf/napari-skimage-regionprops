@@ -5,6 +5,7 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-skimage-regionprops.svg?color=green)](https://python.org)
 [![tests](https://github.com/haesleinhuepf/napari-skimage-regionprops/workflows/tests/badge.svg)](https://github.com/haesleinhuepf/napari-skimage-regionprops/actions)
 [![codecov](https://codecov.io/gh/haesleinhuepf/napari-skimage-regionprops/branch/master/graph/badge.svg)](https://codecov.io/gh/haesleinhuepf/napari-skimage-regionprops)
+[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-skimage-regionprops)](https://napari-hub.org/plugins/napari-skimage-regionprops)
 
 A [napari] plugin for measuring properties of labeled objects based on [scikit-image]
 
