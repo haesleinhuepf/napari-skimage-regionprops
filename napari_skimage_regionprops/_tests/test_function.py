@@ -194,3 +194,15 @@ def test_4d_3d(make_napari_viewer):
     print(area_measurements)
     assert np.array_equal([27, 18, 18, 12], area_measurements)
 
+    # test duplicating the current frame
+    from napari_skimage_regionprops._utilities import duplicate_current_frame
+    new_layer = duplicate_current_frame(image, viewer)
+
+    assert len(new_layer.data.shape) == 3
+    assert np.array_equal(new_layer.data.shape, [3, 7, 7])
+
+
+def test_napari_api():
+    from napari_skimage_regionprops import napari_experimental_provide_function
+    napari_experimental_provide_function()
+
