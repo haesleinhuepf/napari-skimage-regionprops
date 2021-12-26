@@ -17,42 +17,14 @@ class TableWidget(QWidget):
         self._view = QTableWidget()
         self.set_content(layer.properties)
 
-        @self._view.clicked.connect
-        def clicked_table():
-            if "label" in self._table.keys():
-                row = self._view.currentRow()
-                label = self._table["label"][row]
-                print("Table clicked, set label", label)
-                layer.selected_label = label
-
-        def after_labels_clicked():
-            if "label" in self._table.keys() and hasattr(layer, "selected_label"):
-                row = self._view.currentRow()
-                label = self._table["label"][row]
-                print("labels clicked, set table", label)
-                if label != layer.selected_label:
-                    for r, l in enumerate(self._table["label"]):
-                        if l == layer.selected_label:
-                            self._view.setCurrentCell(r, self._view.currentColumn())
-                            break
-
-        @layer.mouse_drag_callbacks.append
-        def clicked_labels(event, event1):
-            # We need to run this later as the labels_layer.selected_label isn't changed yet.
-            QTimer.singleShot(200, after_labels_clicked)
+        self._view.clicked.connect(self._clicked_table)
+        layer.mouse_drag_callbacks.append(self._clicked_labels)
 
         copy_button = QPushButton("Copy to clipboard")
-
-        @copy_button.clicked.connect
-        def copy_trigger():
-            DataFrame(self._table).to_clipboard()
+        copy_button.clicked.connect(self._copy_clicked)
 
         save_button = QPushButton("Save as csv...")
-
-        @save_button.clicked.connect
-        def save_trigger():
-            filename, _ = QFileDialog.getSaveFileName(save_button, "Save as csv...", ".", "*.csv")
-            DataFrame(self._table).to_csv(filename)
+        save_button.clicked.connect(self._save_clicked)
 
         self.setWindowTitle("Properties of " + layer.name)
         self.setLayout(QGridLayout())
@@ -65,19 +37,50 @@ class TableWidget(QWidget):
         action_widget.layout().setSpacing(3)
         action_widget.layout().setContentsMargins(0, 0, 0, 0)
 
+
+    def _clicked_table(self):
+        if "label" in self._table.keys():
+            row = self._view.currentRow()
+            label = self._table["label"][row]
+            print("Table clicked, set label", label)
+            self._layer.selected_label = label
+
+    def _after_labels_clicked(self):
+        if "label" in self._table.keys() and hasattr(self._layer, "selected_label"):
+            row = self._view.currentRow()
+            label = self._table["label"][row]
+            print("labels clicked, set table", label)
+            if label != self._layer.selected_label:
+                for r, l in enumerate(self._table["label"]):
+                    if l == self._layer.selected_label:
+                        self._view.setCurrentCell(r, self._view.currentColumn())
+                        break
+
+    # We need to run this later as the labels_layer.selected_label isn't changed yet.
+    def _clicked_labels(self, event, event1): QTimer.singleShot(200, self._after_labels_clicked)
+
+    def _save_clicked(self, filename=None):
+        if filename is None: filename, _ = QFileDialog.getSaveFileName(self, "Save as csv...", ".", "*.csv")
+        DataFrame(self._table).to_csv(filename)
+
+    def _copy_clicked(self): DataFrame(self._table).to_clipboard()
+
     def set_content(self, table : dict):
         """
         Overwrites the content of the table with the content of a given dictionary.
         """
+        if table is None:
+            table = {}
         self._table = table
-        if self._table is None:
-            self._table = {}
 
         self._layer.properties = table
 
         self._view.clear()
-        self._view.setRowCount(len(next(iter(table.values()))))
-        self._view.setColumnCount(len(table))
+        try:
+            self._view.setRowCount(len(next(iter(table.values()))))
+            self._view.setColumnCount(len(table))
+        except StopIteration:
+            pass
 
         for i, column in enumerate(table.keys()):
 
