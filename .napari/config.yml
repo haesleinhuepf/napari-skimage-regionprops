@@ -1,0 +1,7 @@
+
+# Add labels the plugin from the EDAM Bioimaging ontology
+labels:
+  ontology: EDAM-BIOIMAGING:alpha06
+  terms:
+  - Shape features extraction
+  - Object feature extraction
