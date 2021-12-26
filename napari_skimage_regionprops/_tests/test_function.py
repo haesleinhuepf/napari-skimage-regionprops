@@ -82,6 +82,9 @@ def test_regionprops_withouth_moments(make_napari_viewer):
         [0, 0, 3, 3, 3, 0, 4],
     ])
 
+    # make 3D stack
+    image = np.asarray([image, image, image])
+
     image_layer = viewer.add_image(image)
     labels_layer = viewer.add_labels(image)
 

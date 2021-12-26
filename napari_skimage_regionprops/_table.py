@@ -56,13 +56,11 @@ class TableWidget(QWidget):
                         self._view.setCurrentCell(r, self._view.currentColumn())
                         break
 
-    def _clicked_labels(self, event, event1):
-        # We need to run this later as the labels_layer.selected_label isn't changed yet.
-        QTimer.singleShot(200, self._after_labels_clicked)
+    # We need to run this later as the labels_layer.selected_label isn't changed yet.
+    def _clicked_labels(self, event, event1): QTimer.singleShot(200, self._after_labels_clicked)
 
     def _save_clicked(self, filename=None):
-        if filename is None:
-            filename, _ = QFileDialog.getSaveFileName(self, "Save as csv...", ".", "*.csv")
+        if filename is None: filename, _ = QFileDialog.getSaveFileName(self, "Save as csv...", ".", "*.csv")
         DataFrame(self._table).to_csv(filename)
 
     def _copy_clicked(self): DataFrame(self._table).to_clipboard()
