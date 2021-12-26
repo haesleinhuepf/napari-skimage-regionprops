@@ -5,7 +5,7 @@ name: napari hub Preview Page # we use this name to find your preview page artif
 on:
   pull_request:
     branches:
-      - '**'
+      - 'none' # '**'
 
 jobs:
   preview-page:
