@@ -1,4 +1,4 @@
-from ._table import add_table, get_table, TableWidget
+from ._table import add_table, get_table, append_table, TableWidget
 from ._regionprops import regionprops
 from ._parametric_images import visualize_measurement_on_labels
 try:
