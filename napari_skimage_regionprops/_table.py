@@ -134,6 +134,42 @@ def add_table(labels_layer: napari.layers.Layer,
     return dock_widget
 
 
+def append_table(viewer: napari.Viewer, table_name: str, table: dict):
+    """
+    Append data to a currently active table widget in the viewer.
+
+    The function finds the table widget in the `viewer`, the name of which
+    matches `name`. The data in `table` is then appended to this table and
+    displayed.
+
+    Parameters
+    ----------
+    viewer : napari.Viewer
+        Instance of the activa napari viewer.
+    table_name : str
+        Name of the table widget in the viewer.
+    table : dict
+        Data to be appended to the table widget.
+
+    Returns
+    -------
+    None.
+
+    """
+    table_widget = get_table(table_name, viewer)
+    _table = table_widget._table
+
+    for key in _table.keys():
+        if key in table.keys():
+            _table[key] = _table[key].append(table[key])
+        else:
+            _table[key] = _table[key].append('NaN')
+
+    table_widget.set_content(_table)
+
+    return None
+
+
 def get_table(labels_layer: typing.Union(napari.layers.Layer, str),
               viewer: napari.Viewer) -> TableWidget:
     """
