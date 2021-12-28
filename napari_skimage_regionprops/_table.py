@@ -126,8 +126,6 @@ def get_table(labels_layer: typing.Union(napari.layers.Layer, str),
     """
     Search for a table widget in the viewer.
 
-
-
     Parameters
     ----------
     labels_layer : typing.Union(napari.layers.Layer, str)
@@ -151,6 +149,6 @@ def get_table(labels_layer: typing.Union(napari.layers.Layer, str),
                 if potential_table_widget._layer is labels_layer:
                     return potential_table_widget
             elif type(labels_layer) == str:
-                if potential_table_widget._name is labels_layer:
+                if potential_table_widget._layer is labels_layer:
                     return potential_table_widget
     return None
