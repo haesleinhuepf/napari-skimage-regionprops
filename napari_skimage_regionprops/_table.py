@@ -4,6 +4,8 @@ from qtpy.QtCore import QTimer
 from qtpy.QtWidgets import QTableWidget, QHBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
 from napari_tools_menu import register_function
 
+import typing
+
 class TableWidget(QWidget):
     """
     The table widget represents a table inside napari.
@@ -13,6 +15,7 @@ class TableWidget(QWidget):
         super().__init__()
 
         self._layer = layer
+        self._name = "Properties of " + layer.name
 
         self._view = QTableWidget()
         self.set_content(layer.properties)
@@ -26,7 +29,7 @@ class TableWidget(QWidget):
         save_button = QPushButton("Save as csv...")
         save_button.clicked.connect(self._save_clicked)
 
-        self.setWindowTitle("Properties of " + layer.name)
+        self.setWindowTitle(self._name)
         self.setLayout(QGridLayout())
         action_widget = QWidget()
         action_widget.setLayout(QHBoxLayout())
@@ -118,14 +121,36 @@ def add_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableW
 
     return dock_widget
 
-def get_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableWidget:
+def get_table(labels_layer: typing.Union(napari.layers.Layer, str),
+              viewer:napari.Viewer) -> TableWidget:
     """
-    Searches inside a viewer for a given table and returns it. If it cannot find it,
-    it will return None.
+    Search for a table widget in the viewer.
+
+
+
+    Parameters
+    ----------
+    labels_layer : typing.Union(napari.layers.Layer, str)
+        Can be an label layer that is associated with a table if a
+        napari.layers.layer is passed as argument. If the argument is a string,
+        the function looks for a table widget with a given name.
+    viewer : napari.Viewer
+        Instance of the napari viewer.
+
+    Returns
+    -------
+    TableWidget
+        Handle of a discovered TableWidget.
+
     """
     for widget in list(viewer.window._dock_widgets.values()):
         potential_table_widget = widget.widget()
         if isinstance(potential_table_widget, TableWidget):
-            if potential_table_widget._layer is labels_layer:
-                return potential_table_widget
+
+            if type(labels_layer == napari.layers.Layer):
+                if potential_table_widget._layer is labels_layer:
+                    return potential_table_widget
+            elif type(labels_layer) == str:
+                if potential_table_widget._name is labels_layer:
+                    return potential_table_widget
     return None
