@@ -79,3 +79,4 @@ target/
 */_version.py
 /.idea/
 /venv/
+test.csv
