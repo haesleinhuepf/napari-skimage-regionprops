@@ -36,7 +36,7 @@ setup(
     packages=find_packages(),
     python_requires='>=3.6',
     install_requires=requirements,
-    version='0.2.6',
+    version='0.2.7',
     #use_scm_version=use_scm,
     setup_requires=['setuptools_scm'],
     classifiers=[
@@ -45,7 +45,6 @@ setup(
         'Framework :: napari',
         'Topic :: Scientific/Engineering :: Image Processing',
         'Topic :: Scientific/Engineering :: Information Analysis',
-        'Topic :: Scientific/Engineering :: Medical Science Apps',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.7',
