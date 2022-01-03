@@ -4,7 +4,7 @@ from qtpy.QtCore import QTimer
 from qtpy.QtWidgets import QTableWidget, QHBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
 from napari_tools_menu import register_function
 
-import typing
+from typing import Union
 
 
 class TableWidget(QWidget):
@@ -170,7 +170,7 @@ def append_table(viewer: napari.Viewer, table_name: str, table: dict):
     return None
 
 
-def get_table(labels_layer: typing.Union(napari.layers.Layer, str),
+def get_table(labels_layer: Union[napari.layers.Layer, str],
               viewer: napari.Viewer) -> TableWidget:
     """
     Search for a table widget in the viewer.
