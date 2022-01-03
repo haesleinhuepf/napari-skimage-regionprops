@@ -12,4 +12,3 @@ from napari_plugin_engine import napari_hook_implementation
 @napari_hook_implementation
 def napari_experimental_provide_function():
     return [regionprops, visualize_measurement_on_labels]
-
