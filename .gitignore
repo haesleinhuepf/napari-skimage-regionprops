@@ -79,4 +79,7 @@ target/
 */_version.py
 /.idea/
 /venv/
+
+# Misc
 *.cl
+test.csv

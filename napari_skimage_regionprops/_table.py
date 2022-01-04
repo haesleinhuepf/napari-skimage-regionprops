@@ -72,6 +72,7 @@ class TableWidget(QWidget):
     def _save_clicked(self, filename=None):
         if filename is None:
             filename, _ = QFileDialog.getSaveFileName(self,"Save as csv...", ".", "*.csv")
+
         DataFrame(self._table).to_csv(filename)
 
     def _copy_clicked(self): DataFrame(self._table).to_clipboard()
