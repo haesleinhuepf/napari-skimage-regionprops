@@ -113,11 +113,11 @@ def test_append_table_by_merging(make_napari_viewer):
     regionprops(image_layer, labels_layer, viewer, True, True, True, True, True, True)
 
     table1 = {
-        "A":[1,2,4]
+        "A":[1,2,4],
         "B":[1,2,4]
     }
     table2 = {
-        "B":[1,2,4]
+        "B":[1,2,4],
         "C":[1,2,4]
     }
     labels_layer.properies = table1
