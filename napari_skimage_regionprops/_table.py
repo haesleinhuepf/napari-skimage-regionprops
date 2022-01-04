@@ -105,6 +105,31 @@ class TableWidget(QWidget):
         """
         self.set_content(self._layer.properties)
 
+    def append_content(self, table: Union[dict, DataFrame], how: str = 'outer'):
+        """
+        Append data to table.
+
+        The input table can be a pandas dataframe or a dictionary.
+
+        Parameters
+        ----------
+        table : Union[dict, DataFrame]
+            New data to be appended.
+        how : str, OPTIONAL
+            Method how to join the data. See also https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.merge.html
+
+        Returns
+        -------
+        None.
+
+        """
+        # Check input type
+        if type(table) == dict:
+            table = DataFrame(table)
+
+        table = pd.merge(self._table, table, how=how, copy=False)
+        self.set_content(table.to_dict('list'))
+
 
 @register_function(menu="Measurement > Show table (nsr)")
 def add_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableWidget:
@@ -123,37 +148,6 @@ def add_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableW
             dock_widget.parent().setVisible(True)
 
     return dock_widget
-
-
-def append_table(table_widget: QTableWidget, table: dict):
-    """
-    Append data to a currently active table widget in the viewer.
-
-    The function finds the table widget in the `viewer`, the name of which
-    matches `name`. The data in `table` is then appended to this table and
-    displayed. If the provided data to be added to the table widget fails to
-    provide some of the fields, the field is filled with 'NaN'
-
-    Parameters
-    ----------
-    table_widget : QTableWidget
-        Table widget instance in the viewer.
-    table : dict
-        Data to be appended to the table widget.
-
-    Returns
-    -------
-    None.
-
-    """
-    _table = DataFrame(table_widget._table)
-    table = DataFrame(table)
-
-    # merge dataframes
-    _table = pd.merge(_table, table, how='outer', copy=False)
-    table_widget.set_content(_table.to_dict('list'))
-
-    return None
 
 
 def get_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableWidget:
