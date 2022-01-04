@@ -85,6 +85,37 @@ def test_regionprops(make_napari_viewer):
     table_widget.set_content(None)
     table_widget.update_content()
 
+# add your tests here...
+def test_append_table_by_merging(make_napari_viewer):
+
+    viewer = make_napari_viewer()
+
+    import numpy as np
+
+    image = np.asarray([
+        [0, 0],
+        [0, 1],
+    ])
+
+    labels_layer = viewer.add_labels(image)
+
+    table1 = {
+        "A":[1,2,4],
+        "B":[1,2,4]
+    }
+    table2 = {
+        "B":[1,2,4],
+        "C":[1,2,4]
+    }
+    labels_layer.properties = table1
+
+    # Append table
+    from napari_skimage_regionprops import add_table
+    table_widget = add_table(labels_layer, viewer)
+    table_widget.append_content(table2)
+    assert 'A' in table_widget.get_content().keys()
+    assert 'B' in table_widget.get_content().keys()
+    assert 'C' in table_widget.get_content().keys()
 
 def test_regionprops_without_moments(make_napari_viewer):
 
