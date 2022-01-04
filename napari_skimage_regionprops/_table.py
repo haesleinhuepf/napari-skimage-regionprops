@@ -6,7 +6,9 @@ from qtpy.QtCore import QTimer
 from qtpy.QtWidgets import QTableWidget, QHBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
 from napari_tools_menu import register_function
 
+import pandas as pd
 from typing import Union
+import numpy as np
 
 
 class TableWidget(QWidget):
@@ -112,6 +114,35 @@ class TableWidget(QWidget):
     def update_content(self):
         """Overwrite current content with data from associated labels layer."""
         self.set_content(self._layer.properties)
+
+    def append_content(self, table: Union[dict, DataFrame], how: str = 'outer'):
+        """
+        Append data to table.
+        The input table can be a pandas dataframe or a dictionary.
+        Parameters
+        ----------
+        table : Union[dict, DataFrame]
+            New data to be appended.
+        how : str, OPTIONAL
+            Method how to join the data. See also https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.merge.html
+        Returns
+        -------
+        None.
+        """
+        # Check input type
+        if not isinstance(table, DataFrame):
+            table = DataFrame(table)
+
+        _table = DataFrame(self._table)
+
+        # Check whether there are common columns and switch merge type accordingly
+        common_columns = np.intersect1d(table.columns, _table.columns)
+        if len(common_columns) == 0:
+            table = pd.concat([table, _table])
+        else:
+            table = pd.merge(table, _table, how=how, copy=False)
+
+        self.set_content(table.to_dict('list'))
 
 
 @register_function(menu="Measurement > Show table (nsr)")

@@ -75,9 +75,16 @@ def test_regionprops(make_napari_viewer):
     from napari_skimage_regionprops import add_table
     add_table(labels_layer, viewer)
 
+    # Append table
+    fake_measurement = area_measurements * 2
+    fake_area = {'Double area': fake_measurement}
+    table_widget.append_content(fake_area)
+    assert 'Double area' in table_widget.get_content().keys()
+
     # empty table
     table_widget.set_content(None)
     table_widget.update_content()
+
 
 def test_regionprops_without_moments(make_napari_viewer):
 
@@ -259,4 +266,3 @@ def test_napari_api():
 def test_napari_api2():
     from napari_skimage_regionprops._utilities import napari_experimental_provide_function
     napari_experimental_provide_function()
-
