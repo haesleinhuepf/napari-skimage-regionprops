@@ -105,12 +105,7 @@ def test_append_table_by_merging(make_napari_viewer):
         [0, 0, 3, 3, 3, 0, 4],
     ])
 
-    image_layer = viewer.add_image(image)
     labels_layer = viewer.add_labels(image)
-
-    # analyze everything we can
-    from napari_skimage_regionprops import regionprops
-    regionprops(image_layer, labels_layer, viewer, True, True, True, True, True, True)
 
     table1 = {
         "A":[1,2,4],
