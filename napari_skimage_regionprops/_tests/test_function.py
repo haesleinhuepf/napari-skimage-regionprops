@@ -115,11 +115,11 @@ def test_append_table_by_merging(make_napari_viewer):
         "B":[1,2,4],
         "C":[1,2,4]
     }
-    labels_layer.properies = table1
+    labels_layer.properties = table1
 
     # Append table
-    from napari_skimage_regionprops import get_table
-    table_widget = get_table(labels_layer, viewer)
+    from napari_skimage_regionprops import add_table
+    table_widget = add_table(labels_layer, viewer)
     table_widget.append_content(table2)
     assert 'A' in table_widget.get_content().keys()
     assert 'B' in table_widget.get_content().keys()
