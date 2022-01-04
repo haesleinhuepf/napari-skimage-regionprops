@@ -160,8 +160,6 @@ def append_table(table_widget: QTableWidget, table: dict):
     for key in _table.keys():
         if key in table.keys():
 
-            print(list(_table[key]))
-            print(table[key])
             _table[key] += list(table[key])
         else:
             _table[key] += list('NaN')
