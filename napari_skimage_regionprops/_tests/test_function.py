@@ -36,7 +36,7 @@ def test_regionprops(make_napari_viewer):
     assert table_widget is not None
 
     # save content
-    table_widget._save_clicked("test.csv")
+    table_widget._save_clicked(filename="test.csv")
 
     # select a cell, click the table and read out selected label
     table_widget._view.setCurrentCell(1, 1)

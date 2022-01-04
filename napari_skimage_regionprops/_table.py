@@ -59,7 +59,7 @@ class TableWidget(QWidget):
     # We need to run this later as the labels_layer.selected_label isn't changed yet.
     def _clicked_labels(self, event, event1): QTimer.singleShot(200, self._after_labels_clicked)
 
-    def _save_clicked(self, filename=None):
+    def _save_clicked(self, event=None, filename=None):
         if filename is None: filename, _ = QFileDialog.getSaveFileName(self, "Save as csv...", ".", "*.csv")
         DataFrame(self._table).to_csv(filename)
 
