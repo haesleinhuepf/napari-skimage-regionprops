@@ -1,5 +1,7 @@
 import napari
 from pandas import DataFrame
+import pandas as pd
+
 from qtpy.QtCore import QTimer
 from qtpy.QtWidgets import QTableWidget, QHBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
 from napari_tools_menu import register_function
@@ -156,16 +158,12 @@ def append_table(table_widget: QTableWidget, table: dict):
     None.
 
     """
-    _table = table_widget._table
+    _table = DataFrame(table_widget._table)
+    table = DataFrame(table)
 
-    for key in _table.keys():
-        if key in table.keys():
-
-            _table[key] += list(table[key])
-        else:
-            _table[key] += list('NaN')
-
-    table_widget.set_content(_table)
+    # merge dataframes
+    _table = pd.merge(_table, table, how='outer', copy=False)
+    table_widget.set_content(_table.to_dict('list'))
 
     return None
 
