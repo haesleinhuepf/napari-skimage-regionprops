@@ -7,7 +7,7 @@ from napari_tools_menu import register_function
 import pandas as pd
 from typing import Union
 import numpy as np
-from functools import partial
+
 
 class TableWidget(QWidget):
     """
