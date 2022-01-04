@@ -134,20 +134,19 @@ def add_table(labels_layer: napari.layers.Layer,
     return dock_widget
 
 
-def append_table(viewer: napari.Viewer, table_name: str, table: dict):
+def append_table(table_widget: QTableWidget, table: dict):
     """
     Append data to a currently active table widget in the viewer.
 
     The function finds the table widget in the `viewer`, the name of which
     matches `name`. The data in `table` is then appended to this table and
-    displayed.
+    displayed. If the provided data to be added to the table widget fails to
+    provide some of the fields, the field is filled with 'NaN'
 
     Parameters
     ----------
-    viewer : napari.Viewer
-        Instance of the activa napari viewer.
-    table_name : str
-        Name of the table widget in the viewer.
+    table_widget : QTableWidget
+        Table widget instance in the viewer.
     table : dict
         Data to be appended to the table widget.
 
@@ -156,14 +155,16 @@ def append_table(viewer: napari.Viewer, table_name: str, table: dict):
     None.
 
     """
-    table_widget = get_table(table_name, viewer)
     _table = table_widget._table
 
     for key in _table.keys():
         if key in table.keys():
-            _table[key] = _table[key].append(table[key])
+
+            print(list(_table[key]))
+            print(table[key])
+            _table[key] += list(table[key])
         else:
-            _table[key] = _table[key].append('NaN')
+            _table[key] += list('NaN')
 
     table_widget.set_content(_table)
 
@@ -190,14 +191,18 @@ def get_table(labels_layer: Union[napari.layers.Layer, str],
         Handle of a discovered TableWidget.
 
     """
+
     for widget in list(viewer.window._dock_widgets.values()):
         potential_table_widget = widget.widget()
         if isinstance(potential_table_widget, TableWidget):
 
-            if type(labels_layer == napari.layers.Layer):
+            # If table is referred by layer
+            if type(labels_layer) == napari.layers.Layer:
                 if potential_table_widget._layer is labels_layer:
                     return potential_table_widget
+
+            # If table is referred by name
             elif type(labels_layer) == str:
-                if potential_table_widget._layer is labels_layer:
+                if potential_table_widget._name == labels_layer:
                     return potential_table_widget
     return None
