@@ -108,7 +108,7 @@ class TableWidget(QWidget):
     def append_content(self, table: Union[dict, DataFrame], how: str = 'outer'):
         """
         Append data to table.
-        The input table can be a pandas dataframe or a dictionary.
+
         Parameters
         ----------
         table : Union[dict, DataFrame]
