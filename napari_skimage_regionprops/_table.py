@@ -120,7 +120,7 @@ class TableWidget(QWidget):
         None.
         """
         # Check input type
-        if type(table) == dict:
+        if not isinstance(table, DataFrame):
             table = DataFrame(table)
 
         _table = DataFrame(self._table)
