@@ -53,12 +53,6 @@ def test_regionprops(make_napari_viewer):
     print(area_measurements)
     assert np.array_equal([9, 6, 6, 1], area_measurements)
 
-    # Get content and append new data
-    fake_measurement = area_measurements * 2
-    fake_area = {'Double area': fake_measurement}
-    table_widget.append_content(fake_area)
-    assert 'Double area' in table_widget.get_content().keys()
-
     # generate a parametric image
     from napari_skimage_regionprops import visualize_measurement_on_labels
     layer = visualize_measurement_on_labels(labels_layer, "area")
@@ -81,9 +75,16 @@ def test_regionprops(make_napari_viewer):
     from napari_skimage_regionprops import add_table
     add_table(labels_layer, viewer)
 
+    # Append table
+    fake_measurement = area_measurements * 2
+    fake_area = {'Double area': fake_measurement}
+    table_widget.append_content(fake_area)
+    assert 'Double area' in table_widget.get_content().keys()
+
     # empty table
     table_widget.set_content(None)
     table_widget.update_content()
+
 
 def test_regionprops_without_moments(make_napari_viewer):
 
