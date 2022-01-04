@@ -6,6 +6,8 @@ from napari_tools_menu import register_function
 
 import pandas as pd
 from typing import Union
+import numpy as np
+from functools import partial
 
 class TableWidget(QWidget):
     """
@@ -121,7 +123,15 @@ class TableWidget(QWidget):
         if type(table) == dict:
             table = DataFrame(table)
 
-        table = pd.merge(self._table, table, how=how, copy=False)
+        _table = DataFrame(self._table)
+
+        # Check whether there are common columns and switch merge type accordingly
+        common_columns = np.intersect1d(table.columns, _table.columns)
+        if len(common_columns) == 0:
+            table = pd.concat([table, _table])
+        else:
+            table = pd.merge(table, _table, how=how, copy=False)
+
         self.set_content(table.to_dict('list'))
 
 
