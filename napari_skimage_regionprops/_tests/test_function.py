@@ -284,10 +284,20 @@ def test_4d_3d(make_napari_viewer):
 
     # test duplicating the current frame
     from napari_skimage_regionprops._utilities import duplicate_current_frame
-    new_layer = duplicate_current_frame(image, viewer)
+    new_layer = duplicate_current_frame(image_layer, viewer)
 
     assert len(new_layer.data.shape) == 3
     assert np.array_equal(new_layer.data.shape, [3, 7, 7])
+
+
+    # test duplicating the current frame
+    from napari_skimage_regionprops._utilities import duplicate_current_frame
+    new_layer = duplicate_current_frame(labels_layer, viewer)
+    print("LL", labels_layer.data.shape)
+    print("NL", new_layer.data.shape)
+    assert len(new_layer.data.shape) == 2
+    assert np.array_equal(new_layer.data.shape, [7, 7])
+
 
 
 def test_napari_api():
