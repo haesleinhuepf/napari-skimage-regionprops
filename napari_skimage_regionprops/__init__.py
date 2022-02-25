@@ -4,7 +4,7 @@ from ._parametric_images import visualize_measurement_on_labels
 try:
     from ._version import version as __version__
 except ImportError:
-    __version__ = "0.2.9"
+    __version__ = "0.3.0"
 
 from napari_plugin_engine import napari_hook_implementation
 
