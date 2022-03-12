@@ -76,6 +76,13 @@ class TableWidget(QWidget):
         """
         if table is None:
             table = {}
+
+        # Workaround to fix wrong row display in napari status bar
+        # https://github.com/napari/napari/issues/4250
+        # https://github.com/napari/napari/issues/2596
+        if "label" in table.keys() and "index" not in table.keys():
+            table["index"] = table["label"]
+
         self._table = table
 
         self._layer.properties = table
