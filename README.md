@@ -74,6 +74,19 @@ The user can select categories of features for feature extraction in the user in
 
 This [napari] plugin was generated with [Cookiecutter] using with [@napari]'s [cookiecutter-napari-plugin] template.
 
+## See also
+
+There are other napari plugins with similar functionality for extracting features:
+* [morphometrics](https://www.napari-hub.org/plugins/morphometrics)
+* [PartSeg](https://www.napari-hub.org/plugins/PartSeg)
+* [napari-simpleitk-image-processing](https://www.napari-hub.org/plugins/napari-simpleitk-image-processing)
+* [napari-cupy-image-processing](https://www.napari-hub.org/plugins/napari-cupy-image-processing)
+* [napari-pyclesperanto-assistant](https://www.napari-hub.org/plugins/napari-pyclesperanto-assistant)
+
+Furthermore, there are plugins for postprocessing extracted measurements
+* [napari-feature-classifier](https://www.napari-hub.org/plugins/napari-feature-classifier)
+* [napari-clusters-plotter](https://www.napari-hub.org/plugins/napari-clusters-plotter)
+
 ## Installation
 
 You can install `napari-skimage-regionprops` via [pip]:
