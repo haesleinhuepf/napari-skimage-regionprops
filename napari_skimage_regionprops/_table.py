@@ -14,10 +14,11 @@ class TableWidget(QWidget):
     The table widget represents a table inside napari.
     Tables are just views on `properties` of `layers`.
     """
-    def __init__(self, layer: napari.layers.Layer):
+    def __init__(self, layer: napari.layers.Layer, viewer:napari.Viewer = None):
         super().__init__()
 
         self._layer = layer
+        self._viewer = viewer
 
         self._view = QTableWidget()
         self.set_content(layer.properties)
@@ -42,7 +43,6 @@ class TableWidget(QWidget):
         action_widget.layout().setSpacing(3)
         action_widget.layout().setContentsMargins(0, 0, 0, 0)
 
-
     def _clicked_table(self):
         if "label" in self._table.keys():
             row = self._view.currentRow()
@@ -50,16 +50,36 @@ class TableWidget(QWidget):
             print("Table clicked, set label", label)
             self._layer.selected_label = label
 
+            frame_column = _determine_frame_column(self._table)
+            if frame_column is not None and self._viewer is not None:
+                frame = self._table[frame_column][row]
+                current_step = list(self._viewer.dims.current_step)
+                if len(current_step) >= 4:
+                    current_step[-4] = frame
+                    self._viewer.dims.current_step = current_step
+
     def _after_labels_clicked(self):
         if "label" in self._table.keys() and hasattr(self._layer, "selected_label"):
             row = self._view.currentRow()
             label = self._table["label"][row]
-            print("labels clicked, set table", label)
+
+            frame_column = _determine_frame_column(self._table)
+            if frame_column is not None and self._viewer is not None:
+                current_step = list(self._viewer.dims.current_step)
+                if len(current_step) >= 4:
+                    frame = current_step[-4]
+
             if label != self._layer.selected_label:
-                for r, l in enumerate(self._table["label"]):
-                    if l == self._layer.selected_label:
-                        self._view.setCurrentCell(r, self._view.currentColumn())
-                        break
+                if frame_column is not None and self._viewer is not None:
+                    for r, (l, f) in enumerate(zip(self._table["label"], self._table[frame_column])):
+                        if l == self._layer.selected_label and f == frame:
+                            self._view.setCurrentCell(r, self._view.currentColumn())
+                            break
+                else:
+                    for r, l in enumerate(self._table["label"]):
+                        if l == self._layer.selected_label:
+                            self._view.setCurrentCell(r, self._view.currentColumn())
+                            break
 
     # We need to run this later as the labels_layer.selected_label isn't changed yet.
     def _clicked_labels(self, event, event1): QTimer.singleShot(200, self._after_labels_clicked)
@@ -83,32 +103,32 @@ class TableWidget(QWidget):
         if "label" in table.keys() and "index" not in table.keys():
             table["index"] = table["label"]
 
-        # workaround until this issue is fixed:
-        # https://github.com/napari/napari/issues/4342
-        if len(np.unique(table['index'])) != len(table['index']):
-            # indices exist multiple times, presumably because it's timelapse data
-            def get_status(
-                    position,
-                    *,
-                    view_direction=None,
-                    dims_displayed=None,
-                    world: bool = False,
-            ) -> str:
-                value = self._layer.get_value(
-                    position,
-                    view_direction=view_direction,
-                    dims_displayed=dims_displayed,
-                    world=world,
-                )
+            # workaround until this issue is fixed:
+            # https://github.com/napari/napari/issues/4342
+            if len(np.unique(table['index'])) != len(table['index']):
+                # indices exist multiple times, presumably because it's timelapse data
+                def get_status(
+                        position,
+                        *,
+                        view_direction=None,
+                        dims_displayed=None,
+                        world: bool = False,
+                ) -> str:
+                    value = self._layer.get_value(
+                        position,
+                        view_direction=view_direction,
+                        dims_displayed=dims_displayed,
+                        world=world,
+                    )
 
-                from napari.utils.status_messages import generate_layer_status
-                msg = generate_layer_status(self._layer.name, position, value)
-                return msg
+                    from napari.utils.status_messages import generate_layer_status
+                    msg = generate_layer_status(self._layer.name, position, value)
+                    return msg
 
-            self._layer.get_status = get_status
+                self._layer.get_status = get_status
 
-            import warnings
-            warnings.warn('Status bar display of label properties disabled because labels/indices exist multiple times (napari-skimage-regionprops)')
+                import warnings
+                warnings.warn('Status bar display of label properties disabled because labels/indices exist multiple times (napari-skimage-regionprops)')
 
         self._table = table
 
@@ -176,7 +196,7 @@ def add_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableW
     """
     dock_widget = get_table(labels_layer, viewer)
     if dock_widget is None:
-        dock_widget = TableWidget(labels_layer)
+        dock_widget = TableWidget(labels_layer, viewer)
         # add widget to napari
         viewer.window.add_dock_widget(dock_widget, area='right', name="Properties of " + labels_layer.name)
     else:
@@ -196,4 +216,11 @@ def get_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableW
         if isinstance(potential_table_widget, TableWidget):
             if potential_table_widget._layer is labels_layer:
                 return potential_table_widget
+    return None
+
+def _determine_frame_column(table):
+    candidates = ["Frame", "frame"]
+    for c in candidates:
+        if c in table.keys():
+            return c
     return None

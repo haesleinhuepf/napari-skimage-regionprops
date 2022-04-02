@@ -4,3 +4,4 @@ scikit-image
 napari
 pandas
 napari-tools-menu
+napari-workflows

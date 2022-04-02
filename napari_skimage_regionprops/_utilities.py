@@ -24,3 +24,8 @@ def duplicate_current_frame(layer : LayerInput, napari_viewer : Viewer, axis : i
         result = Image(new_image, name=new_name)
 
     return result
+
+def isimage(value):
+    return isinstance(value, np.ndarray) or str(type(value)) in ["<class 'cupy._core.core.ndarray'>",
+                                                          "<class 'dask.array.core.Array'>",
+                                                          "<class 'pyclesperanto_prototype._tier0._pycl.OCLArray'>"]
