@@ -16,7 +16,7 @@ def regionprops(image_layer : napari.layers.Layer, labels_layer: napari.layers.L
     regionprops_table(image_data, labels_layer.data, napari_viewer, size, intensity, perimeter, shape, position, moments)
 
 @register_function(menu="Measurement > Regionprops (nsr)")
-def regionprops_table(image : napari.types.LayerData, labels: napari.types.LabelsData, napari_viewer : Viewer = None, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
+def regionprops_table(image : napari.types.ImageData, labels: napari.types.LabelsData, napari_viewer : Viewer = None, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-label pair.
     """

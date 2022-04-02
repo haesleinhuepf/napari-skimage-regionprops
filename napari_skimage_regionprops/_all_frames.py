@@ -3,13 +3,10 @@ import napari
 from toolz import curry
 from typing import Callable
 from functools import wraps
-import time
 import inspect
 import numpy as np
 import pandas as pd
-# most imports here are just for backwards compatbility
-#from ._workflow import WorkflowManager, CURRENT_TIME_FRAME_DATA, _get_layer_from_data, _break_down_4d_to_2d_kwargs, _viewer_has_layer
-
+from ._utilities import isimage
 
 @curry
 def analyze_all_frames(function: Callable) -> Callable:
@@ -35,17 +32,28 @@ def analyze_all_frames(function: Callable) -> Callable:
                 viewer_key = key
 
         labels_layer = None
+        image_layer = None
         original_args = copy_dict(bound.arguments)
 
         if viewer is not None:
             variable_timepoint = list(viewer.dims.current_step)
             current_timepoint = variable_timepoint[0]
             max_time = int(viewer.dims.range[-4][1])
+
+            # find a labels layer to attach result
+            for key, value in original_args.items():
+                if isimage(value):
+                    layer = _get_layer_from_data(viewer, value)
+                    if isinstance(layer, napari.layers.Labels):
+                        labels_layer = layer
+                        labels_layer_key = key
+                    if isinstance(layer, napari.layers.Image):
+                        image_layer = layer
+                        image_layer_key = key
         else:
             max_time = 0
             for key, value in original_args.items():
-                if isinstance(value, np.ndarray) or str(type(value)) in ["<class 'cupy._core.core.ndarray'>",
-                                                                         "<class 'dask.array.core.Array'>"]:
+                if isimage(value):
                     if len(value.shape) == 4 and max_time < value.shape[0]:
                         max_time = value.shape[0]
 
@@ -59,8 +67,7 @@ def analyze_all_frames(function: Callable) -> Callable:
 
             if viewer is None:
                 for key, value in args.items():
-                    if isinstance(value, np.ndarray) or str(type(value)) in ["<class 'cupy._core.core.ndarray'>",
-                                                                             "<class 'dask.array.core.Array'>"]:
+                    if isimage(value):
                         if len(value.shape) == 4:
                             new_value = value[f]
                             if new_value.shape[0] == 1:
@@ -79,8 +86,11 @@ def analyze_all_frames(function: Callable) -> Callable:
 
                 variable_timepoint[0] = f
                 viewer.dims.current_step = variable_timepoint
+                _refresh_viewer(viewer)
 
                 from napari_workflows._workflow import _break_down_4d_to_2d_kwargs
+                args[labels_layer_key] = labels_layer.data
+                args[image_layer_key] = image_layer.data
                 _break_down_4d_to_2d_kwargs(args, f, viewer)
                 args[viewer_key] = None
             bound.arguments = args
@@ -98,14 +108,7 @@ def analyze_all_frames(function: Callable) -> Callable:
             # reset viewer
             variable_timepoint[0] = current_timepoint
             viewer.dims.current_step = variable_timepoint
-
-            # find a labels layer to attach result
-            for key, value in original_args.items():
-                if isinstance(value, np.ndarray) or str(type(value)) in ["<class 'cupy._core.core.ndarray'>",
-                                                                         "<class 'dask.array.core.Array'>"]:
-                    layer = _get_layer_from_data(viewer, value)
-                    if isinstance(layer, napari.layers.Labels):
-                        labels_layer = layer
+            _refresh_viewer(viewer)
 
             if labels_layer is not None:
                 labels_layer.properties = result.to_dict(orient='list')
@@ -125,3 +128,14 @@ def copy_dict(source, result=None):
     for k, v in source.items():
         result[k] = v
     return result
+
+def _refresh_viewer(viewer):
+    if viewer is None:
+        return
+
+    from napari_workflows import WorkflowManager
+    wm = WorkflowManager.install(viewer)
+    w = wm.workflow
+
+    while(wm._search_first_invalid_layer (w.roots()) is not None):
+        wm._update_invalid_layer()
