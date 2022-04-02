@@ -9,7 +9,11 @@ from ._all_frames import analyze_all_frames
 
 def regionprops(image_layer : napari.layers.Layer, labels_layer: napari.layers.Labels, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
     warnings.warn("napari_skimage_regionprops.regionprops is deprecated. Use regionprops_table instead.")
-    regionprops_table(image_layer.data, labels_layer.data, napari_viewer, size, intensity, perimeter, shape, position, moments)
+    image_data = None
+    if image_layer is not None:
+        image_data = image_layer.data
+
+    regionprops_table(image_data, labels_layer.data, napari_viewer, size, intensity, perimeter, shape, position, moments)
 
 @register_function(menu="Measurement > Regionprops (nsr)")
 def regionprops_table(image : napari.types.LayerData, labels: napari.types.LabelsData, napari_viewer : Viewer = None, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):

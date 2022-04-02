@@ -108,7 +108,6 @@ def analyze_all_frames(function: Callable) -> Callable:
                         labels_layer = layer
 
             if labels_layer is not None:
-                print(result.to_dict())
                 labels_layer.properties = result.to_dict(orient='list')
 
                 from ._table import add_table
