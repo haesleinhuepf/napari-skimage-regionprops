@@ -69,7 +69,6 @@ class TableWidget(QWidget):
                 if len(current_step) >= 4:
                     frame = current_step[-4]
 
-            print("labels clicked, set table", label)
             if label != self._layer.selected_label:
                 if frame_column is not None and self._viewer is not None:
                     for r, (l, f) in enumerate(zip(self._table["label"], self._table[frame_column])):
