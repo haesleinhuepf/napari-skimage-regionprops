@@ -3,5 +3,5 @@ numpy
 scikit-image
 napari
 pandas
-napari-tools-menu
+napari-tools-menu>=0.1.11
 napari-workflows
