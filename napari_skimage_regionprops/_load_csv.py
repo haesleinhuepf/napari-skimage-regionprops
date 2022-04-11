@@ -24,5 +24,6 @@ def load_csv(csv_filename:"magicgui.types.PathLike", labels_layer:napari.layers.
     if hasattr(labels_layer, "features"):
         labels_layer.features = edited_reg_props
 
-    from ._table import add_table
-    add_table(labels_layer, viewer)
+    if viewer is not None:
+        from ._table import add_table
+        add_table(labels_layer, viewer)
