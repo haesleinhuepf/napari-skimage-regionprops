@@ -211,11 +211,17 @@ def get_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableW
     Searches inside a viewer for a given table and returns it. If it cannot find it,
     it will return None.
     """
-    for widget in list(viewer.window._dock_widgets.values()):
-        potential_table_widget = widget.widget()
-        if isinstance(potential_table_widget, TableWidget):
-            if potential_table_widget._layer is labels_layer:
-                return potential_table_widget
+    import warnings
+    # see: https://github.com/napari/napari/issues/3944
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+
+        for widget in list(viewer.window._dock_widgets.values()):
+            potential_table_widget = widget.widget()
+            if isinstance(potential_table_widget, TableWidget):
+                if potential_table_widget._layer is labels_layer:
+                    return potential_table_widget
+
     return None
 
 def _determine_frame_column(table):
