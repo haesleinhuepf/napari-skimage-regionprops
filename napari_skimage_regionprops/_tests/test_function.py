@@ -81,6 +81,14 @@ def test_regionprops(make_napari_viewer):
     table_widget.append_content(fake_area)
     assert 'Double area' in table_widget.get_content().keys()
 
+    # save table to disk
+    import pandas as pd
+    pd.DataFrame(labels_layer.properties).to_csv("test.csv")
+    from napari_skimage_regionprops import load_csv
+    load_csv("test.csv", labels_layer)
+    load_csv("test.csv", labels_layer, viewer)
+
+
     # empty table
     table_widget.set_content(None)
     table_widget.update_content()
