@@ -86,6 +86,7 @@ There are other napari plugins with similar functionality for extracting feature
 Furthermore, there are plugins for postprocessing extracted measurements
 * [napari-feature-classifier](https://www.napari-hub.org/plugins/napari-feature-classifier)
 * [napari-clusters-plotter](https://www.napari-hub.org/plugins/napari-clusters-plotter)
+* [napari-accelerated-pixel-and-object-classification](https://www.napari-hub.org/plugins/napari-accelerated-pixel-and-object-classification)
 
 ## Installation
 
