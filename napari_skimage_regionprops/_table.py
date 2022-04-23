@@ -1,3 +1,5 @@
+import time
+
 import napari
 from pandas import DataFrame
 from qtpy.QtCore import QTimer
@@ -21,9 +23,11 @@ class TableWidget(QWidget):
         self._viewer = viewer
 
         self._view = QTableWidget()
+        self._view.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.set_content(layer.properties)
 
         self._view.clicked.connect(self._clicked_table)
+        self._view.horizontalHeader().sectionDoubleClicked.connect(self._double_clicked_table)
         layer.mouse_drag_callbacks.append(self._clicked_labels)
 
         copy_button = QPushButton("Copy to clipboard")
@@ -57,6 +61,17 @@ class TableWidget(QWidget):
                 if len(current_step) >= 4:
                     current_step[-4] = frame
                     self._viewer.dims.current_step = current_step
+
+    def _double_clicked_table(self):
+        if "label" in self._table.keys():
+            selected_column = list(self._table.keys())[self._view.currentColumn()]
+            print("Selected column", selected_column)
+            if selected_column is not None:
+                from ._parametric_images import visualize_measurement_on_labels
+                new_layer = self._viewer.add_image(visualize_measurement_on_labels(self._layer, selected_column),
+                                       name=selected_column + " in " + self._layer.name)
+                new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
+                new_layer.colormap = "jet"
 
     def _after_labels_clicked(self):
         if "label" in self._table.keys() and hasattr(self._layer, "selected_label"):
