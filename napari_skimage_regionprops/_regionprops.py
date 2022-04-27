@@ -98,7 +98,7 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
                               properties=properties, extra_properties=extra_properties)
 
     if shape:
-        if len(labels.data.shape) == 3:
+        if len(labels.shape) == 3:
             axis_lengths_0 = []
             axis_lengths_1 = []
             axis_lengths_2 = []
