@@ -55,7 +55,7 @@ def test_regionprops(make_napari_viewer):
 
     # generate a parametric image
     from napari_skimage_regionprops import visualize_measurement_on_labels
-    layer = visualize_measurement_on_labels(labels_layer, "area")
+    layer = visualize_measurement_on_labels(labels_layer, "area", viewer)
     assert layer is not None
 
     reference = np.asarray([
