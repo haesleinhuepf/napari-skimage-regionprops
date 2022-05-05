@@ -68,7 +68,7 @@ class TableWidget(QWidget):
             print("Selected column", selected_column)
             if selected_column is not None:
                 from ._parametric_images import visualize_measurement_on_labels
-                new_layer = self._viewer.add_image(visualize_measurement_on_labels(self._layer, selected_column),
+                new_layer = self._viewer.add_image(visualize_measurement_on_labels(self._layer, selected_column, self._viewer),
                                        name=selected_column + " in " + self._layer.name)
                 new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
                 new_layer.colormap = "jet"
