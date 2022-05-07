@@ -25,6 +25,8 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
         return cle.pull(cle.replace_intensities(labels, numpy.asarray([0] + measurements)))
     except ImportError:
         return relabel_numpy(labels, measurements)
+    except ModuleNotFoundError:
+        return relabel_numpy(labels, measurements)
 
 
 def relabel_numpy(image, measurements):
