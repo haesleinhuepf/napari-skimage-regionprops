@@ -71,6 +71,9 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
         properties = properties + ['solidity', 'extent', 'feret_diameter_max', 'local_centroid']
         if len(labels.shape) == 2:
             properties = properties + ['major_axis_length', 'minor_axis_length', 'orientation', 'eccentricity']
+            if not size:
+                # we need these two to compute some shape descriptors
+                properties = properties + ['area', 'perimeter']
         else:
             properties = properties + ['moments_central']
         # euler_number,
@@ -98,6 +101,13 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
                               properties=properties, extra_properties=extra_properties)
 
     if shape:
+        if len(labels.shape) == 2:
+            # See https://imagej.nih.gov/ij/docs/menus/analyze.html
+            table['aspect_ratio'] = table['major_axis_length'] / table['minor_axis_length']
+            table['roundness'] = 4 * table['area'] / np.pi / pow(table['major_axis_length'], 2)
+            table['circularity'] = 4 * np.pi * table['area'] / pow(table['perimeter'], 2)
+
+        # 3D image
         if len(labels.shape) == 3:
             axis_lengths_0 = []
             axis_lengths_1 = []
@@ -124,6 +134,11 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
             if not moments:
                 # remove moment from table as we didn't ask for them
                 table = {k: v for k, v in table.items() if not 'moments_central' in k}
+
+        if not size:
+            table = {k: v for k, v in table.items() if k != 'area'}
+        if not perimeter:
+            table = {k: v for k, v in table.items() if k != 'perimeter'}
 
     if napari_viewer is not None:
         # Store results in the properties dictionary:
