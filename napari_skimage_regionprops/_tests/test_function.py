@@ -350,3 +350,37 @@ def test_napari_api():
 def test_napari_api2():
     from napari_skimage_regionprops._utilities import napari_experimental_provide_function
     napari_experimental_provide_function()
+
+def test_shape_descriptors():
+    import numpy as np
+    labels = np.asarray([
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 0, 2, 2, 2, 3, 3],
+        [1, 1, 0, 2, 2, 2, 3, 3],
+        [0, 0, 0, 2, 2, 2, 3, 3],
+        [0, 0, 0, 0, 0, 0, 3, 3],
+        [0, 4, 4, 4, 4, 4, 0, 0],
+        [0, 4, 4, 4, 4, 4, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [5, 5, 5, 5, 5, 0, 6, 6],
+        [5, 5, 5, 5, 5, 0, 6, 6],
+        [5, 5, 5, 5, 5, 0, 6, 6],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+    ])
+
+    from napari_skimage_regionprops import regionprops_table
+    table = regionprops_table(labels, labels, None, False, False, False, True)
+
+    print(table.keys())
+    assert "area" not in table.keys()
+    assert "perimeter" not in table.keys()
+
+    print("aspect_ratio", table['aspect_ratio'])
+    assert np.allclose(table['aspect_ratio'], [1., 1., 2.23606798, 2.82842712, 1.73205081, 1.63299316])
+
+    print("circularity", table['circularity'])
+    assert np.allclose(table['circularity'], [3.14159265, 1.76714587, 1.57079633, 1.25663706, 1.30899694, 2.0943951 ])
+
+    print("roundness", table['roundness'])
+    # Values > 1 should actually not appear, but do so in case of very small objects apparently
+    assert np.allclose(table['roundness'], [1.27323954, 1.07429587, 0.50929582, 0.39788736, 0.59683104, 0.71619724])
