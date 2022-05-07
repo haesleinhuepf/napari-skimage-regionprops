@@ -23,8 +23,6 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
     try:
         import pyclesperanto_prototype as cle
         return cle.pull(cle.replace_intensities(labels, numpy.asarray([0] + measurements)))
-    except ImportError:
-        return relabel_numpy(labels, measurements)
     except ModuleNotFoundError:
         return relabel_numpy(labels, measurements)
 
