@@ -1,3 +1,4 @@
+import numpy as np
 from napari_tools_menu import register_function
 import numpy
 
@@ -15,15 +16,16 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
         if "frame" in table.keys():
             table = table[table['frame'] == current_timepoint]
 
-    measurements = table[column]
+    measurements = np.asarray(table[column]).tolist()
 
-    if isinstance(measurements, numpy.ndarray):
-        measurements = measurements.tolist()
+    import importlib
+    loader = importlib.find_loader("pyclesperanto_prototype")
+    found = loader is not None
 
-    try:
+    if found:
         import pyclesperanto_prototype as cle
         return cle.pull(cle.replace_intensities(labels, numpy.asarray([0] + measurements)))
-    except ModuleNotFoundError:
+    else:
         return relabel_numpy(labels, measurements)
 
 
