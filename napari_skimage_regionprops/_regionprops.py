@@ -1,13 +1,14 @@
 import warnings
 
 import numpy as np
+import pandas
 from napari import Viewer
 from napari_tools_menu import register_function
 import napari
 import math
 from ._all_frames import analyze_all_frames
 
-def regionprops(image_layer : napari.layers.Layer, labels_layer: napari.layers.Labels, napari_viewer : Viewer, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
+def regionprops(image_layer : napari.layers.Layer, labels_layer: napari.layers.Labels, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False, napari_viewer : Viewer = None):
     warnings.warn("napari_skimage_regionprops.regionprops is deprecated. Use regionprops_table instead.")
     image_data = None
     if image_layer is not None:
@@ -15,8 +16,8 @@ def regionprops(image_layer : napari.layers.Layer, labels_layer: napari.layers.L
 
     regionprops_table(image_data, labels_layer.data, napari_viewer, size, intensity, perimeter, shape, position, moments)
 
-@register_function(menu="Measurement > Regionprops (nsr)")
-def regionprops_table(image : napari.types.ImageData, labels: napari.types.LabelsData, napari_viewer : Viewer = None, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False):
+@register_function(menu="Measurement > Regionprops (scikit-image, nsr)")
+def regionprops_table(image : napari.types.ImageData, labels: napari.types.LabelsData, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False, napari_viewer : Viewer = None) -> "pandas.DataFrame":
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-label pair.
     """
@@ -71,9 +72,11 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
         properties = properties + ['solidity', 'extent', 'feret_diameter_max', 'local_centroid']
         if len(labels.shape) == 2:
             properties = properties + ['major_axis_length', 'minor_axis_length', 'orientation', 'eccentricity']
+            # we need these two to compute some shape descriptors
             if not size:
-                # we need these two to compute some shape descriptors
-                properties = properties + ['area', 'perimeter']
+                properties = properties + ['area']
+            if not perimeter:
+                properties = properties + ['perimeter']
         else:
             properties = properties + ['moments_central']
         # euler_number,
@@ -148,7 +151,8 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
         from ._table import add_table
         add_table(labels_layer, napari_viewer)
     else:
-        return table
+        import pandas
+        return pandas.DataFrame(table)
 
 def ellipsoid_axis_lengths(table):
     """Compute ellipsoid major, intermediate and minor axis length.
