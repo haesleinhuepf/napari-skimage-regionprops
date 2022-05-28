@@ -373,7 +373,7 @@ def test_shape_descriptors():
     ])
 
     from napari_skimage_regionprops import regionprops_table
-    table = regionprops_table(labels, labels, None, False, False, False, True)
+    table = regionprops_table(labels, labels, False, False, False, True)
 
     print(table.keys())
     assert "area" not in table.keys()
