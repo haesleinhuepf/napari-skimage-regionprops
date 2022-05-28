@@ -14,7 +14,7 @@ def regionprops(image_layer : napari.layers.Layer, labels_layer: napari.layers.L
     if image_layer is not None:
         image_data = image_layer.data
 
-    regionprops_table(image_data, labels_layer.data, napari_viewer, size, intensity, perimeter, shape, position, moments)
+    regionprops_table(image_data, labels_layer.data, size, intensity, perimeter, shape, position, moments, napari_viewer)
 
 @register_function(menu="Measurement > Regionprops (scikit-image, nsr)")
 def regionprops_table(image : napari.types.ImageData, labels: napari.types.LabelsData, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False, napari_viewer : Viewer = None) -> "pandas.DataFrame":

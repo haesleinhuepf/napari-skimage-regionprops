@@ -26,7 +26,7 @@ def test_regionprops(make_napari_viewer):
 
     # analyze everything we can
     from napari_skimage_regionprops import regionprops
-    regionprops(image_layer, labels_layer, viewer, True, True, True, True, True, True)
+    regionprops(image_layer, labels_layer, True, True, True, True, True, True, viewer)
 
     # there is now a table in the viewer
     assert len(viewer.window._dock_widgets) == num_dw + 1
