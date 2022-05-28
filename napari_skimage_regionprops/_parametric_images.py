@@ -18,7 +18,7 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
 
     measurements = np.asarray(table[column]).tolist()
     
-    relabel(labels, measurements)
+    return relabel(labels, measurements)
 
 def relabel(image, measurements):
     import importlib
