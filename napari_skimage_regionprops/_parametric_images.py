@@ -17,17 +17,22 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
             table = table[table['frame'] == current_timepoint]
 
     measurements = np.asarray(table[column]).tolist()
+    
+    relabel(labels, measurements)
 
+def relabel(image, measurements):
     import importlib
     loader = importlib.find_loader("pyclesperanto_prototype")
     found = loader is not None
 
     if found:
-        import pyclesperanto_prototype as cle
-        return cle.pull(cle.replace_intensities(labels, numpy.asarray([0] + measurements)))
+        return relabel_cle(image, measurements)
     else:
-        return relabel_numpy(labels, measurements)
+        return relabel_numpy(image, measurements)
 
+def relabel_cle(image, measurements):
+    import pyclesperanto_prototype as cle
+    return cle.pull(cle.replace_intensities(image, numpy.asarray([0] + measurements)))
 
 def relabel_numpy(image, measurements):
     return numpy.take(numpy.array([0] + measurements), image)

@@ -1,6 +1,6 @@
 from ._table import add_table, get_table, TableWidget
 from ._regionprops import regionprops, regionprops_table, regionprops_table_all_frames
-from ._parametric_images import visualize_measurement_on_labels
+from ._parametric_images import visualize_measurement_on_labels, relabel
 from napari_plugin_engine import napari_hook_implementation
 from ._load_csv import load_csv
 
