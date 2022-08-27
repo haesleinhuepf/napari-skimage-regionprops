@@ -1,6 +1,3 @@
-import time
-
-import napari
 from pandas import DataFrame
 from qtpy.QtCore import QTimer
 from qtpy.QtWidgets import QTableWidget, QHBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
@@ -16,7 +13,7 @@ class TableWidget(QWidget):
     The table widget represents a table inside napari.
     Tables are just views on `properties` of `layers`.
     """
-    def __init__(self, layer: napari.layers.Layer, viewer:napari.Viewer = None):
+    def __init__(self, layer: "napari.layers.Layer", viewer:"napari.Viewer" = None):
         super().__init__()
 
         self._layer = layer
@@ -205,7 +202,7 @@ class TableWidget(QWidget):
 
 
 @register_function(menu="Measurement > Show table (nsr)")
-def add_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableWidget:
+def add_table(labels_layer: "napari.layers.Layer", viewer:"napari.Viewer") -> TableWidget:
     """
     Add a table to a viewer and return the table widget. The table will show the `properties` of the given layer.
     """
@@ -221,7 +218,7 @@ def add_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableW
 
     return dock_widget
 
-def get_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableWidget:
+def get_table(labels_layer: "napari.layers.Layer", viewer:"napari.Viewer") -> TableWidget:
     """
     Searches inside a viewer for a given table and returns it. If it cannot find it,
     it will return None.

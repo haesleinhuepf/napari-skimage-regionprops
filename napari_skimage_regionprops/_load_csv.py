@@ -1,9 +1,8 @@
-import napari
 import numpy as np
 from napari_tools_menu import register_function
 
 @register_function(menu="Measurement > Load from CSV (nsr)")
-def load_csv(csv_filename:"magicgui.types.PathLike", labels_layer:napari.layers.Labels, viewer:napari.Viewer=None):
+def load_csv(csv_filename:"magicgui.types.PathLike", labels_layer:"napari.layers.Labels", viewer:"napari.Viewer"=None):
     """Save contents of a CSV file into a given layer's properties"""
     import pandas as pd
     # load region properties from csv file

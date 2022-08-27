@@ -1,5 +1,3 @@
-
-import napari
 from toolz import curry
 from typing import Callable
 from functools import wraps
@@ -14,6 +12,7 @@ def analyze_all_frames(function: Callable) -> Callable:
 
     @wraps(function)
     def worker_function(*args, **kwargs):
+        import napari
         args = list(args)
         sig = inspect.signature(function)
         # create mapping from position and keyword arguments to parameters
@@ -128,6 +127,7 @@ def copy_dict(source, result=None):
     for k, v in source.items():
         result[k] = v
     return result
+
 
 def _refresh_viewer(viewer):
     if viewer is None:
