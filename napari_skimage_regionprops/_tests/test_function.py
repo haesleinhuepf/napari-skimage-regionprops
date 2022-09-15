@@ -388,3 +388,29 @@ def test_shape_descriptors():
     print("roundness", table['roundness'])
     # Values > 1 should actually not appear, but do so in case of very small objects apparently
     assert np.allclose(table['roundness'], [1.27323954, 1.07429587, 0.50929582, 0.39788736, 0.59683104, 0.71619724])
+
+def test_map_channels_summary():
+    import numpy as np
+    from napari_skimage_regionprops import regionprops_map_channels_table
+    # Create multichannel image
+    multichannel_image = np.arange(24).reshape(2,3,4)
+    
+    # Create multichannel labels
+    ref_labels = np.array([[0, 1, 1, 1],
+                           [0, 1, 1, 1],
+                           [0, 1, 1, 1]])
+    probe_labels = np.array([[3, 0, 0, 0],
+                             [0, 2, 2, 0],
+                             [2, 2, 2, 1]])
+    multichannel_labels = np.stack([ref_labels, probe_labels], axis=0)
+    
+    table_list = regionprops_map_channels_table(multichannel_labels, 
+                                      multichannel_image,
+                                      size = True,
+                                      intensity = False,
+                                      ref_channel = 0,
+                                      overlap = 0.5, 
+                                      summary = True)
+    table = table_list[0]
+    assert table.shape == (2,33)
+    assert table['area-ch1']['count'].values == np.array([1., 2.])
