@@ -208,10 +208,13 @@ def regionprops_map_channels_table(image_list : List[napari.types.ImageData],
     if napari_viewer is not None:
         current_dim_value = napari_viewer.dims.current_step[0]
 
-        # store the layer for saving results later
-        from napari_workflows._workflow import _get_layer_from_data
-        labels_layer_list = [_get_layer_from_data(napari_viewer, labels)
-                             for labels in labels_list]
+        # store list of labels layers for saving results later
+        labels_layer_list = []
+        for layer in napari_viewer.layers:
+            print(layer, type(layer), layer.data)
+            if type(layer) is 'napari.layers.labels.labels.Labels':
+                labels_layer_list += [layer]
+        print(labels_layer_list)
         # to do: deal with 4D data
         # for image, labels in image_list, labels_list:
         #     # deal with 4D data
