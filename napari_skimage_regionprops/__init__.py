@@ -1,6 +1,6 @@
 from ._table import add_table, get_table, TableWidget
 from ._regionprops import regionprops, regionprops_table, regionprops_table_all_frames
-from ._regionprops import regionprops_map_channels_table, regionprops_map_channels
+from ._regionprops import regionprops_map_channels_table, napari_regionprops_map_channels_table
 from ._parametric_images import visualize_measurement_on_labels, relabel
 from napari_plugin_engine import napari_hook_implementation
 from ._load_csv import load_csv
