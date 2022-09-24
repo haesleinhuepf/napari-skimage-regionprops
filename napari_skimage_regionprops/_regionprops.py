@@ -184,3 +184,39 @@ def ellipsoid_axis_lengths(table):
 
 regionprops_table_all_frames = analyze_all_frames(regionprops_table)
 register_function(regionprops_table_all_frames, menu="Measurement > Regionprops of all frames (nsr)")
+
+
+
+try:
+    # morphometrics API
+    from morphometrics.measure import register_measurement_set
+
+    # this is just a wrapper with the right image parameter names
+    def regionprops_for_morphometrics(intensity_image : "napari.types.ImageData", label_image: "napari.types.LabelsData", size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False) -> "pd.DataFrame":
+        return regionprops_table(intensity_image, label_image,
+                                 size=size,
+                                 intensity=intensity,
+                                 shape=shape,
+                                 perimeter=perimeter,
+                                 position=position,
+                                 moments=moments)
+
+    register_measurement_set(
+        regionprops_for_morphometrics,
+        name="regionprops (nsr)",
+        choices=["intensity", "size", "shape", "perimeter", "position", "moments"],
+        uses_intensity_image=True,
+    )
+
+    from napari_tools_menu import register_dock_widget
+    from morphometrics._gui._qt.measurement_widgets import QtMeasurementWidget
+    register_dock_widget(
+        QtMeasurementWidget,
+        "Measurement > Region properties (morphometrics)"
+    )
+except:
+    pass
+
+
+
+
