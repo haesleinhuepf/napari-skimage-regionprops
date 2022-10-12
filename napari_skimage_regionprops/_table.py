@@ -24,7 +24,10 @@ class TableWidget(QWidget):
 
         self._view = QTableWidget()
         self._view.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.set_content(layer.properties)
+        if hasattr(layer, "properties"):
+            self.set_content(layer.properties)
+        else:
+            self.set_content({})
 
         self._view.clicked.connect(self._clicked_table)
         self._view.horizontalHeader().sectionDoubleClicked.connect(self._double_clicked_table)
