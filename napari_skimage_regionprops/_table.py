@@ -72,6 +72,18 @@ class TableWidget(QWidget):
                                        name=selected_column + " in " + self._layer.name)
                 new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
                 new_layer.colormap = "jet"
+        if "triangle_index" in self._table.keys():
+            selected_column = list(self._table.keys())[self._view.currentColumn()]
+            print("Selected column (T)", selected_column)
+            if selected_column is not None and isinstance(self._layer, napari.layers.Surface):
+                values = self._table[selected_column]
+                data = self._layer.data
+                data = [np.asarray(data[0]).copy(), np.asarray(data[1]).copy(), values]
+
+                new_layer = self._viewer.add_surface(data,
+                    name=selected_column + " in " + self._layer.name)
+                new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
+                new_layer.colormap = "jet"
 
     def _after_labels_clicked(self):
         if "label" in self._table.keys() and hasattr(self._layer, "selected_label"):
