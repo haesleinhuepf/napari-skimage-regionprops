@@ -5,3 +5,4 @@ napari
 pandas
 napari-tools-menu>=0.1.11
 napari-workflows
+imageio!=2.22.1

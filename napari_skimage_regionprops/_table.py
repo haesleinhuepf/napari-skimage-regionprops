@@ -24,7 +24,10 @@ class TableWidget(QWidget):
 
         self._view = QTableWidget()
         self._view.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.set_content(layer.properties)
+        if hasattr(layer, "properties"):
+            self.set_content(layer.properties)
+        else:
+            self.set_content({})
 
         self._view.clicked.connect(self._clicked_table)
         self._view.horizontalHeader().sectionDoubleClicked.connect(self._double_clicked_table)
@@ -70,6 +73,18 @@ class TableWidget(QWidget):
                 from ._parametric_images import visualize_measurement_on_labels
                 new_layer = self._viewer.add_image(visualize_measurement_on_labels(self._layer, selected_column, self._viewer),
                                        name=selected_column + " in " + self._layer.name)
+                new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
+                new_layer.colormap = "jet"
+        if "triangle_index" in self._table.keys():
+            selected_column = list(self._table.keys())[self._view.currentColumn()]
+            print("Selected column (T)", selected_column)
+            if selected_column is not None and isinstance(self._layer, napari.layers.Surface):
+                values = self._table[selected_column]
+                data = self._layer.data
+                data = [np.asarray(data[0]).copy(), np.asarray(data[1]).copy(), values]
+
+                new_layer = self._viewer.add_surface(data,
+                    name=selected_column + " in " + self._layer.name)
                 new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
                 new_layer.colormap = "jet"
 
