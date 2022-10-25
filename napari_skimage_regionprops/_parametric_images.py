@@ -32,7 +32,7 @@ def relabel(image, measurements):
 
 def relabel_cle(image, measurements):
     import pyclesperanto_prototype as cle
-    return cle.pull(cle.replace_intensities(image, numpy.asarray([0] + measurements)))
+    return cle.pull(cle.replace_intensities(image, np.insert(np.array(measurements), 0, 0)))
 
 def relabel_numpy(image, measurements):
-    return numpy.take(numpy.array([0] + measurements), image)
+    return numpy.take(np.insert(np.array(measurements), 0, 0), image)
