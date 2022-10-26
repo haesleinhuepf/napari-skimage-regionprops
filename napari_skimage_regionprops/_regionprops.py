@@ -8,6 +8,7 @@ import napari
 from typing import List
 import math
 from ._all_frames import analyze_all_frames
+import sys
 
 def regionprops(image_layer : napari.layers.Layer, labels_layer: napari.layers.Labels, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False, napari_viewer : Viewer = None):
     warnings.warn("napari_skimage_regionprops.regionprops is deprecated. Use regionprops_table instead.")
@@ -22,29 +23,31 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-label pair.
     """
-    current_dim_value = 0
-    if napari_viewer is not None:
-        current_dim_value = napari_viewer.dims.current_step[0]
-
-        # store the layer for saving results later
-        from napari_workflows._workflow import _get_layer_from_data
-        labels_layer = _get_layer_from_data(napari_viewer, labels)
-
-        # deal with 4D data
-        if len(image.shape) == 4:
-            image = image[current_dim_value]
-        if len(labels.shape) == 4:
-            labels = labels[current_dim_value]
-
-    # deal with dimensionality of data
-    if len(image.shape) > len(labels.shape):
-        dim = 0
-        subset = ""
-        while len(image.shape) > len(labels.shape):
-            dim = dim + 1
-            image = image[current_dim_value]
-            subset = subset + ", " + str(current_dim_value)
-        warnings.warn("Not the full image was analysed, just the subset [" + subset[2:] + "] according to selected timepoint / slice.")
+    # Check if image was provided or just labels
+    if image is not None:
+        current_dim_value = 0
+        if napari_viewer is not None:
+            current_dim_value = napari_viewer.dims.current_step[0]
+    
+            # store the layer for saving results later
+            from napari_workflows._workflow import _get_layer_from_data
+            labels_layer = _get_layer_from_data(napari_viewer, labels)
+    
+            # deal with 4D data
+            if len(image.shape) == 4:
+                image = image[current_dim_value]
+            if len(labels.shape) == 4:
+                labels = labels[current_dim_value]
+    
+        # deal with dimensionality of data
+        if len(image.shape) > len(labels.shape):
+            dim = 0
+            subset = ""
+            while len(image.shape) > len(labels.shape):
+                dim = dim + 1
+                image = image[current_dim_value]
+                subset = subset + ", " + str(current_dim_value)
+            warnings.warn("Not the full image was analysed, just the subset [" + subset[2:] + "] according to selected timepoint / slice.")
 
 
 
@@ -55,13 +58,16 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
         properties = properties + ['area', 'bbox_area', 'convex_area', 'equivalent_diameter']
 
     if intensity:
-        properties = properties + ['max_intensity', 'mean_intensity', 'min_intensity']
-
-        # arguments must be in the specified order, matching regionprops
-        def standard_deviation_intensity(region, intensities):
-            return np.std(intensities[region])
-
-        extra_properties.append(standard_deviation_intensity)
+        if image is None:
+            warnings.warn("No intensity image was provided, skipping intensity measurements.")
+        else:
+            properties = properties + ['max_intensity', 'mean_intensity', 'min_intensity']
+    
+            # arguments must be in the specified order, matching regionprops
+            def standard_deviation_intensity(region, intensities):
+                return np.std(intensities[region])
+    
+            extra_properties.append(standard_deviation_intensity)
 
     if perimeter:
         if len(labels.shape) == 2:
@@ -83,7 +89,10 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
         # euler_number,
 
     if position:
-        properties = properties + ['centroid', 'bbox', 'weighted_centroid']
+        if image is None:
+            properties = properties + ['centroid', 'bbox']
+        else:
+            properties = properties + ['centroid', 'bbox', 'weighted_centroid']
 
     if moments:
         properties = properties + ['moments', 'moments_normalized']
@@ -101,7 +110,9 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
 
     # quantitative analysis using scikit-image's regionprops
     from skimage.measure import regionprops_table as sk_regionprops_table
-    table = sk_regionprops_table(np.asarray(labels).astype(int), intensity_image=np.asarray(image),
+    if image is not None:
+        image = np.asarray(image)
+    table = sk_regionprops_table(np.asarray(labels).astype(int), intensity_image=image,
                               properties=properties, extra_properties=extra_properties)
 
     if shape:
@@ -218,11 +229,11 @@ def make_element_wise_dict(list_of_keys, list_of_values):
 @register_function(
     menu="Measurement > Regionprops map multichannel (scikit-image, nsr)")
 def napari_regionprops_map_channels_table(
-        image_list: List[napari.types.ImageData],
-        labels_list: List[napari.types.LabelsData],
-        ref_channel: int = 0,
-        overlap: float = 0.5,
-        summary: bool = True,
+        label_images: List[napari.types.LabelsData],
+        intensity_images: List[napari.types.ImageData],
+        reference_label_image: napari.types.LabelsData,
+        intersection_area_over_object_area: float = 0.5,
+        return_summary_statistics: bool = True,
         size: bool = True,
         intensity: bool = True,
         perimeter: bool = False,
@@ -241,20 +252,31 @@ def napari_regionprops_map_channels_table(
 
     if napari_viewer is not None:
         # store list of labels layers for saving results later
-        labels_layer_list = [None]*len(labels_list)
+        labels_layer_list = [None]*len(label_images)
         for layer in napari_viewer.layers:
             if type(layer) is napari.layers.Labels:
                 # Store in the same order as labels_list
-                for i, labels in enumerate(labels_list):
+                for i, labels in enumerate(label_images):
                     if np.array_equal(layer.data, labels):
                         labels_layer_list[i] = layer
+                    if np.array_equal(reference_label_image, labels):
+                        ref_channel = i
+    # If single label image is provided, indicate to do single channel regionprops
+    if len(label_images) == 1:
+        ref_channel = None
+        label_images = label_images[0]
+    # If no intensity image provided, indicate no intensity measurements
+    if len(intensity_images) == 0:
+        intensity_images = None
+    else:
+        intensity_images = np.asarray(intensity_images)
 
     table_list = regionprops_map_channels_table(
-        labels_array=np.asarray(labels_list),
-        intensity_image=np.asarray(image_list),
+        labels_array=np.asarray(label_images),
+        intensity_image=intensity_images,
         ref_channel=ref_channel,
-        overlap=overlap,
-        summary=summary,
+        intersection_area_over_object_area=intersection_area_over_object_area,
+        summary=return_summary_statistics,
         size=size,
         intensity=intensity,
         perimeter=perimeter,
@@ -276,8 +298,8 @@ def napari_regionprops_map_channels_table(
         return table_list
 
 
-def regionprops_map_channels_table(labels_array, intensity_image,
-                                   ref_channel=0, overlap=0.5,
+def regionprops_map_channels_table(labels_array, intensity_image=None,
+                                   ref_channel=None, intersection_area_over_object_area=0.5,
                                    summary=True, **kwargs):
     """
     Measure properties from 2 (or more) channels and return summary statistics.
@@ -322,13 +344,31 @@ def regionprops_map_channels_table(labels_array, intensity_image,
     import numpy as np
     import pandas as pd
     # To DO: check if input shape is correct
-    n_channels = intensity_image.shape[0]
     table_list = []
+    # Single channel
+    if ref_channel is None:
+        table_list += [regionprops_table(image = intensity_image,
+                                        labels = labels_array,
+                                        **kwargs)]
+        return table_list
+    # Channel axis is expected to be 0
+    n_channels = labels_array.shape[0]
+    
     large_numbers = False
 
     def highest_overlap(regionmask, intensity_image,
-                        overlap_threshold=overlap):
-
+                        overlap_threshold=intersection_area_over_object_area):
+        """
+        
+        
+        Parameters
+        ----------
+        regionmask : (M, N[,P]) ndarray
+            Label image (probe channel). Labels to be used as a mask.
+        intensity_image : (M, N[,P]) ndarray
+            Label image (reference channel). Labels to be measured using probe
+            channel as a mask.
+        """
         if overlap_threshold == 0:
             return 0
         values, counts = np.unique(np.sort(intensity_image[regionmask]),
@@ -353,7 +393,16 @@ def regionprops_map_channels_table(labels_array, intensity_image,
         return value
 
     # Measure properties of reference channel
-    ref_channel_props = regionprops_table(image=intensity_image[ref_channel],
+    if intensity_image is not None:
+        # If single intensity image was given, then use it
+        if intensity_image.shape[0]==1:
+            image = intensity_image[0]
+        # Otherwise use the corresponding intensity image
+        else:
+            image = intensity_image[ref_channel]
+    else:
+        image = None
+    ref_channel_props = regionprops_table(image=image,
                                           labels=labels_array[ref_channel],
                                           **kwargs)
     for i in range(n_channels):
@@ -381,7 +430,7 @@ def regionprops_map_channels_table(labels_array, intensity_image,
                 large_numbers = False
                 # If large numbers, store format and convert to string to allow
                 # pandas replacement below, restore data type afterwards
-                if abs(ref_channel_props[props]).values.max() > 2147483647:
+                if abs(ref_channel_props[props]).values.max() > np.iinfo(np.int32).max:
                     large_numbers = True
                     props_dtype = ref_channel_props[props].dtype
                     ref_channel_props[props] = \
@@ -405,8 +454,15 @@ def regionprops_map_channels_table(labels_array, intensity_image,
 
             col_names = label_links.columns.to_list()
             # Append properties of probe channel to table
+            if intensity_image is not None:
+                # If single intensity image was given, then use it
+                if intensity_image.shape[0]==1:
+                    image = intensity_image[0]
+                # Otherwise use the corresponding intensity image
+                else:
+                    image = intensity_image[i]
             probe_channel_props = pd.DataFrame(
-                regionprops_table(image=intensity_image[i],
+                regionprops_table(image=image,
                                   labels=labels_array[i],
                                   **kwargs)
             )
