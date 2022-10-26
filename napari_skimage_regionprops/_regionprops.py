@@ -247,7 +247,9 @@ def napari_regionprops_map_channels_table(
     Adds a table widget to a given napari viewer with summary statistics that
     relates objects of one reference label image to objects in other label
     images. Matched intensity images should be given for intensity
-    measurements.
+    measurements. If no intensity images are given, calculates only properties
+    not related to intensities. If a single label image is given, it executes
+    regular 'regionprops_table' function.
     """
 
     if napari_viewer is not None:
@@ -299,7 +301,8 @@ def napari_regionprops_map_channels_table(
 
 
 def regionprops_map_channels_table(labels_array, intensity_image=None,
-                                   ref_channel=None, intersection_area_over_object_area=0.5,
+                                   ref_channel=None,
+                                   intersection_area_over_object_area=0.5,
                                    summary=True, **kwargs):
     """
     Measure properties from 2 (or more) channels and return summary statistics.
@@ -310,19 +313,20 @@ def regionprops_map_channels_table(labels_array, intensity_image=None,
     For each object in the reference channel, it returns descriptive statistics
     of overlapping objects in the probe channel(s).
     Objects are considered to overlap when object in probe channel has more
-    than 'overlap' of its area inside object in ref channel (0 = No overlap,
-                                                             1 = Full overlap,
-                                                             default = 0.5).
+    than 'intersection_area_over_object_area' of its area inside object in 
+    ref channel (0 = No overlap, 1 = Full overlap, default = 0.5).
+    If single labeled image is given, regular 'regionprops_table' function is
+    executed.
 
     Parameters
     ----------
     labels_array : (C, M, N[,P]) ndarray
         Multichannel labels array. Channel must be the first dimention.
-    intensity_image : (C, M, N[,P]) ndarray
+    intensity_image : (C, M, N[,P]) ndarray, optional
         Multichannel image. Channel must be the first dimention.
     ref_channel : int, optional
         Reference channel number. Default is 0.
-    overlap : float, optional
+    intersection_area_over_object_area : float, optional
         Ratio of area that a probe channel object must overlap with a reference
         channel object. It can be understood as area of intersection divided by
         area of probe object. Ranges from 0 to 1. Default is 0.5.
@@ -359,8 +363,15 @@ def regionprops_map_channels_table(labels_array, intensity_image=None,
     def highest_overlap(regionmask, intensity_image,
                         overlap_threshold=intersection_area_over_object_area):
         """
+        Gets the label number with highest overlap with label in another image.
         
-        
+        This function masks a labeled image called 'intensity_image' with 
+        'regionmask' and calculates the frequency of pixel values in that
+        region. Disconsidering zeros (background), it returns the most frequent
+        value if it overcomes the 'overlap_threshold'. Otherwise, it returns 0.
+        In case of draws, it returns the first occurence. This function follows
+        the standards of skimage.regionprops 'extra_properties'.
+         
         Parameters
         ----------
         regionmask : (M, N[,P]) ndarray
@@ -368,6 +379,12 @@ def regionprops_map_channels_table(labels_array, intensity_image=None,
         intensity_image : (M, N[,P]) ndarray
             Label image (reference channel). Labels to be measured using probe
             channel as a mask.
+        
+        Returns
+        -------
+        value : int
+            Most frequent label number under regionmask, except 0, that
+            overcomes threshold. Otherwise, it returns 0.
         """
         if overlap_threshold == 0:
             return 0
