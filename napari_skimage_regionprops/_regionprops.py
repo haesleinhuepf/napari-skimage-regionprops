@@ -251,6 +251,7 @@ def napari_regionprops_map_channels_table(
     not related to intensities. If a single label image is given, it executes
     regular 'regionprops_table' function.
     """
+    multichannel = True
     suffixes = []
     if napari_viewer is not None:
         # store list of labels layers for saving results later
@@ -269,6 +270,7 @@ def napari_regionprops_map_channels_table(
     # ref_channel is used as a flag to indicate single or multi-channel
     if len(label_images) == 1:
         ref_channel = None
+        multichannel = False
         label_images = label_images[0]
     # If no intensity image provided, indicate no intensity measurements
     if len(intensity_images) == 0:
@@ -294,21 +296,23 @@ def napari_regionprops_map_channels_table(
         # turn table into a widget
         from ._table import add_table
         # Clear labels layer properties (avoid appending when re-running)
-        labels_layer_list[ref_channel].properties = {}
+        if multichannel:
+            channel = ref_channel
+        else:
+            channel = 0
+        labels_layer_list[channel].properties = {}
         
         # Store results in the properties dictionary:
         for table in table_list:
-            if (return_summary_statistics) and (ref_channel != None):
+            if (return_summary_statistics) and (multichannel):
                 # Flatten summary statistics table
                 table.columns = [' '.join(col).strip()
                                  for col in table.columns.values]
-            # In case of single channel, reference channel is the unique and first
-            if ref_channel == None:
-                ref_channel = 0
+
             # Append table to properties of reference layer
-            labels_layer_list[ref_channel].properties = table
+            labels_layer_list[channel].properties = table
             # Display table (which also adds it to features)
-            add_table(labels_layer_list[ref_channel], napari_viewer)
+            add_table(labels_layer_list[channel], napari_viewer)
     else:
         return table_list
 
