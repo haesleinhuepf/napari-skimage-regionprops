@@ -545,7 +545,8 @@ def regionprops_map_channels_table(labels_array, intensity_image=None,
             # Re-order columns
             table = table[col_names]
             # Re-order rows
-            table = table.sort_values(by=['label' + suffixes[ref_channel]])
+            table = table.sort_values(by=['label' + suffixes[ref_channel]]) \
+                .reset_index().iloc[:,1:]
             if summary:
                 grouped = table.groupby('label' + suffixes[ref_channel])
                 table = grouped[probe_column_names].describe().reset_index()
