@@ -379,11 +379,7 @@ def regionprops_map_channels_table(labels_array, intensity_image=None,
         suffixes = ['-ch' + str(i) for i in range(n_channels)]
     else:
         suffixes = ['-' + suffix for suffix in suffixes]
-    # # Reorder suffixes based on ref_channel (first)
-    # list_order = [i for i in range(n_channels)]
-    # list_order.insert(0, list_order.pop(ref_channel))
-    # suffixes = [suffixes[i] for i in list_order]
-    print('suffixes = ', suffixes)
+
     def highest_overlap(regionmask, intensity_image,
                         overlap_threshold=intersection_area_over_object_area):
         """
@@ -518,11 +514,8 @@ def regionprops_map_channels_table(labels_array, intensity_image=None,
             # Insert new column names (from probe channel)
             probe_column_names = probe_channel_props.columns.to_list()
             col_names = col_names[1:] + [col_names[0]] + probe_column_names
-            print(col_names)
             # Re-order columns
             table = table[col_names]
-            print(table.columns)
-            print(table)
             if summary:
                 grouped = table.groupby('label' + suffixes[ref_channel])
                 table = grouped[probe_column_names].describe().reset_index()
