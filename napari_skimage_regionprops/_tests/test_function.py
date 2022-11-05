@@ -388,3 +388,12 @@ def test_shape_descriptors():
     print("roundness", table['roundness'])
     # Values > 1 should actually not appear, but do so in case of very small objects apparently
     assert np.allclose(table['roundness'], [1.27323954, 1.07429587, 0.50929582, 0.39788736, 0.59683104, 0.71619724])
+
+def test_measure_points():
+    import numpy as np
+    import napari_skimage_regionprops as nsr
+
+    image = np.random.random((100, 200)) * 10
+    points = np.random.random((100, 2)) * 99
+
+    nsr.measure_points(points, image)

@@ -70,11 +70,23 @@ class TableWidget(QWidget):
             selected_column = list(self._table.keys())[self._view.currentColumn()]
             print("Selected column", selected_column)
             if selected_column is not None:
-                from ._parametric_images import visualize_measurement_on_labels
-                new_layer = self._viewer.add_image(visualize_measurement_on_labels(self._layer, selected_column, self._viewer),
-                                       name=selected_column + " in " + self._layer.name)
-                new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
-                new_layer.colormap = "jet"
+                if isinstance(self._layer, napari.layers.Labels):
+                    from ._parametric_images import visualize_measurement_on_labels
+                    new_layer = self._viewer.add_image(visualize_measurement_on_labels(self._layer, selected_column, self._viewer),
+                                           name=selected_column + " in " + self._layer.name)
+                    new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
+                    new_layer.colormap = "jet"
+                elif isinstance(self._layer, napari.layers.Points):
+                    features = self._layer.features
+                    new_layer = self._viewer.add_points(self._layer.data,
+                                                        features=features,
+                                                        face_color=selected_column,
+                                                        face_colormap="jet",
+                                                        size=self._layer.size,
+                                                        name=selected_column + " in " + self._layer.name
+                                                        )
+                    new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
+
         if "vertex_index" in self._table.keys():
             selected_column = list(self._table.keys())[self._view.currentColumn()]
             print("Selected column (T)", selected_column)
