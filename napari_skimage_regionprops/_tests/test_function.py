@@ -394,6 +394,6 @@ def test_measure_points():
     import napari_skimage_regionprops as nsr
 
     image = np.random.random((100, 200)) * 10
-    points = np.random.random((100, 2)) * 100
+    points = np.random.random((100, 2)) * 99
 
     nsr.measure_points(points, image)
