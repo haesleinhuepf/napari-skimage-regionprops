@@ -1,9 +1,9 @@
 import numpy as np
 from napari_tools_menu import register_function
 
-@register_function(menu = "Measurent > Measure intensity at point coordinates (nsr)")
+@register_function(menu = "Measurement > Measure intensity at point coordinates (nsr)")
 def measure_points(points: "napari.types.PointsData", intensity_image: "napari.types.ImageData",
-                   viewer: "napari.Viewer" = None) -> "pd.DataFrame":
+                   viewer: "napari.Viewer" = None):
     """
     After rounding a list of point coordinates, the intensity at specified (rounded) points will be measured and stored
     in a table. In this table, point with `label=1` corresponds to the first point.
