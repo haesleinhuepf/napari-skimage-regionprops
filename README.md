@@ -13,7 +13,7 @@ A [napari] plugin for measuring properties of labeled objects based on [scikit-i
 
 ![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/interactive.gif)
 
-## Usage
+## Usage: measure region properties
 
 From the menu `Tools > Measurement > Regionprops (nsr)` you can open a dialog where you can choose an intensity image, a corresponding label image and the features you want to measure:
 
@@ -31,10 +31,21 @@ For visualizing measurements with different grey values, as parametric images, y
 
 ![img.png](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/label_value_visualization.gif)
 
+## Usage: measure point intensities
+
+Analogously, also the intensity and coordinates of point layers can be measured using the menu `Tools > Measurement > Measure intensity at point coordinates (nsr)`. 
+Also these measurements can be visualized by double-clicking table headers:
+
+![img.png](measure_point_intensity.png)
+
+![img_1.png](measure_point_coordinate.png)
 
 ## Usage, programmatically
 
-You can also control the tables programmatically. See this [example notebook](https://github.com/haesleinhuepf/napari-skimage-regionprops/blob/master/demo/tables.ipynb) for details.
+You can also control the tables programmatically. See this 
+[example notebook](https://github.com/haesleinhuepf/napari-skimage-regionprops/blob/master/demo/tables.ipynb) for details on regionprops and
+[this example notebook](https://github.com/haesleinhuepf/napari-skimage-regionprops/blob/master/demo/measure_points.ipynb) for details on measuring intensity at point coordinates.
+
 
 ## Features
 The user can select categories of features for feature extraction in the user interface. These categories contain measurements from the scikit-image [regionprops list of measurements](https://scikit-image.org/docs/dev/api/skimage.measure.html#skimage.measure.regionprops) library:
@@ -72,6 +83,8 @@ The user can select categories of features for feature extraction in the user in
   * moments_central
   * moments_hu
   * moments_normalized
+
+
 
 This [napari] plugin was generated with [Cookiecutter] using with [@napari]'s [cookiecutter-napari-plugin] template.
 
