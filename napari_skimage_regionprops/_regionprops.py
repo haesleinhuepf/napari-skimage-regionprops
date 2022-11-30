@@ -317,6 +317,194 @@ def napari_regionprops_map_channels_table(
         return table_list
 
 
+def measure_labels(reference_labels : napari.types.LabelsData, 
+                   size : bool = True, perimeter : bool = False,
+                   shape : bool = False, position : bool = False,
+                   moments : bool = False,
+                   napari_viewer : Viewer = None) -> "pandas.DataFrame":
+    table = regionprops_table(image = np.zeros_like(reference_labels), 
+                              labels = reference_labels, size = size,
+                              intensity = False, perimeter = perimeter,
+                              shape = shape, position = position,
+                              moments = moments, napari_viewer = napari_viewer)
+    return table
+
+def measure_intensity_in_labels(reference_labels : napari.types.LabelsData,
+                                intensity_image : napari.types.ImageData,
+                                napari_viewer : Viewer = None) -> "pandas.DataFrame":
+    table = regionprops_table(image = intensity_image, 
+                              labels = reference_labels, size = False,
+                              intensity = True, perimeter = False,
+                              shape = False, position = False,
+                              moments = False, napari_viewer = napari_viewer)
+    return table
+
+def link_labels(reference_labels : napari.types.LabelsData,
+                labels_to_measure : napari.types.LabelsData, 
+                intersection_area_over_object_area: float = 0.5
+                ) -> "pandas.DataFrame":
+    import numpy as np
+    import pandas as pd
+    from skimage.measure import regionprops_table as sk_regionprops_table
+    
+    def highest_overlap(regionmask, intensity_image,
+                        overlap_threshold=intersection_area_over_object_area):
+        """
+        Gets the label number with highest overlap with label in another image.
+        
+        This function masks a labeled image called 'intensity_image' with 
+        'regionmask' and calculates the frequency of pixel values in that
+        region. Disconsidering zeros (background), it returns the most frequent
+        value if it overcomes the 'overlap_threshold'. Otherwise, it returns 0.
+        In case of draws, it returns the first occurence. This function follows
+        the standards of skimage.regionprops 'extra_properties'.
+         
+        Parameters
+        ----------
+        regionmask : (M, N[,P]) ndarray
+            Label image (probe channel). Labels to be used as a mask.
+        intensity_image : (M, N[,P]) ndarray
+            Label image (reference channel). Labels to be measured using probe
+            channel as a mask.
+        
+        Returns
+        -------
+        value : int
+            Most frequent label number under regionmask, except 0, that
+            overcomes threshold. Otherwise, it returns 0.
+        """
+        if overlap_threshold == 0:
+            return 0
+        values, counts = np.unique(np.sort(intensity_image[regionmask]),
+                                   return_counts=True)
+        # Probabilities of belonging to a certain label or bg
+        probs = counts/np.sum(counts)
+        # If there is underlying bg, take it out
+        if values[0] == 0:
+            values = np.delete(values, 0)
+            probs = np.delete(probs, 0)
+
+        # if any label overlap probability is bigger than overlap_threshold
+        if (probs >= overlap_threshold).any():
+            # find label with highest overlap
+            # if equal frequency, return first occurence
+            index_max_overlap_prob = np.argmax(probs)
+            value = values[index_max_overlap_prob]
+        else:  # otherwise, highest allowed overlap is considered to be
+            # with background, i.e., object does not "belong" to any
+            #  other label and gets 0
+            value = 0
+        return value
+    
+    # Create table (label_links) that links labels from scanning channel
+    # to reference channel
+    table_linking_labels = pd.DataFrame(
+        sk_regionprops_table(label_image=labels_to_measure,
+                             intensity_image=reference_labels,
+                             properties=['label', ],
+                             extra_properties=[highest_overlap]
+                             )
+    ).astype(int)
+    # rename column
+    table_linking_labels.rename(columns={'highest_overlap': 'label_reference'},
+                       inplace=True)
+    table_linking_labels = table_linking_labels[['label_reference', 'label']]
+    
+    # Add possible missing reference labels to table (they belong to background)
+    bg_labels_list = []
+    for i in np.unique(reference_labels)[1:].tolist():
+        if i not in table_linking_labels['label_reference'].values:
+            bg_labels_list.append([i, 0])
+    bg_labels = pd.DataFrame(bg_labels_list,
+                             columns=['label_reference', 'label'])
+    table_linking_labels = pd.concat([table_linking_labels, bg_labels], axis=0) \
+        .sort_values(by=['label_reference', 'label']).reset_index(drop=True)
+
+    return table_linking_labels
+
+def link_tables(table_linking_labels : "pandas.DataFrame",
+                table_reference_labels_properties : "pandas.DataFrame",
+                table_labels_to_measure_properties : "pandas.DataFrame",
+               suffixes=('_reference', '')) -> "pandas.DataFrame":
+    import pandas as pd
+    import numpy as np
+    # Add suffixes to tables
+    table_linking_labels.rename(
+        columns={'label_reference': 'label' + suffixes[0],
+                 'label': 'label' + suffixes[1]},
+        inplace=True)
+    table_reference_labels_properties.columns = [
+        props + suffixes[0]
+        for props in table_reference_labels_properties.columns]
+    table_labels_to_measure_properties.columns = [
+        props + suffixes[1]
+        for props in table_labels_to_measure_properties.columns]
+    
+    # Merge reference measurements to linking labels output table
+    output_table = pd.merge(table_linking_labels,
+                            table_reference_labels_properties,
+                            how='outer', on='label' + suffixes[0])
+    # Merge other measurements to output table
+    output_table = pd.merge(output_table,
+                            table_labels_to_measure_properties,
+                            how='outer', on='label' + suffixes[1])
+
+    return output_table
+
+def make_summary_table(table: "pandas.DataFrame",
+                      suffixes=('_reference', '')) -> "pandas.DataFrame":
+    grouped = table.groupby('label' + suffixes[0])
+    probe_columns = [prop for prop in table.columns
+                     if not prop.endswith(suffixes[0])]
+    table = grouped[probe_columns[1:]].describe().reset_index()
+    return table
+
+# TO DO: 
+    # - measure_labels_in_labels
+    # - def measure_intensity_in_labels_in_labels(reference_labels, labels_to_measure, intensity_to_measure, ...) -> pd.DataFrame:
+    # - major napari function that call each of them depending on inputs
+    # - example notebooks
+            
+    
+        
+# def measure_labels_in_labels(reference_labels : napari.types.LabelsData,
+#                               labels_to_measure : napari.types.LabelsData, 
+#                               intersection_area_over_object_area: float = 0.5,
+#                               # return_summary_statistics: bool = True,
+#                               size: bool = True,
+#                               perimeter: bool = False,
+#                               shape: bool = False,
+#                               position: bool = False,
+#                               moments: bool = False,
+#                               napari_viewer: Viewer = None) -> "pandas.DataFrame":
+#     import pandas as pd
+#     import numpy as np
+    
+#     table_label_links = link_labels(reference_labels=reference_labels,
+#                                     labels_to_measure=labels_to_measure,
+#                                     intersection_area_over_object_area=
+#                                     intersection_area_over_object_area)
+    
+#     # Measure properties of reference channel
+#     table_props_reference = measure_labels(reference_labels=reference_labels,
+#                                        size=size, perimeter=perimeter,
+#                                        shape=shape, position=position,
+#                                        moments=moments,
+#                                        napari_viewer=napari_viewer)
+#     # Add background measurements (basically NaNs for now)
+#     bg_props = pd.DataFrame(
+#         data=[[0] + [np.nan]*(table_props_reference.shape[1] - 1)],
+#         columns=table_props_reference.columns)
+#     table_props_reference = pd.concat([bg_props, table_props_reference])
+    
+    
+    
+#     return table_props_reference
+    
+    
+    
+    
+
 def regionprops_map_channels_table(labels_array, intensity_image=None,
                                    ref_channel=None,
                                    intersection_area_over_object_area=0.5,
