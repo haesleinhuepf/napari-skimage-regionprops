@@ -229,9 +229,9 @@ def make_element_wise_dict(list_of_keys, list_of_values):
 @register_function(
     menu="Measurement > Regionprops map multichannel (scikit-image, nsr)")
 def napari_regionprops_map_channels_table(
-        label_images: List[napari.types.LabelsData],
-        intensity_images: List[napari.types.ImageData],
         reference_label_image: napari.types.LabelsData,
+        label_images_to_measure: List[napari.types.LabelsData],
+        intensity_images: List[napari.types.ImageData],
         intersection_area_over_object_area: float = 0.5,
         return_summary_statistics: bool = True,
         size: bool = True,
@@ -240,7 +240,7 @@ def napari_regionprops_map_channels_table(
         shape: bool = False,
         position: bool = False,
         moments: bool = False,
-        napari_viewer: Viewer = None) -> "pandas.DataFrame":
+        napari_viewer: Viewer = None) -> List["pandas.DataFrame"]:
     """
     Add a table widget to a napari viewer with mapped summary statistics.
 
@@ -251,95 +251,81 @@ def napari_regionprops_map_channels_table(
     not related to intensities. If a single label image is given, it executes
     regular 'regionprops_table' function.
     """
-    multichannel = True
+
     suffixes = []
+    
     if napari_viewer is not None:
-        # store list of labels layers for saving results later
-        labels_layer_list = [None]*len(label_images)
         for layer in napari_viewer.layers:
             if type(layer) is napari.layers.Labels:
-                # Store in the same order as label_images
-                for i, labels in enumerate(label_images):
-                    if np.array_equal(layer.data, labels):
-                        labels_layer_list[i] = layer
-                        suffixes += [layer.name]
-                    # Store reference channel index
-                    if np.array_equal(reference_label_image, labels):
-                        ref_channel = i
-    # If single label image is provided, indicate to do single channel regionprops
-    # ref_channel is used as a flag to indicate single or multi-channel
-    if len(label_images) == 1:
-        ref_channel = None
-        multichannel = False
-        label_images = label_images[0]
-    # If no intensity image provided, indicate no intensity measurements
-    if len(intensity_images) == 0:
-        intensity_images = None
+                if np.array_equal(layer.data, reference_label_image):
+                    reference_labels_layer = layer
+                    reference_suffix = '_' + layer.name
+                else:
+                    for labels in label_images_to_measure:
+                        if np.array_equal(layer.data, labels):
+                            suffixes.append('_' + layer.name)
+        suffixes.insert(0, reference_suffix)
+    print('suffixes = ', suffixes)
+    
+    ## Single image measurements
+    if len(label_images_to_measure) == 0:
+        ### Without intensity measurements
+        if len(intensity_images) == 0:
+            table = measure_labels(
+                reference_labels=reference_label_image, 
+                size=size, perimeter=perimeter,
+                shape=shape, position=position,
+                moments=moments)
+        ### Or with intensity measurements
+        else:
+            reference_intensity_image = intensity_images[0]
+            table = measure_labels_with_intensity(
+                reference_labels=reference_label_image,
+                intensity_image=reference_intensity_image,
+                size=size, perimeter=perimeter,
+                shape=shape, position=position,
+                moments=moments)
+    # More than one label image measurements
     else:
-        intensity_images = np.asarray(intensity_images)
-
-    table_list = regionprops_map_channels_table(
-        labels_array=np.asarray(label_images),
-        intensity_image=intensity_images,
-        ref_channel=ref_channel,
-        intersection_area_over_object_area=intersection_area_over_object_area,
-        summary=return_summary_statistics,
-        suffixes=suffixes,
-        size=size,
-        intensity=intensity,
-        perimeter=perimeter,
-        shape=shape,
-        position=position,
-        moments=moments)
-
+        ### Without intensity measurements
+        if len(intensity_images) == 0:
+            table = measure_labels_in_labels(reference_labels=reference_label_image,
+                                          labels_to_measure=label_images_to_measure,
+                                          size=size, perimeter=perimeter,
+                                          shape=shape, position=position,
+                                          moments=moments,
+                                          intersection_area_over_object_area=intersection_area_over_object_area,
+                                          suffixes=suffixes)
+        else:
+            reference_intensity_image = intensity_images[0]
+            if len(intensity_images)==1:
+                intensity_image_of_labels_to_measure = None
+            else:
+                intensity_image_of_labels_to_measure = intensity_images[1:]
+            table = measure_labels_in_labels_with_intensity(
+                reference_labels=reference_label_image,
+                labels_to_measure=label_images_to_measure,
+                intensity_image_of_reference=reference_intensity_image,
+                intensity_image_of_labels_to_measure=intensity_image_of_labels_to_measure,
+                size=size, perimeter=perimeter,
+                shape=shape, position=position,
+                moments=moments,
+                intersection_area_over_object_area=intersection_area_over_object_area,
+                suffixes=suffixes)
+    
     if napari_viewer is not None:
         # turn table into a widget
         from ._table import add_table
         # Clear labels layer properties (avoid appending when re-running)
-        if multichannel:
-            channel = ref_channel
-        else:
-            channel = 0
-        labels_layer_list[channel].properties = {}
-        
-        # Store results in the properties dictionary:
-        for table in table_list:
-            if (return_summary_statistics) and (multichannel):
-                # Flatten summary statistics table
-                table.columns = [' '.join(col).strip()
-                                 for col in table.columns.values]
-
-            # Append table to properties of reference layer
-            labels_layer_list[channel].properties = table
-            # Display table (which also adds it to features)
-            add_table(labels_layer_list[channel], napari_viewer)
+        reference_labels_layer.properties = {}
+        # Append table to properties of reference layer
+        reference_labels_layer.properties = table
+        # Display table (which also adds it to features)
+        add_table(reference_labels_layer, napari_viewer)
     else:
-        return table_list
+        return table
 
-
-def measure_labels(reference_labels : napari.types.LabelsData, 
-                   size : bool = True, perimeter : bool = False,
-                   shape : bool = False, position : bool = False,
-                   moments : bool = False,
-                   napari_viewer : Viewer = None) -> "pandas.DataFrame":
-    table = regionprops_table(image = np.zeros_like(reference_labels), 
-                              labels = reference_labels, size = size,
-                              intensity = False, perimeter = perimeter,
-                              shape = shape, position = position,
-                              moments = moments, napari_viewer = napari_viewer)
-    return table
-
-def measure_intensity_in_labels(reference_labels : napari.types.LabelsData,
-                                intensity_image : napari.types.ImageData,
-                                napari_viewer : Viewer = None) -> "pandas.DataFrame":
-    table = regionprops_table(image = intensity_image, 
-                              labels = reference_labels, size = False,
-                              intensity = True, perimeter = False,
-                              shape = False, position = False,
-                              moments = False, napari_viewer = napari_viewer)
-    return table
-
-def link_labels(reference_labels : napari.types.LabelsData,
+def link_two_label_images(reference_labels : napari.types.LabelsData,
                 labels_to_measure : napari.types.LabelsData, 
                 intersection_area_over_object_area: float = 0.5
                 ) -> "pandas.DataFrame":
@@ -410,7 +396,7 @@ def link_labels(reference_labels : napari.types.LabelsData,
                        inplace=True)
     table_linking_labels = table_linking_labels[['label_reference', 'label']]
     
-    # Add possible missing reference labels to table (they belong to background)
+    # Add eventual missing reference labels to table (they belong to background)
     bg_labels_list = []
     for i in np.unique(reference_labels)[1:].tolist():
         if i not in table_linking_labels['label_reference'].values:
@@ -422,330 +408,219 @@ def link_labels(reference_labels : napari.types.LabelsData,
 
     return table_linking_labels
 
-def link_tables(table_linking_labels : "pandas.DataFrame",
-                table_reference_labels_properties : "pandas.DataFrame",
-                table_labels_to_measure_properties : "pandas.DataFrame",
-               suffixes=('_reference', '')) -> "pandas.DataFrame":
+def merge_measurements_to_reference(
+    table_reference_labels_properties : "pandas.DataFrame",
+    table_linking_labels : List["pandas.DataFrame"],
+    table_labels_to_measure_properties : List["pandas.DataFrame"],
+    suffixes=None) -> "pandas.DataFrame":
     import pandas as pd
-    import numpy as np
-    # Add suffixes to tables
-    table_linking_labels.rename(
-        columns={'label_reference': 'label' + suffixes[0],
-                 'label': 'label' + suffixes[1]},
-        inplace=True)
-    table_reference_labels_properties.columns = [
-        props + suffixes[0]
-        for props in table_reference_labels_properties.columns]
-    table_labels_to_measure_properties.columns = [
-        props + suffixes[1]
-        for props in table_labels_to_measure_properties.columns]
+    ## Shape input to right format
+    ### Create lists of tables to iterate later
+    if not isinstance(table_linking_labels, list):
+        list_table_linking_labels = [table_linking_labels]
+    else:
+        list_table_linking_labels = table_linking_labels
+    if not isinstance(table_labels_to_measure_properties, list):
+        list_table_labels_to_measure_properties = [table_labels_to_measure_properties]
+    else:
+        list_table_labels_to_measure_properties = table_labels_to_measure_properties
+    ### Build custom suffixes or check if provided suffixes match data size
+    n_measurement_tables = len(list_table_labels_to_measure_properties)
+    if suffixes is None:
+        n_leading_zeros = n_measurement_tables // 10
+        suffixes = ['_reference'] + ['_' + str(i+1).zfill(1+n_leading_zeros) for i in range(n_measurement_tables)]
+    else:
+        if len(suffixes) != len(table_labels_to_measure_properties) + 1:
+            print('Error: List of suffixes must have the same length as the number of tables containing measurements')
+            return
     
-    # Merge reference measurements to linking labels output table
-    output_table = pd.merge(table_linking_labels,
-                            table_reference_labels_properties,
-                            how='outer', on='label' + suffixes[0])
-    # Merge other measurements to output table
-    output_table = pd.merge(output_table,
-                            table_labels_to_measure_properties,
-                            how='outer', on='label' + suffixes[1])
+    ## Rename column names with appropriate suffixes
+    ### Raname reference table columns
+    table_reference_labels_properties.columns = [
+            props + suffixes[0]
+            for props in table_reference_labels_properties.columns]
+    ### Rename columns of tables with linking labels 
+    for i, table_linking_labels in enumerate(list_table_linking_labels):
+        table_linking_labels.rename(
+                columns={'label_reference': 'label' + suffixes[0],
+                         'label': 'label' + suffixes[i+1]},
+                inplace=True)
+    ### Rename columns of tables with properties from other channels
+    for i, table_labels_to_measure_properties in enumerate(list_table_labels_to_measure_properties):
+        table_labels_to_measure_properties.columns = [
+            props + suffixes[i+1]
+            for props in table_labels_to_measure_properties.columns]
+    
+    ## output_table starts with reference labels and their properties
+    output_table = table_reference_labels_properties
+    ## Consecutively merge linking_labels tables and properties from other channels tables to the reference table
+    for i, table_linking_labels, table_labels_to_measure_properties in zip(range(n_measurement_tables), list_table_linking_labels, list_table_labels_to_measure_properties):
 
+        # Merge other labels to output table based on label_reference
+        output_table = pd.merge(output_table,
+                                table_linking_labels,
+                                how='outer', on='label' + suffixes[0])
+        # Fill NaN labels with zeros (if label were not linked, they belong to background)
+        output_table['label' + suffixes[i+1]] = output_table['label' + suffixes[i+1]].fillna(0)
+        # Merge other properties to output table based on new labels column
+        output_table = pd.merge(output_table,
+                                table_labels_to_measure_properties,
+                                how='outer', on='label' + suffixes[i+1])
     return output_table
 
 def make_summary_table(table: "pandas.DataFrame",
-                      suffixes=('_reference', '')) -> "pandas.DataFrame":
+                      suffixes) -> "pandas.DataFrame":
+    # If not provided, guess suffixes from column names (last string after '_')
+    import re
+    import pandas as pd
+    if suffixes is None:
+        try:
+            suffixes = []
+            for name in table.columns:
+                new_entry = re.findall(r'_[^_]+$', name)[0]
+                if new_entry not in suffixes:
+                    suffixes.append(new_entry)
+        except:
+            print('Could not infer suffixes from column names. Pleas provide a list of suffixes identifying different channels')
+            return
+    
     grouped = table.groupby('label' + suffixes[0])
     probe_columns = [prop for prop in table.columns
                      if not prop.endswith(suffixes[0])]
-    table = grouped[probe_columns[1:]].describe().reset_index()
+    probe_measurement_columns = [name for name in probe_columns
+                     if not name.startswith('label')]
+    table = grouped[probe_measurement_columns].describe().reset_index()
     return table
 
-# TO DO: 
-    # - measure_labels_in_labels
-    # - def measure_intensity_in_labels_in_labels(reference_labels, labels_to_measure, intensity_to_measure, ...) -> pd.DataFrame:
-    # - major napari function that call each of them depending on inputs
-    # - example notebooks
-            
-    
-        
-# def measure_labels_in_labels(reference_labels : napari.types.LabelsData,
-#                               labels_to_measure : napari.types.LabelsData, 
-#                               intersection_area_over_object_area: float = 0.5,
-#                               # return_summary_statistics: bool = True,
-#                               size: bool = True,
-#                               perimeter: bool = False,
-#                               shape: bool = False,
-#                               position: bool = False,
-#                               moments: bool = False,
-#                               napari_viewer: Viewer = None) -> "pandas.DataFrame":
-#     import pandas as pd
-#     import numpy as np
-    
-#     table_label_links = link_labels(reference_labels=reference_labels,
-#                                     labels_to_measure=labels_to_measure,
-#                                     intersection_area_over_object_area=
-#                                     intersection_area_over_object_area)
-    
-#     # Measure properties of reference channel
-#     table_props_reference = measure_labels(reference_labels=reference_labels,
-#                                        size=size, perimeter=perimeter,
-#                                        shape=shape, position=position,
-#                                        moments=moments,
-#                                        napari_viewer=napari_viewer)
-#     # Add background measurements (basically NaNs for now)
-#     bg_props = pd.DataFrame(
-#         data=[[0] + [np.nan]*(table_props_reference.shape[1] - 1)],
-#         columns=table_props_reference.columns)
-#     table_props_reference = pd.concat([bg_props, table_props_reference])
-    
-    
-    
-#     return table_props_reference
-    
-    
-    
-    
+def measure_labels(reference_labels : napari.types.LabelsData, 
+                   size : bool = True, perimeter : bool = False,
+                   shape : bool = False, position : bool = False,
+                   moments : bool = False,
+                   napari_viewer : Viewer = None) -> "pandas.DataFrame":
+    table = regionprops_table(image = np.zeros_like(reference_labels), 
+                              labels = reference_labels, size = size,
+                              intensity = False, perimeter = perimeter,
+                              shape = shape, position = position,
+                              moments = moments, napari_viewer = napari_viewer)
+    return table
 
-def regionprops_map_channels_table(labels_array, intensity_image=None,
-                                   ref_channel=None,
-                                   intersection_area_over_object_area=0.5,
-                                   summary=True, suffixes = None, **kwargs):
-    """
-    Measure properties from 2 (or more) channels and return summary statistics.
+def measure_labels_with_intensity(reference_labels : napari.types.LabelsData,
+                                intensity_image : napari.types.ImageData,
+                                size : bool = True, perimeter : bool = False,
+                                shape : bool = False, position : bool = False,
+                                moments : bool = False,
+                                napari_viewer : Viewer = None) -> "pandas.DataFrame":
+    table = regionprops_table(image = intensity_image, 
+                              labels = reference_labels, size = size,
+                              intensity = True, perimeter = perimeter,
+                              shape = shape, position = position,
+                              moments = moments, napari_viewer = napari_viewer)
+    return table
 
-    For each channel in a multi-channel image and a multi-channel label array,
-    it measures properties of a reference channel (default: 0) and a probe
-    channel.
-    For each object in the reference channel, it returns descriptive statistics
-    of overlapping objects in the probe channel(s).
-    Objects are considered to overlap when object in probe channel has more
-    than 'intersection_area_over_object_area' of its area inside object in 
-    ref channel (0 = No overlap, 1 = Full overlap, default = 0.5).
-    If single labeled image is given, regular 'regionprops_table' function is
-    executed.
-
-    Parameters
-    ----------
-    labels_array : (C, M, N[,P]) ndarray
-        Multichannel labels array. Channel must be the first dimention.
-    intensity_image : (C, M, N[,P]) ndarray, optional
-        Multichannel image. Channel must be the first dimention.
-    ref_channel : int, optional
-        Reference channel number. Default is 0.
-    intersection_area_over_object_area : float, optional
-        Ratio of area that a probe channel object must overlap with a reference
-        channel object. It can be understood as area of intersection divided by
-        area of probe object. Ranges from 0 to 1. Default is 0.5.
-    summary: bool, optional
-        Determine whether to return summary statistics or direct relatioships.
-        Default is True.
-    suffixes: List[str], optional
-        Suffixes to identify each channel. List must match number of channel in
-        'labels_array'. If None, then '-ch' + number is used.
-
-    Returns
-    -------
-    table_list : List
-        List of tables where each table relates one probe channel objects to
-        the reference channel objects. If `summary` is True, for each property,
-        returns count, mean, standard deviation, median, min, max, 25th
-        quartile and 75th quartile. If `summary` is False, direct relationships
-        are returned (which may lead to columns with repeated labels).
-    """
-    # quantitative analysis using scikit-image's regionprops
-    from skimage.measure import regionprops_table as sk_regionprops_table
-    import numpy as np
-    import pandas as pd
-    # To DO: check if input shape is correct
-    table_list = []
-    # Single channel case (single label image provided)
-    if ref_channel is None:
-        table_list += [regionprops_table(image = intensity_image,
-                                        labels = labels_array,
-                                        **kwargs)]
-        return table_list
-    # Channel axis is expected to be 0
-    n_channels = labels_array.shape[0]
-   
-    large_numbers = False
-    # If not provided, create default suffixes
-    if not suffixes:
-        suffixes = ['-ch' + str(i) for i in range(n_channels)]
-    else:
-        suffixes = ['-' + suffix for suffix in suffixes]
-
-    def highest_overlap(regionmask, intensity_image,
-                        overlap_threshold=intersection_area_over_object_area):
-        """
-        Gets the label number with highest overlap with label in another image.
-        
-        This function masks a labeled image called 'intensity_image' with 
-        'regionmask' and calculates the frequency of pixel values in that
-        region. Disconsidering zeros (background), it returns the most frequent
-        value if it overcomes the 'overlap_threshold'. Otherwise, it returns 0.
-        In case of draws, it returns the first occurence. This function follows
-        the standards of skimage.regionprops 'extra_properties'.
-         
-        Parameters
-        ----------
-        regionmask : (M, N[,P]) ndarray
-            Label image (probe channel). Labels to be used as a mask.
-        intensity_image : (M, N[,P]) ndarray
-            Label image (reference channel). Labels to be measured using probe
-            channel as a mask.
-        
-        Returns
-        -------
-        value : int
-            Most frequent label number under regionmask, except 0, that
-            overcomes threshold. Otherwise, it returns 0.
-        """
-        if overlap_threshold == 0:
-            return 0
-        values, counts = np.unique(np.sort(intensity_image[regionmask]),
-                                   return_counts=True)
-        # Probabilities of belonging to a certain label or bg
-        probs = counts/np.sum(counts)
-        # If there is underlying bg, take it out
-        if values[0] == 0:
-            values = np.delete(values, 0)
-            probs = np.delete(probs, 0)
-
-        # if any label overlap probability is bigger than overlap_threshold
-        if (probs >= overlap_threshold).any():
-            # find label with highest overlap
-            # if equal frequency, return first occurence
-            index_max_overlap_prob = np.argmax(probs)
-            value = values[index_max_overlap_prob]
-        else:  # otherwise, highest allowed overlap is considered to be
-            # with background, i.e., object does not "belong" to any
-            #  other label and gets 0
-            value = 0
-        return value
-
-    # Measure properties of reference channel
-    if intensity_image is not None:
-        # If single intensity image was given, then use it
-        if intensity_image.shape[0]==1:
-            image = intensity_image[0]
-        # Otherwise use the corresponding intensity image
-        else:
-            image = intensity_image[ref_channel]
-    else:
-        image = None
-    ref_channel_props = regionprops_table(image=image,
-                                          labels=labels_array[ref_channel],
-                                          **kwargs)
-    # Add background measurement (basically NaNs)
-    ref_props_table = pd.DataFrame(ref_channel_props) # Convert to table
-    ref_props_table.loc[-1] = np.nan # Add first line with NaN
-    ref_props_table.index = ref_props_table.index + 1 # Increment indices
-    ref_props_table = ref_props_table.sort_index() # Sort rows by index
-    ref_props_table.iloc[0,0] = 0 # Add '0' to first cell (bg label is 0)
-    # Turn it back into dictionary
-    ref_channel_props = {name: ref_props_table[name].values for name in ref_props_table.columns}
-
-    for i in range(n_channels):
-        if i != ref_channel:
-            # Create table (label_links) that links labels from probe channel
-            # to reference channel
-            label_links = pd.DataFrame(
-                sk_regionprops_table(label_image=labels_array[i],
-                                     intensity_image=labels_array[ref_channel],
-                                     properties=['label', ],
-                                     extra_properties=[highest_overlap]
-                                     )
-            ).astype(int)
-            # rename column
-            label_links.rename(columns={'label': 'label' + suffixes[i],
-                                        'highest_overlap':
-                                            'label' + suffixes[ref_channel]},
-                               inplace=True)
-
-            # Include extra properties of reference channel
-            properties_with_extras = [props for props in ref_channel_props
-                                      if props != 'label']
-            
-            # Add missing reference labels to table (they belong to background)
-            for ref_label in ref_channel_props['label'].tolist():
-                if ref_label not in label_links['label' + suffixes[ref_channel]].values:
-                    label_links.loc[-1] = [0, ref_label] # adding a row
-                    label_links.index = label_links.index + 1 # shifting index
-            label_links = label_links.sort_index() # sorting by index
-            
-            # Append properties of reference channel to table
-            for props in properties_with_extras:
-                large_numbers = False
-                # If large numbers, store format and convert to string to allow
-                # pandas replacement below, restore data type afterwards
-                ref_channel_props_dropped_nans = ref_channel_props[props][
-                    ~np.isnan(ref_channel_props[props])]
-                if abs(ref_channel_props_dropped_nans).max() > np.iinfo(np.int32).max:
-                    large_numbers = True
-                    props_dtype = ref_channel_props[props].dtype
-                    ref_channel_props[props] = \
-                        ref_channel_props[props].astype(str)
-
-                props_mapping = make_element_wise_dict(
-                    ref_channel_props['label'].tolist(),
-                    ref_channel_props[props].tolist())
-
-                label_links[props + suffixes[ref_channel]] = \
-                    label_links['label' + suffixes[ref_channel]]
-
-                label_links = label_links.replace(
-                    {props + suffixes[ref_channel]: props_mapping}
-                    )
-
-                if large_numbers:
-                    label_links[props + suffixes[ref_channel]] = \
-                        label_links[props + suffixes[ref_channel]]\
-                        .astype(props_dtype)
-
-            col_names = label_links.columns.to_list()
-            
-            # Append properties of probe channel to table
-            if intensity_image is not None:
-                # If single intensity image was given, then use it
-                if intensity_image.shape[0]==1:
-                    image = intensity_image[0]
-                # Otherwise use the corresponding intensity image
-                else:
-                    image = intensity_image[i]
-            probe_channel_props = pd.DataFrame(
-                regionprops_table(image=image,
-                                  labels=labels_array[i],
-                                  **kwargs)
+def measure_labels_in_labels(reference_labels : napari.types.LabelsData,
+                              labels_to_measure : List[napari.types.LabelsData],
+                              size : bool = True, perimeter : bool = False,
+                              shape : bool = False, position : bool = False,
+                              moments : bool = False,
+                              intersection_area_over_object_area: float = 0.5,
+                              suffixes : List[str] = None,
+                              napari_viewer : Viewer = None) -> "pandas.DataFrame":
+    ## Get reference properties
+    reference_labels_properties = measure_labels(
+        reference_labels = reference_labels, size = size,
+        perimeter = perimeter, shape = shape, position = position,
+        moments = moments, napari_viewer = napari_viewer
+        )
+    list_table_linking_labels = []
+    list_table_labels_to_measure_properties = []
+    # Make labels_to_measure iterable
+    if not isinstance(labels_to_measure, list):
+        labels_to_measure = [labels_to_measure]
+    # Link each labels_to_measure image to reference and get their properties
+    for label_image in labels_to_measure:
+        table_linking_labels = link_two_label_images(
+            reference_labels=reference_labels,
+            labels_to_measure=label_image,
+            intersection_area_over_object_area=intersection_area_over_object_area
             )
-            # rename columns
-            probe_channel_props.rename(
-                columns=dict([(props, props + suffixes[i])
-                              for props in properties_with_extras]),
-                inplace=True)
-            probe_channel_props.rename(columns={'label': 'label' + suffixes[i]},
-                                       inplace=True)
+        list_table_linking_labels.append(table_linking_labels)
             
-            # Merge reference table *label_links) with probe table
-            # (probe_channel_props) based on column "label-ch probe#" 
-            # 'outer' indicates to include everything and fill with nans
-            table = label_links.merge(probe_channel_props,
-                                      on = 'label' + suffixes[i],
-                                      how = 'outer')
+        labels_to_measure_properties = measure_labels(
+            reference_labels = label_image, size = size,
+            perimeter = perimeter, shape = shape, position = position,
+            moments = moments, napari_viewer = napari_viewer
+            )
+        list_table_labels_to_measure_properties.append(labels_to_measure_properties)
+    
+    # Merge tables
+    table = merge_measurements_to_reference(
+        table_reference_labels_properties=reference_labels_properties,
+        table_linking_labels=list_table_linking_labels,
+        table_labels_to_measure_properties=list_table_labels_to_measure_properties,
+        suffixes=suffixes)
+    return table
 
-            # Insert new column names (from probe channel), except 'label-ch #'
-            probe_column_names = probe_channel_props.columns.to_list()[1:]
-            col_names = col_names[1:] + [col_names[0]] + probe_column_names
-            # Re-order columns
-            table = table[col_names]
-            # Re-order rows
-            table = table.sort_values(by=['label' + suffixes[ref_channel]]) \
-                .reset_index().iloc[:,1:]
-            if summary:
-                grouped = table.groupby('label' + suffixes[ref_channel])
-                table = grouped[probe_column_names].describe().reset_index()
-            table_list += [table]
-
-    return table_list
-
+def measure_labels_in_labels_with_intensity(
+        reference_labels : napari.types.LabelsData,
+        labels_to_measure : List[napari.types.LabelsData],
+        intensity_image_of_reference : napari.types.ImageData,
+        intensity_image_of_labels_to_measure : List[napari.types.ImageData] = None,
+        size : bool = True, perimeter : bool = False,
+        shape : bool = False, position : bool = False,
+        moments : bool = False,
+        intersection_area_over_object_area: float = 0.5,
+        suffixes : List[str] = None,
+        napari_viewer : Viewer = None) -> "pandas.DataFrame":
+    ## Get reference properties
+    reference_labels_properties = measure_labels_with_intensity(
+        reference_labels = reference_labels,
+        intensity_image = intensity_image_of_reference,
+        size = size,
+        perimeter = perimeter, shape = shape, position = position,
+        moments = moments, napari_viewer = napari_viewer
+        )
+    list_table_linking_labels = []
+    list_table_labels_to_measure_properties = []
+    # Make labels_to_measure iterable
+    if not isinstance(labels_to_measure, list):
+        labels_to_measure = [labels_to_measure]
+    ## If no intensity_image_of_labels_to_measure provided, use reference intentity
+    if intensity_image_of_labels_to_measure is None:
+        intensity_image_of_labels_to_measure = [intensity_image_of_reference]*len(labels_to_measure)
+    ## If intensity_image_of_labels_to_measure provided, check if sizes match
+    else:
+        # Make intensity_image_of_labels_to_measure iterable
+        if not isinstance(intensity_image_of_labels_to_measure, list):
+            intensity_image_of_labels_to_measure = [intensity_image_of_labels_to_measure]
+        if len(intensity_image_of_labels_to_measure) != len(labels_to_measure):
+            print('Error! Length of intensity_image_of_labels_to_measure and labels_to_measure must match.')
+            return
+    
+    # Link each labels_to_measure image to reference and get their properties
+    for label_image, intensity_image in zip(labels_to_measure, intensity_image_of_labels_to_measure):
+        table_linking_labels = link_two_label_images(
+            reference_labels=reference_labels,
+            labels_to_measure=label_image,
+            intersection_area_over_object_area=intersection_area_over_object_area
+            )
+        list_table_linking_labels.append(table_linking_labels)
+            
+        labels_to_measure_properties = measure_labels_with_intensity(
+            reference_labels = label_image, 
+            intensity_image = intensity_image,
+            size = size,
+            perimeter = perimeter, shape = shape, position = position,
+            moments = moments, napari_viewer = napari_viewer
+            )
+        list_table_labels_to_measure_properties.append(labels_to_measure_properties)
+    
+    # Merge tables
+    table = merge_measurements_to_reference(
+        table_reference_labels_properties=reference_labels_properties,
+        table_linking_labels=list_table_linking_labels,
+        table_labels_to_measure_properties=list_table_labels_to_measure_properties,
+        suffixes=suffixes)
+    return table
 
 regionprops_map_channels_table_all_frames = analyze_all_frames(
     napari_regionprops_map_channels_table)
