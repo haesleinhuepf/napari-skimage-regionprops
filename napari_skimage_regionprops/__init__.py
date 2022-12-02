@@ -1,6 +1,6 @@
 from ._table import add_table, get_table, TableWidget
 from ._regionprops import regionprops, regionprops_table, regionprops_table_all_frames
-from ._regionprops import regionprops_map_channels_table, napari_regionprops_map_channels_table, link_two_label_images, measure_labels, measure_labels_with_intensity
+from ._regionprops import napari_regionprops_map_channels_table, link_two_label_images, measure_labels, measure_labels_with_intensity, regionprops_map_channels_table
 from ._regionprops import measure_labels_in_labels_with_intensity, measure_labels_in_labels, merge_measurements_to_reference, make_summary_table
 from ._parametric_images import visualize_measurement_on_labels, relabel
 from napari_plugin_engine import napari_hook_implementation

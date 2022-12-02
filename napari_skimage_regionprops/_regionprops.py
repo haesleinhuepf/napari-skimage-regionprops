@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 import pandas
 from napari import Viewer
-from napari_tools_menu import register_function
+from napari_tools_menu import register_function, register_dock_widget
 import napari
 from typing import List
 import math
@@ -225,21 +225,201 @@ def make_element_wise_dict(list_of_keys, list_of_values):
                     )
                 )
 
-
-@register_function(
-    menu="Measurement > Regionprops map multichannel (scikit-image, nsr)")
-def napari_regionprops_map_channels_table(
-        reference_label_image: napari.types.LabelsData,
-        label_images_to_measure: List[napari.types.LabelsData],
-        intensity_images: List[napari.types.ImageData],
-        intersection_area_over_object_area: float = 0.5,
-        return_summary_statistics: bool = True,
+# Version without magic_factory, can be called by code
+def regionprops_map_channels_table(
+        reference_label_image,
+        reference_intensity_image = None,
+        label_images_to_measure = None,
+        intensity_images_to_measure = None,
+        intensity: bool = False,
+        multichannel: bool = False,
         size: bool = True,
-        intensity: bool = True,
         perimeter: bool = False,
         shape: bool = False,
         position: bool = False,
         moments: bool = False,
+        return_summary_statistics: bool = False,
+        intersection_area_over_object_area: float = 0.5,
+        counts: bool = True,
+        mean: bool = False,
+        std: bool = False,
+        minimum: bool = False,
+        percentile_25: bool = False,
+        median: bool = False,
+        percentile_75: bool = False,
+        maximum: bool = False,
+        suffixes = None):
+
+    if multichannel:
+        if (label_images_to_measure is None) or\
+            (len(label_images_to_measure) == 0):
+            print('Error! Please provide "label_images_to_measure".')
+            return
+        else:
+            if not isinstance(label_images_to_measure, list):
+                label_images_to_measure = [label_images_to_measure]
+
+    if intensity:
+        if (reference_intensity_image is None) or (len(reference_intensity_image) == 0):
+               print('Error! Please provide "reference_intensity_image".')
+               return
+        if multichannel:
+            if (intensity_images_to_measure is None) or (len(intensity_images_to_measure) == 0):
+                print('Error! Please provide "intensity_images_to_measure".')
+                return
+            else:
+                if not isinstance(intensity_images_to_measure, list):
+                    intensity_images_to_measure = [intensity_images_to_measure]
+
+    statistics_list = []
+    if counts:
+        statistics_list += ['count']
+    if mean:
+        statistics_list += ['mean']
+    if std:
+        statistics_list += ['std']
+    if minimum:
+        statistics_list += ['min']
+    if percentile_25:
+        statistics_list += ['25%']
+    if median:
+        statistics_list += ['50%']
+    if percentile_75:
+        statistics_list += ['75%']
+    if maximum:
+        statistics_list += ['max']
+    
+    ## Single image measurements
+    if multichannel == False:
+        ### Without intensity measurements
+        if intensity == False:
+            table = measure_labels(
+                reference_labels=reference_label_image, 
+                size=size, perimeter=perimeter,
+                shape=shape, position=position,
+                moments=moments)
+        ### Or with intensity measurements
+        else:
+            table = measure_labels_with_intensity(
+                reference_labels=reference_label_image,
+                intensity_image=reference_intensity_image,
+                size=size, perimeter=perimeter,
+                shape=shape, position=position,
+                moments=moments)
+    ## More than one label image measurements
+    else:
+        
+        if suffixes is None:               
+            n_leading_zeros = len(label_images_to_measure) // 10
+            suffixes = ['_reference'] + ['_' + str(i+1).zfill(1+n_leading_zeros)
+                                    for i in range(len(label_images_to_measure))]
+        ### Without intensity measurements
+        if intensity == False:
+            table = measure_labels_in_labels(reference_labels=reference_label_image,
+                                          labels_to_measure=label_images_to_measure,
+                                          size=size, perimeter=perimeter,
+                                          shape=shape, position=position,
+                                          moments=moments,
+                                          intersection_area_over_object_area=intersection_area_over_object_area,
+                                          suffixes=suffixes)
+        ### Or with intensity measurements
+        else:
+            table = measure_labels_in_labels_with_intensity(
+                reference_labels=reference_label_image,
+                labels_to_measure=label_images_to_measure,
+                intensity_image_of_reference=reference_intensity_image,
+                intensity_image_of_labels_to_measure=intensity_images_to_measure,
+                size=size, perimeter=perimeter,
+                shape=shape, position=position,
+                moments=moments,
+                intersection_area_over_object_area=intersection_area_over_object_area,
+                suffixes=suffixes)
+        ### If summary statistics
+        if return_summary_statistics:
+            table = make_summary_table(table, suffixes = suffixes,
+                                       statistics_list = statistics_list)
+    return table
+
+from magicgui import magic_factory
+
+def connect_events(widget):
+    def toggle_intensity_widgets(event):
+        widget.reference_intensity_image.visible = event
+        if (event == True) & (widget.multichannel.value == True):
+            widget.intensity_images_to_measure.visible = True
+        else:
+            widget.intensity_images_to_measure.visible = False
+        # print(widget.multichannel)
+        # print(widget.multichannel.value)
+        # if widget.multichannel.value is True:
+        #     print(event)
+            
+    def toggle_multichannel_widgets(event):
+        widget.label_images_to_measure.visible = event
+        widget.intersection_area_over_object_area.visible = event
+        widget.return_summary_statistics.visible = event
+        if (event == True) & (widget.intensity.value == True):
+            widget.intensity_images_to_measure.visible = True
+        else:
+            widget.intensity_images_to_measure.visible = False   
+    
+    def toggle_summary_statistics_widgets(event):
+        widget.counts.visible = event
+        widget.mean.visible = event
+        widget.std.visible = event
+        widget.minimum.visible = event
+        widget.percentile_25.visible = event
+        widget.median.visible = event
+        widget.percentile_75.visible = event
+        widget.maximum.visible = event
+    
+    widget.intensity.changed.connect(toggle_intensity_widgets)
+    widget.multichannel.changed.connect(toggle_multichannel_widgets)
+    widget.return_summary_statistics.changed.connect(toggle_summary_statistics_widgets)
+    
+    # Intial visibility states
+    widget.reference_intensity_image.visible = False
+    widget.intensity_images_to_measure.visible = False
+    widget.label_images_to_measure.visible = False
+    widget.return_summary_statistics.visible = False
+    widget.intersection_area_over_object_area.visible = False
+    widget.counts.visible = False
+    widget.mean.visible = False
+    widget.std.visible = False
+    widget.minimum.visible = False
+    widget.percentile_25.visible = False
+    widget.median.visible = False
+    widget.percentile_75.visible = False
+    widget.maximum.visible = False
+
+    
+@register_dock_widget(
+    menu="Measurement > Regionprops map multichannel (scikit-image, nsr)")
+# Need magic factory to make hidding and showing functionality available
+@magic_factory(widget_init=connect_events,
+               layout = 'vertical')
+def napari_regionprops_map_channels_table(
+        reference_label_image: napari.types.LabelsData,
+        reference_intensity_image: napari.types.ImageData,
+        label_images_to_measure: List[napari.types.LabelsData],
+        intensity_images_to_measure: List[napari.types.ImageData],
+        intensity: bool = False,
+        multichannel: bool = False,
+        size: bool = True,
+        perimeter: bool = False,
+        shape: bool = False,
+        position: bool = False,
+        moments: bool = False,
+        return_summary_statistics: bool = False,
+        intersection_area_over_object_area: float = 0.5,
+        counts: bool = True,
+        mean: bool = False,
+        std: bool = False,
+        minimum: bool = False,
+        percentile_25: bool = False,
+        median: bool = False,
+        percentile_75: bool = False,
+        maximum: bool = False,
         napari_viewer: Viewer = None) -> List["pandas.DataFrame"]:
     """
     Add a table widget to a napari viewer with mapped summary statistics.
@@ -251,7 +431,23 @@ def napari_regionprops_map_channels_table(
     not related to intensities. If a single label image is given, it executes
     regular 'regionprops_table' function.
     """
-
+    # statistics_list = []
+    # if counts:
+    #     statistics_list += ['count']
+    # if mean:
+    #     statistics_list += ['mean']
+    # if std:
+    #     statistics_list += ['std']
+    # if minimum:
+    #     statistics_list += ['min']
+    # if percentile_25:
+    #     statistics_list += ['25%']
+    # if median:
+    #     statistics_list += ['50%']
+    # if percentile_75:
+    #     statistics_list += ['75%']
+    # if maximum:
+    #     statistics_list += ['max']
     suffixes = []
     
     if napari_viewer is not None:
@@ -266,53 +462,79 @@ def napari_regionprops_map_channels_table(
                             suffixes.append('_' + layer.name)
         suffixes.insert(0, reference_suffix)
     print('suffixes = ', suffixes)
-    
-    ## Single image measurements
-    if len(label_images_to_measure) == 0:
-        ### Without intensity measurements
-        if len(intensity_images) == 0:
-            table = measure_labels(
-                reference_labels=reference_label_image, 
-                size=size, perimeter=perimeter,
-                shape=shape, position=position,
-                moments=moments)
-        ### Or with intensity measurements
-        else:
-            reference_intensity_image = intensity_images[0]
-            table = measure_labels_with_intensity(
-                reference_labels=reference_label_image,
-                intensity_image=reference_intensity_image,
-                size=size, perimeter=perimeter,
-                shape=shape, position=position,
-                moments=moments)
-    # More than one label image measurements
-    else:
-        ### Without intensity measurements
-        if len(intensity_images) == 0:
-            table = measure_labels_in_labels(reference_labels=reference_label_image,
-                                          labels_to_measure=label_images_to_measure,
-                                          size=size, perimeter=perimeter,
-                                          shape=shape, position=position,
-                                          moments=moments,
-                                          intersection_area_over_object_area=intersection_area_over_object_area,
-                                          suffixes=suffixes)
-        else:
-            reference_intensity_image = intensity_images[0]
-            if len(intensity_images)==1:
-                intensity_image_of_labels_to_measure = None
-            else:
-                intensity_image_of_labels_to_measure = intensity_images[1:]
-            table = measure_labels_in_labels_with_intensity(
-                reference_labels=reference_label_image,
-                labels_to_measure=label_images_to_measure,
-                intensity_image_of_reference=reference_intensity_image,
-                intensity_image_of_labels_to_measure=intensity_image_of_labels_to_measure,
-                size=size, perimeter=perimeter,
-                shape=shape, position=position,
-                moments=moments,
-                intersection_area_over_object_area=intersection_area_over_object_area,
-                suffixes=suffixes)
-    
+    table = regionprops_map_channels_table(
+        reference_label_image=reference_label_image,
+        reference_intensity_image=reference_intensity_image,
+        label_images_to_measure=label_images_to_measure,
+        intensity_images_to_measure=intensity_images_to_measure,
+        intensity=intensity,
+        multichannel=multichannel,
+        size=size,
+        perimeter=perimeter,
+        shape=shape,
+        position=position,
+        moments=moments,
+        return_summary_statistics=return_summary_statistics,
+        intersection_area_over_object_area=intersection_area_over_object_area,
+        counts=counts,
+        mean=mean,
+        std=std,
+        minimum=minimum,
+        percentile_25=percentile_25,
+        median=median,
+        percentile_75=percentile_75,
+        maximum=maximum,
+        suffixes=suffixes)
+
+    # ## Single image measurements
+    # if multichannel == False:
+    #     ### Without intensity measurements
+    #     if intensity == False:
+            
+    #         table = measure_labels(
+    #             reference_labels=reference_label_image, 
+    #             size=size, perimeter=perimeter,
+    #             shape=shape, position=position,
+    #             moments=moments)
+    #     ### Or with intensity measurements
+    #     else:
+    #         table = measure_labels_with_intensity(
+    #             reference_labels=reference_label_image,
+    #             intensity_image=reference_intensity_image,
+    #             size=size, perimeter=perimeter,
+    #             shape=shape, position=position,
+    #             moments=moments)
+    # ## More than one label image measurements
+    # else:
+    #     ### Without intensity measurements
+    #     if intensity == False:
+    #         table = measure_labels_in_labels(reference_labels=reference_label_image,
+    #                                       labels_to_measure=label_images_to_measure,
+    #                                       size=size, perimeter=perimeter,
+    #                                       shape=shape, position=position,
+    #                                       moments=moments,
+    #                                       intersection_area_over_object_area=intersection_area_over_object_area,
+    #                                       suffixes=suffixes)
+    #     ### Or with intensity measurements
+    #     else:
+    #         table = measure_labels_in_labels_with_intensity(
+    #             reference_labels=reference_label_image,
+    #             labels_to_measure=label_images_to_measure,
+    #             intensity_image_of_reference=reference_intensity_image,
+    #             intensity_image_of_labels_to_measure=intensity_images_to_measure,
+    #             size=size, perimeter=perimeter,
+    #             shape=shape, position=position,
+    #             moments=moments,
+    #             intersection_area_over_object_area=intersection_area_over_object_area,
+    #             suffixes=suffixes)
+    #     ### If summary statistics
+    #     if return_summary_statistics:
+    #         table = make_summary_table(table, suffixes = suffixes,
+    #                                    statistics_list = statistics_list)
+    #         # Flatten summary statistics table
+    #         table.columns = [' '.join(col).strip()
+    #                          for col in table.columns.values]
+                
     if napari_viewer is not None:
         # turn table into a widget
         from ._table import add_table
@@ -466,10 +688,15 @@ def merge_measurements_to_reference(
         output_table = pd.merge(output_table,
                                 table_labels_to_measure_properties,
                                 how='outer', on='label' + suffixes[i+1])
+    # Ensure label columns type to be integer
+    for column in output_table.columns:
+        if column.startswith('label'):
+            output_table[column] = output_table[column].astype(int)
     return output_table
 
 def make_summary_table(table: "pandas.DataFrame",
-                      suffixes) -> "pandas.DataFrame":
+                      suffixes,
+                      statistics_list = ['count',]) -> "pandas.DataFrame":
     # If not provided, guess suffixes from column names (last string after '_')
     import re
     import pandas as pd
@@ -489,8 +716,40 @@ def make_summary_table(table: "pandas.DataFrame",
                      if not prop.endswith(suffixes[0])]
     probe_measurement_columns = [name for name in probe_columns
                      if not name.startswith('label')]
-    table = grouped[probe_measurement_columns].describe().reset_index()
-    return table
+    summary_table = grouped[probe_measurement_columns].describe().reset_index()
+    
+    # Mark counts to be added later
+    if 'count' in statistics_list:
+        counts = True
+        statistics_list.remove('count')
+    else:
+        counts = False
+        
+    # Filter by selected statistics
+    selected_columns = [('label' + suffixes[0], '')]
+    for stat in statistics_list:
+        for column in summary_table.columns:
+
+            column_stat = column[-1]
+            if stat == column_stat:
+                selected_columns.append(column)
+    summary_table = summary_table.loc[:,selected_columns]
+    
+    # Add counts
+    if counts:
+        for suf in suffixes[1:]:
+            counts_column = table.groupby('label' + suffixes[0]).count()['label' + suf].fillna(0)
+            if summary_table.shape[-1]==1:
+                summary_table['counts' + suf] = counts_column
+            else:
+                for i, column in enumerate(summary_table.columns):
+                    if (column[0].endswith(suf)):
+                        summary_table.insert(i, 'counts' + suf, counts_column)
+                        break
+    # Flatten summary statistics table
+    summary_table.columns = [' '.join(col).strip()
+                     for col in summary_table.columns.values]
+    return summary_table
 
 def measure_labels(reference_labels : napari.types.LabelsData, 
                    size : bool = True, perimeter : bool = False,
@@ -622,8 +881,8 @@ def measure_labels_in_labels_with_intensity(
         suffixes=suffixes)
     return table
 
-regionprops_map_channels_table_all_frames = analyze_all_frames(
-    napari_regionprops_map_channels_table)
-register_function(
-    regionprops_map_channels_table_all_frames,
-    menu="Measurement > Regionprops map multichannel of all frames (nsr)")
+# regionprops_map_channels_table_all_frames = analyze_all_frames(
+#     napari_regionprops_map_channels_table)
+# register_function(
+#     regionprops_map_channels_table_all_frames,
+#     menu="Measurement > Regionprops map multichannel of all frames (nsr)")
