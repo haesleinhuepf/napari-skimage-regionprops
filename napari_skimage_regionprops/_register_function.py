@@ -10,9 +10,10 @@ except ModuleNotFoundError as e:
     from typing import Callable
     from toolz import curry
     import logging
+
     logging.warning(e)
     logging.warning("Replace napari_tools_menu.register_function with custom decorator")
-    #from ._custom_register_function_decorator import register_function
+
     @curry
     def register_function(func: Callable, menu:str, *args, **kwargs) -> Callable:
         return func
