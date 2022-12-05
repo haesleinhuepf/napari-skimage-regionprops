@@ -1,5 +1,5 @@
 """
-This module replaced the napari_tools_menu.register_function decorator with a
+This module replaces the napari_tools_menu.register_function decorator with a
 custom one, when the import fails. The new decorator simply discards the menu
 argument and then executes the decorated function as is.
 """
