@@ -2,9 +2,9 @@ import warnings
 
 import numpy as np
 import pandas
-from napari_tools_menu import register_function
-import math
 from ._all_frames import analyze_all_frames
+from ._register_function import register_function
+import math
 
 def regionprops(image_layer : "napari.layers.Layer", labels_layer: "napari.layers.Labels", size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False, napari_viewer : "napari.Viewer" = None):
     warnings.warn("napari_skimage_regionprops.regionprops is deprecated. Use regionprops_table instead.")

@@ -1,5 +1,5 @@
 import numpy as np
-from napari_tools_menu import register_function
+from ._register_function import register_function
 
 @register_function(menu="Measurement > Load from CSV (nsr)")
 def load_csv(csv_filename:"magicgui.types.PathLike", labels_layer:"napari.layers.Labels", viewer:"napari.Viewer"=None):

@@ -1,6 +1,7 @@
 import numpy as np
 from napari_plugin_engine import napari_hook_implementation
-from napari_tools_menu import register_function
+from ._register_function import register_function
+
 from typing_extensions import Annotated
 from napari.layers import Image, Labels, Layer
 LayerInput = Annotated[Layer, {"label": "Image"}]

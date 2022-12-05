@@ -1,7 +1,7 @@
 from pandas import DataFrame
 from qtpy.QtCore import QTimer
 from qtpy.QtWidgets import QTableWidget, QHBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
-from napari_tools_menu import register_function
+from ._register_function import register_function
 
 import pandas as pd
 from typing import Union

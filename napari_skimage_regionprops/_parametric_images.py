@@ -1,6 +1,8 @@
 import numpy as np
-from napari_tools_menu import register_function
+from ._register_function import register_function
 import numpy
+
+
 
 @register_function(menu="Visualization > Measurements on labels (nsr)")
 def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:str = "label", viewer:"napari.Viewer" = None) -> "napari.types.ImageData":
