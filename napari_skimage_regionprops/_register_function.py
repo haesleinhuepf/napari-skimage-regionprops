@@ -1,9 +1,8 @@
 """
-This module mimicks yhe napari_tools_menu.register_function decorator, but it
-simply discards the menu argument and then executes the decorated function.It
-is meant as a fall-back option for when napari_tools_menu cannot be imported.
+This module replaced the napari_tools_menu.register_function decorator with a
+custom one, when the import fails. The new decorator simply discards the menu
+argument and then executes the decorated function as is.
 """
-
 
 try:
     from napari_tools_menu import register_function
