@@ -6,9 +6,14 @@ import numpy as np
 import pandas as pd
 from ._utilities import isimage
 
+try:
+    import napari
+except ModuleNotFoundError as e:
+    import warnings
+    warnings.warn(str(e))
+
 @curry
 def analyze_all_frames(function: Callable) -> Callable:
-    import napari
     from napari_workflows._workflow import _get_layer_from_data
 
     @wraps(function)
