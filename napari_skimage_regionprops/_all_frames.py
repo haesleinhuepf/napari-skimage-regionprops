@@ -1,5 +1,3 @@
-
-import napari
 from toolz import curry
 from typing import Callable
 from functools import wraps
@@ -10,6 +8,7 @@ from ._utilities import isimage
 
 @curry
 def analyze_all_frames(function: Callable) -> Callable:
+    import napari
     from napari_workflows._workflow import _get_layer_from_data
 
     @wraps(function)
