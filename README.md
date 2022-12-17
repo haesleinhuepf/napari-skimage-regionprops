@@ -8,7 +8,7 @@
 [![Development Status](https://img.shields.io/pypi/status/napari-skimage-regionprops.svg)](https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-skimage-regionprops)](https://napari-hub.org/plugins/napari-skimage-regionprops)
 
-
+ 
 A [napari] plugin for measuring properties of labeled objects based on [scikit-image]
 
 ![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/interactive.gif)
