@@ -24,48 +24,48 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
                 frame_column = potential_frame_column
                 break
 
-        if frame_column is not None:
-            # Relabel one timepoint
-            output_sample = relabel_timepoint(labels, table, column, frame_column, 0)
+        # Relabel one timepoint
+        output_sample = relabel_timepoint(labels, table, column, frame_column, 0)
 
-            lazy_arrays = []
-            for i in range(labels.shape[0]):
-                # build a delayed function call for each timepoint
-                lazy_processed_image = delayed(
-                    partial(relabel_timepoint, labels, table, column, frame_column, i)
-                )
-                lazy_arrays.append(
-                    lazy_processed_image()
-                )
+        lazy_arrays = []
+        for i in range(labels.shape[0]):
+            # build a delayed function call for each timepoint
+            lazy_processed_image = delayed(
+                partial(relabel_timepoint, labels, table, column, frame_column, i)
+            )
+            lazy_arrays.append(
+                lazy_processed_image()
+            )
 
-            # build an array of delayed arrays
-            dask_arrays = [
-                [da.from_delayed(
-                    delayed_reader,
-                    shape=output_sample.shape,
-                    dtype=output_sample.dtype)]
-                if len(output_sample.shape) == 2
-                else da.from_delayed(
-                    delayed_reader,
-                    shape=output_sample.shape,
-                    dtype=output_sample.dtype
-                )
-                for delayed_reader in lazy_arrays
-            ]
-            # Stack into one large dask.array
-            stack = da.stack(
-                dask_arrays,
-                axis=0)
-            return stack
-        else:
-            raise RuntimeError("To relabel a timelapse dataset, there must be a 'frame' column in the given table.")
+        # build an array of delayed arrays
+        dask_arrays = [
+            [da.from_delayed(
+                delayed_reader,
+                shape=output_sample.shape,
+                dtype=output_sample.dtype)]
+            if len(output_sample.shape) == 2
+            else da.from_delayed(
+                delayed_reader,
+                shape=output_sample.shape,
+                dtype=output_sample.dtype
+            )
+            for delayed_reader in lazy_arrays
+        ]
+        # Stack into one large dask.array
+        stack = da.stack(
+            dask_arrays,
+            axis=0)
+        return stack
     else:
         measurements = np.asarray(table[column]).tolist()
         return relabel(labels, measurements)
 
 def relabel_timepoint(labels, table, column, frame_column, timepoint):
     labels_one_timepoint = labels[timepoint]
-    table_one_timepoint = table[table[frame_column] == timepoint]
+    if frame_column is not None:
+        table_one_timepoint = table[table[frame_column] == timepoint]
+    else:
+        table_one_timepoint = table
     measurements = np.asarray(table_one_timepoint[column]).tolist()
     return relabel(labels_one_timepoint, measurements)
 
