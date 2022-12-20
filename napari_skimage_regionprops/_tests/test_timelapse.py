@@ -86,3 +86,32 @@ def test_timelapse_analyse_all_timepoints_with_viewer(make_napari_viewer):
 
     visualize_measurement_on_labels(labels_layer, column="mean_intensity", viewer=viewer)
 
+def test_frame_variable_in_timelapse(make_napari_viewer):
+    viewer = make_napari_viewer()
+
+    import numpy as np
+    import pandas as pd
+    from skimage.data import binary_blobs
+    from skimage.measure import regionprops_table, label
+    from napari_skimage_regionprops._table import add_table
+
+    # a random image with 3 timepoints
+    image = np.random.rand(3, 128, 128)
+
+    # and a segmentation for the 3 timepoints
+    segmentation = np.stack([label(binary_blobs(128, volume_fraction=0.25)) for _ in range(3)])
+    print(image.shape, segmentation.shape)
+
+    # compute the features for each timepoint
+    features = []
+    for t, (seg, im) in enumerate(zip(segmentation, image)):
+        feats = regionprops_table(seg, im, properties=("label", "mean_intensity"))
+        # add the frame column
+        feats["frame"] = np.full(len(feats["label"]), t)
+        features.append(pd.DataFrame(feats))
+    features = pd.concat(features, axis=0)
+
+    viewer.add_image(image)
+    label_layer = viewer.add_labels(segmentation)
+    label_layer.features = features
+    add_table(label_layer, viewer)

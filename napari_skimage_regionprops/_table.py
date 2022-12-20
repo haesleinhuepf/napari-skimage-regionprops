@@ -109,6 +109,7 @@ class TableWidget(QWidget):
             label = self._table["label"][row]
 
             frame_column = _determine_frame_column(self._table)
+            frame = 0
             if frame_column is not None and self._viewer is not None:
                 current_step = list(self._viewer.dims.current_step)
                 if len(current_step) >= 4:
