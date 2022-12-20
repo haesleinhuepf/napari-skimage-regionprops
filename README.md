@@ -40,6 +40,19 @@ Also these measurements can be visualized by double-clicking table headers:
 
 ![img_1.png](measure_point_coordinate.png)
 
+## Working with time-lapse and tracking data
+
+Note that tables for time-lapse data should include a column named "frame", which indicates which slice in
+time the given row refers to. If you want to import your own csv files for time-lapse data make sure to include this column.
+If you have tracking data where each column specifies measurements for a track instead of a label at a specific time point,
+this column must not be added.
+
+In case you have 2D time-lapse data you need to convert it into a suitable shape using the function: `Tools > Utilities > Convert 3D stack to 2D time-lapse (time-slicer)`,
+which can be found in the [napari time slicer](https://www.napari-hub.org/plugins/napari-time-slicer).
+
+Last but not least, make sure that in case of time-lapse data the label image has labels that are subsquently labeled per timepoint.
+E.g. a dataset where label 5 is missing at timepoint 4 may be visualized incorrectly.
+
 ## Usage, programmatically
 
 You can also control the tables programmatically. See this 
