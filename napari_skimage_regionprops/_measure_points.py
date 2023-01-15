@@ -1,7 +1,7 @@
 import numpy as np
 from napari_tools_menu import register_function
 
-@register_function(menu = "Measurement > Measure intensity at point coordinates (nsr)")
+@register_function(menu = "Measurement tables > Measure intensity at point coordinates (nsr)")
 def measure_points(points: "napari.types.PointsData", intensity_image: "napari.types.ImageData",
                    viewer: "napari.Viewer" = None):
     """
