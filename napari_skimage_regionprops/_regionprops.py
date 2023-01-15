@@ -16,7 +16,7 @@ def regionprops(image_layer : napari.layers.Layer, labels_layer: napari.layers.L
 
     regionprops_table(image_data, labels_layer.data, size, intensity, perimeter, shape, position, moments, napari_viewer)
 
-@register_function(menu="Measurement > Regionprops (scikit-image, nsr)")
+@register_function(menu="Measurement tables > Regionprops (scikit-image, nsr)")
 def regionprops_table(image : napari.types.ImageData, labels: napari.types.LabelsData, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False, napari_viewer : Viewer = None) -> "pandas.DataFrame":
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-label pair.
@@ -183,7 +183,7 @@ def ellipsoid_axis_lengths(table):
     return tuple([math.sqrt(20.0 * e) for e in eigvals])
 
 regionprops_table_all_frames = analyze_all_frames(regionprops_table)
-register_function(regionprops_table_all_frames, menu="Measurement > Regionprops of all frames (nsr)")
+register_function(regionprops_table_all_frames, menu="Measurement tables > Regionprops of all frames (nsr)")
 
 
 
@@ -212,7 +212,7 @@ try:
     from morphometrics._gui._qt.measurement_widgets import QtMeasurementWidget
     register_dock_widget(
         QtMeasurementWidget,
-        "Measurement > Region properties (morphometrics)"
+        "Measurement tables > Region properties (morphometrics)"
     )
 except:
     pass
