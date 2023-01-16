@@ -397,3 +397,21 @@ def test_measure_points():
     points = np.random.random((100, 2)) * 99
 
     nsr.measure_points(points, image)
+
+def test_2d_labels_in_3d_image():
+    import numpy as np
+    labels = np.zeros((6,6,6), dtype=np.uint8)
+    labels[1:4, 1:4, 1:4] = 1 # 3D label
+    labels[4, 1:4, 1:4] = 2 # 2D label
+
+    from napari_skimage_regionprops import regionprops_table
+    table = regionprops_table(labels, labels, size=True, intensity=True, perimeter=True, shape=True, position=True,
+                moments=True)
+
+    # check one measurement
+    assert np.array_equal(table['area'], [27, 9])
+
+    # check that measurements that depend on convex_area are absent in this case
+    assert "convex_area" not in table.keys()
+    assert "feret_max_diameter" not in table.keys()
+    assert "solidity" not in table.keys()

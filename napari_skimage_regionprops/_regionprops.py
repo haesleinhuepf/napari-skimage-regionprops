@@ -74,13 +74,13 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
             warnings.warn("Perimeter measurements are not supported in 3D")
 
     if shape:
-        properties = properties + ['solidity', 'extent', 'local_centroid']
+        properties = properties + ['extent', 'local_centroid']
         # Workaround to avoid existing scikit-image bug
         # See https://github.com/scikit-image/scikit-image/issues/6432
         if (len(labels.shape) == 3) and (_check_2D_labels_in_3D_images(labels)):
-            warnings.warn("2D labels are present in 3D label image, 'feret_diameter_max' not calculated")
+            warnings.warn("2D labels are present in 3D label image, 'feret_diameter_max' and 'solidity' not calculated")
         else:
-            properties = properties + ['feret_diameter_max']
+            properties = properties + ['solidity', 'feret_diameter_max']
         if len(labels.shape) == 2:
             properties = properties + ['major_axis_length', 'minor_axis_length', 'orientation', 'eccentricity']
             # we need these two to compute some shape descriptors
@@ -108,7 +108,7 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
     # weighted_moments_central
     # weighted_moments_hu
     # weighted_moments_normalized
-
+    print('PROPERTIES = ', properties)
     # quantitative analysis using scikit-image's regionprops
     from skimage.measure import regionprops_table as sk_regionprops_table
     table = sk_regionprops_table(np.asarray(labels).astype(int), intensity_image=np.asarray(image),
