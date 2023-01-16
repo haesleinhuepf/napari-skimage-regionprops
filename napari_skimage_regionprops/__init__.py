@@ -8,7 +8,7 @@ from ._load_csv import load_csv
 try:
     from ._version import version as __version__
 except ImportError:
-    __version__ = "0.6.2"
+    __version__ = "0.7.0"
 
 
 @napari_hook_implementation
