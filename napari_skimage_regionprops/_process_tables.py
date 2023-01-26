@@ -67,7 +67,7 @@ def merge_measurements_to_reference(
     return output_table
 
 def make_summary_table(table: "pandas.DataFrame",
-                      suffixes,
+                      suffixes=None,
                       statistics_list = ['count',]) -> "pandas.DataFrame":
     # If not provided, guess suffixes from column names (last string after '_')
     import re

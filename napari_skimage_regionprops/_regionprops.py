@@ -21,31 +21,30 @@ def regionprops_table(image : napari.types.ImageData, labels: napari.types.Label
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-label pair.
     """
-    # Check if image was provided or just labels
-    if image is not None:
-        current_dim_value = 0
-        if napari_viewer is not None:
-            current_dim_value = napari_viewer.dims.current_step[0]
     
-            # store the layer for saving results later
-            from napari_workflows._workflow import _get_layer_from_data
-            labels_layer = _get_layer_from_data(napari_viewer, labels)
-    
-            # deal with 4D data
-            if len(image.shape) == 4:
-                image = image[current_dim_value]
-            if len(labels.shape) == 4:
-                labels = labels[current_dim_value]
-    
-        # deal with dimensionality of data
-        if len(image.shape) > len(labels.shape):
-            dim = 0
-            subset = ""
-            while len(image.shape) > len(labels.shape):
-                dim = dim + 1
-                image = image[current_dim_value]
-                subset = subset + ", " + str(current_dim_value)
-            warnings.warn("Not the full image was analysed, just the subset [" + subset[2:] + "] according to selected timepoint / slice.")
+    current_dim_value = 0
+    if napari_viewer is not None:
+        current_dim_value = napari_viewer.dims.current_step[0]
+
+        # store the layer for saving results later
+        from napari_workflows._workflow import _get_layer_from_data
+        labels_layer = _get_layer_from_data(napari_viewer, labels)
+
+        # deal with 4D data
+        if len(image.shape) == 4:
+            image = image[current_dim_value]
+        if len(labels.shape) == 4:
+            labels = labels[current_dim_value]
+
+    # deal with dimensionality of data
+    if len(image.shape) > len(labels.shape):
+        dim = 0
+        subset = ""
+        while len(image.shape) > len(labels.shape):
+            dim = dim + 1
+            image = image[current_dim_value]
+            subset = subset + ", " + str(current_dim_value)
+        warnings.warn("Not the full image was analysed, just the subset [" + subset[2:] + "] according to selected timepoint / slice.")
 
 
 
