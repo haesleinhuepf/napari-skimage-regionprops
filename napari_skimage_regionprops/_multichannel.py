@@ -41,7 +41,7 @@ def connect_events(widget):
             
     def toggle_multichannel_widgets(event):
         widget.label_images_to_measure.visible = event
-        widget.intersection_area_over_object_area.visible = event
+        widget.intersection_over_reference_area.visible = event
         widget.select_summary_statistics.visible = event
         if (event == True) & (widget.intensity.value == True):
             widget.intensity_images_to_measure.visible = True
@@ -67,7 +67,7 @@ def connect_events(widget):
     widget.intensity_images_to_measure.visible = False
     widget.label_images_to_measure.visible = False
     widget.select_summary_statistics.visible = False
-    widget.intersection_area_over_object_area.visible = False
+    widget.intersection_over_reference_area.visible = False
     widget.counts.visible = False
     widget.mean.visible = False
     widget.std.visible = False
@@ -77,11 +77,52 @@ def connect_events(widget):
     widget.percentile_75.visible = False
     widget.maximum.visible = False
 
+    # widget.intersection_over_reference_area.widget_type = 'slider'
+
+widgets_layout_settings = {
+    'label_image_reference': {
+        'label': 'Label Image Reference'
+    },
+    'intensity_image_reference': {
+        'label': 'Intensity Image Reference'
+    },
+    'label_images_to_measure': {
+        'label': 'Label Image(s) to Measure'
+    },
+    'intensity_images_to_measure': {
+        'label': 'Intensity Image(s) to Measure'
+    },
+    'intersection_over_reference_area': {
+        'widget_type': 'FloatSlider',
+        'min': 0,
+        'max': 1,
+        'step': 0.1,
+        'tooltip': 'A ratio that determines if an object in one channel belongs to another in a reference channel.\nIt goes from 0 (target object always belongs to background) to 1 (target object belongs to reference object only if completely inside reference)'
+    },
+    'std': {
+        'label': 'standard deviation (std)'
+    },
+    'percentile_25': {
+        'label': '25% percentile'
+    },
+    'percentile_75': {
+        'label': '75% percentile'
+    }
+}
+
 @register_dock_widget(
     menu="Measurement > Regionprops map multichannel (scikit-image, nsr)")
 # Need magic factory to make hidding and showing functionality available
 @magic_factory(widget_init=connect_events,
-               layout = 'vertical')
+               layout = 'vertical',
+               label_image_reference=widgets_layout_settings['label_image_reference'],
+               intensity_image_reference=widgets_layout_settings['intensity_image_reference'],
+               label_images_to_measure=widgets_layout_settings['label_images_to_measure'],
+               intensity_images_to_measure=widgets_layout_settings['intensity_images_to_measure'],
+               intersection_over_reference_area=widgets_layout_settings['intersection_over_reference_area'],
+               std=widgets_layout_settings['std'],
+               percentile_25=widgets_layout_settings['percentile_25'],
+               percentile_75=widgets_layout_settings['percentile_75'])
 def napari_regionprops_map_channels_table(
         label_image_reference: napari.types.LabelsData,
         intensity_image_reference: napari.types.ImageData,
@@ -94,7 +135,7 @@ def napari_regionprops_map_channels_table(
         shape: bool = False,
         position: bool = False,
         moments: bool = False,
-        intersection_area_over_object_area: float = 0.5,
+        intersection_over_reference_area: float = 0.5,
         select_summary_statistics: bool = False,
         counts: bool = True,
         mean: bool = False,
@@ -183,7 +224,7 @@ def napari_regionprops_map_channels_table(
                                           size=size, perimeter=perimeter,
                                           shape=shape, position=position,
                                           moments=moments,
-                                          intersection_area_over_object_area=intersection_area_over_object_area,
+                                          intersection_over_reference_area=intersection_over_reference_area,
                                           suffixes=suffixes)
         ### Or with intensity measurements
         else:
@@ -195,11 +236,10 @@ def napari_regionprops_map_channels_table(
                 size=size, perimeter=perimeter,
                 shape=shape, position=position,
                 moments=moments,
-                intersection_area_over_object_area=intersection_area_over_object_area,
+                intersection_over_reference_area=intersection_over_reference_area,
                 suffixes=suffixes)
         ### Compute summary statistics instead of individual relationships
         ### This avoids repeated number in the 'label' column
-        print(statistics_list)
         table = make_summary_table(table, suffixes = suffixes,
                                     statistics_list = statistics_list)
     # Rename first column to just 'label' (to be compatible with other plugins)
@@ -225,14 +265,14 @@ def napari_regionprops_map_channels_table(
 
 def link_two_label_images(label_image_reference : napari.types.LabelsData,
                 labels_to_measure : napari.types.LabelsData, 
-                intersection_area_over_object_area: float = 0.5
+                intersection_over_reference_area: float = 0.5
                 ) -> "pandas.DataFrame":
     import numpy as np
     import pandas as pd
     from skimage.measure import regionprops_table as sk_regionprops_table
     
     def highest_overlap(regionmask, label_image_reference,
-                        overlap_threshold=intersection_area_over_object_area):
+                        overlap_threshold=intersection_over_reference_area):
         """
         Gets the label number with highest overlap with label in another image.
         
@@ -336,7 +376,7 @@ def measure_labels_in_labels(label_image_reference : napari.types.LabelsData,
                               size : bool = True, perimeter : bool = False,
                               shape : bool = False, position : bool = False,
                               moments : bool = False,
-                              intersection_area_over_object_area: float = 0.5,
+                              intersection_over_reference_area: float = 0.5,
                               suffixes : List[str] = None,
                               napari_viewer : Viewer = None) -> "pandas.DataFrame":
     ## Get reference properties
@@ -355,7 +395,7 @@ def measure_labels_in_labels(label_image_reference : napari.types.LabelsData,
         table_linking_labels = link_two_label_images(
             label_image_reference=label_image_reference,
             labels_to_measure=label_image,
-            intersection_area_over_object_area=intersection_area_over_object_area
+            intersection_over_reference_area=intersection_over_reference_area
             )
         list_table_linking_labels.append(table_linking_labels)
             
@@ -382,7 +422,7 @@ def measure_labels_in_labels_with_intensity(
         size : bool = True, perimeter : bool = False,
         shape : bool = False, position : bool = False,
         moments : bool = False,
-        intersection_area_over_object_area: float = 0.5,
+        intersection_over_reference_area: float = 0.5,
         suffixes : List[str] = None,
         napari_viewer : Viewer = None) -> "pandas.DataFrame":
     ## Get reference properties
@@ -415,7 +455,7 @@ def measure_labels_in_labels_with_intensity(
         table_linking_labels = link_two_label_images(
             label_image_reference=label_image_reference,
             labels_to_measure=label_image,
-            intersection_area_over_object_area=intersection_area_over_object_area
+            intersection_over_reference_area=intersection_over_reference_area
             )
         list_table_linking_labels.append(table_linking_labels)
             

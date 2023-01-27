@@ -73,16 +73,17 @@ def make_summary_table(table: "pandas.DataFrame",
     import re
     import pandas as pd
     if suffixes is None:
-        try:
-            suffixes = []
-            for name in table.columns:
-                new_entry = re.findall(r'_[^_]+$', name)[0]
+        suffixes = []
+        pattern = 'label*(_\w+)$' # get everything after '_' that starts with 'label'
+        for name in table.columns:
+            matches = re.match(pattern, name)
+            if matches is not None:
+                new_entry = matches.group(1)
                 if new_entry not in suffixes:
                     suffixes.append(new_entry)
-        except:
-            print('Could not infer suffixes from column names. Pleas provide a list of suffixes identifying different channels')
+        if len(suffixes) == 0:
+            print('Could not infer suffixes from column names. Please provide a list of suffixes identifying different channels')
             return
-    
     grouped = table.groupby('label' + suffixes[0])
     probe_columns = [prop for prop in table.columns
                      if not prop.endswith(suffixes[0])]
