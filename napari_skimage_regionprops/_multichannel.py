@@ -5,10 +5,10 @@ from napari import Viewer
 from typing import List
 from magicgui import magic_factory
 from napari_tools_menu import register_dock_widget
-
 from ._regionprops import regionprops_table
 from ._process_tables import merge_measurements_to_reference
 from ._process_tables import make_summary_table
+
 
 def make_element_wise_dict(list_of_keys, list_of_values):
     """Return an element-wise dictionary of two lists.
@@ -28,6 +28,7 @@ def make_element_wise_dict(list_of_keys, list_of_values):
     Dictionnary
     """
     return {k: v for k, v in zip(list_of_keys, list_of_values)}
+
 
 def connect_events(widget):
     def toggle_intensity_widgets(event):
@@ -76,8 +77,6 @@ def connect_events(widget):
     widget.median.visible = False
     widget.percentile_75.visible = False
     widget.maximum.visible = False
-
-    # widget.intersection_over_reference_area.widget_type = 'slider'
 
 widgets_layout_settings = {
     'label_image_reference': {
@@ -255,13 +254,6 @@ def napari_regionprops_map_channels_table(
         add_table(reference_labels_layer, napari_viewer)
     else:
         return table
-
-# regionprops_map_channels_table_all_frames = analyze_all_frames(
-#     napari_regionprops_map_channels_table)
-# register_function(
-#     regionprops_map_channels_table_all_frames,
-#     menu="Measurement > Regionprops map multichannel of all frames (nsr)")
-
 
 def link_two_label_images(label_image_reference : napari.types.LabelsData,
                 labels_to_measure : napari.types.LabelsData, 
