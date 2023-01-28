@@ -144,7 +144,7 @@ def napari_regionprops_map_channels_table(
         median: bool = False,
         percentile_75: bool = False,
         maximum: bool = False,
-        napari_viewer: Viewer = None) -> List["pandas.DataFrame"]:
+        napari_viewer: Viewer = None) -> "pandas.DataFrame":
     """
     Add a table widget to a napari viewer with mapped summary statistics.
 
@@ -183,13 +183,27 @@ def napari_regionprops_map_channels_table(
     select_summary_statistics : bool
         a flag to make summary statistics visible in the GUI.
     counts :  bool
-        a flag indicating to calculate how many objects are inside each reference labeled object.
+        a flag indicating to calculate how many objects are 'inside' each reference labeled object.
     mean : bool
-        a flag indicating to calculate the mean of the features of objects inside each reference labeled object.
+        a flag indicating to calculate the mean of the objects features 'inside' each reference labeled object.
+    std : bool
+        a flag indicating to calculate the standard deviation of the objects features 'inside' each reference labeled object.
+    minimum : bool
+        a flag indicating to calculate the minimum of the objects features 'inside' each reference labeled object.
+    percentile_25 : bool
+        a flag indicating to calculate the 25% percentile of the objects features 'inside' each reference labeled object.
+    median : bool
+        a flag indicating to calculate the median of the objects features 'inside' each reference labeled object.
+    percentile_75 : bool
+        a flag indicating to calculate the 75% percentile of the objects features 'inside' each reference labeled object.
+    maximum : bool
+        a flag indicating to calculate the maximum of the objects features 'inside' each reference labeled object.
+    napari_viewer : napari.Viewer
+        a handle to an instance of the napari Viewer.
 
     Returns
     -------
-    List[pandas.DataFrame]
+    pandas.DataFrame
         A table where the first column contains the labels from the reference label image
         and the other columns contain summary statistics of objects in other channels.
     """
@@ -212,6 +226,7 @@ def napari_regionprops_map_channels_table(
         statistics_list += ['max']
     suffixes = []
     
+    # Stores reference labels layer and suffixes from layer names
     if napari_viewer is not None:
         for layer in napari_viewer.layers:
             if type(layer) is napari.layers.Labels:
@@ -223,13 +238,13 @@ def napari_regionprops_map_channels_table(
                         if np.array_equal(layer.data, labels):
                             suffixes.append('_' + layer.name)
         suffixes.insert(0, reference_suffix)
+        print(suffixes)
+    # Ensures proper iterable inputs
     else:
         if not isinstance(label_images_to_measure, list):
             label_images_to_measure = [label_images_to_measure]
         if not isinstance(intensity_images_to_measure, list):
             intensity_images_to_measure = [intensity_images_to_measure]
-
-
     
     ## Single image measurements
     if multichannel == False:
@@ -297,6 +312,35 @@ def link_two_label_images(label_image_reference : napari.types.LabelsData,
                 labels_to_measure : napari.types.LabelsData, 
                 intersection_over_target_area: float = 0.5
                 ) -> "pandas.DataFrame":
+    """
+    Associate each label from a reference to a target label image.
+
+    It takes two label images, being the first a reference and the
+    second a target, and returns a table with two columns that 
+    associates each label in the target image to a label (or background)
+    in the reference image.
+
+    Parameters
+    ----------
+    label_image_reference : napari.types.LabelsData
+        a label image to be used as reference labels.
+    labels_to_measure : napari.types.LabelsData
+        a label image to be used as target labels.
+    intersection_over_target_area : float, optional
+        an area ratio threshold value that determines if a label in
+        the target image belongs to another in the reference image.
+        The area ratio is calculated by the intersection area divided
+        by the target label area. If this area ratio is bigger
+        or equal to `intersection_over_target_area`, the target object
+        gets associated to the reference object, otherwise, it gets
+        associated to the background. This parameter goes from 0 to 1,
+        by default 0.5.
+
+    Returns
+    -------
+    pandas.DataFrame
+        _description_
+    """
     import numpy as np
     import pandas as pd
     from skimage.measure import regionprops_table as sk_regionprops_table
@@ -350,7 +394,7 @@ def link_two_label_images(label_image_reference : napari.types.LabelsData,
             value = 0
         return value
     
-    # Create table (label_links) that links labels from scanning channel
+    # Create table that links labels from scanning channel
     # to reference channel
     table_linking_labels = pd.DataFrame(
         sk_regionprops_table(label_image=labels_to_measure,
@@ -381,6 +425,38 @@ def measure_labels(label_image_reference : napari.types.LabelsData,
                    shape : bool = False, position : bool = False,
                    moments : bool = False,
                    napari_viewer : Viewer = None) -> "pandas.DataFrame":
+    """
+    Measure a label image features.
+
+    Measure features using skimage.regionprops.
+
+    Parameters
+    ----------
+    label_image_reference : napari.types.LabelsData, array_like
+        a label image to measure features.
+    size : bool, optional
+        measure size related features.
+        By default True.
+    perimeter : bool, optional
+        measure perimeter related features. 
+        By default False.
+    shape : bool, optional
+        measure shape related features.
+        By default False.
+    position : bool, optional
+        measure position related features. 
+        By default False.
+    moments : bool, optional
+        measure moments related features.
+        By default False.
+    napari_viewer : Viewer, optional
+        a handle to an instance of the napari Viewer, by default None.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A table containing labels and corresponding measured features.
+    """
     table = regionprops_table(image = np.zeros_like(label_image_reference), 
                               labels = label_image_reference, size = size,
                               intensity = False, perimeter = perimeter,
@@ -394,6 +470,40 @@ def measure_labels_with_intensity(label_image_reference : napari.types.LabelsDat
                                 shape : bool = False, position : bool = False,
                                 moments : bool = False,
                                 napari_viewer : Viewer = None) -> "pandas.DataFrame":
+    """
+    Measure a label image features, including intensity features.
+
+    Measure features using skimage.regionprops.
+
+    Parameters
+    ----------
+    label_image_reference : napari.types.LabelsData, array_like
+        a label image to measure features.
+    intensity_image_reference : napari.types.ImageData, array_like
+        an intensity image to measure features.
+    size : bool, optional
+        measure size related features.
+        By default True.
+    perimeter : bool, optional
+        measure perimeter related features. 
+        By default False.
+    shape : bool, optional
+        measure shape related features.
+        By default False.
+    position : bool, optional
+        measure position related features. 
+        By default False.
+    moments : bool, optional
+        measure moments related features.
+        By default False.
+    napari_viewer : Viewer, optional
+        a handle to an instance of the napari Viewer, by default None.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A table containing labels and corresponding measured features.
+    """
     table = regionprops_table(image = intensity_image_reference, 
                               labels = label_image_reference, size = size,
                               intensity = True, perimeter = perimeter,
@@ -409,6 +519,58 @@ def measure_labels_in_labels(label_image_reference : napari.types.LabelsData,
                               intersection_over_target_area: float = 0.5,
                               suffixes : List[str] = None,
                               napari_viewer : Viewer = None) -> "pandas.DataFrame":
+    """
+    Measure label images features and associates them.
+
+    Measure features from a reference label image and
+    one or more target label images. It returns a table
+    where each column is a feature and each row associates
+    a label (and its features) from `label_image_reference`
+    to a target label (and its features) from `labels_to_measure`.
+
+    Parameters
+    ----------
+    label_image_reference : napari.types.LabelsData
+        a reference label image to measure features.
+    labels_to_measure : List[napari.types.LabelsData]
+        a list of target label images to measure features.
+    size : bool, optional
+        measure size related features.
+        By default True.
+    perimeter : bool, optional
+        measure perimeter related features. 
+        By default False.
+    shape : bool, optional
+        measure shape related features.
+        By default False.
+    position : bool, optional
+        measure position related features. 
+        By default False.
+    moments : bool, optional
+        measure moments related features.
+        By default False.
+    intersection_over_target_area : float, optional
+        an area ratio threshold value that determines if a label in
+        the target image belongs to another in the reference image.
+        The area ratio is calculated by the intersection area divided
+        by the target label area. If this area ratio is bigger
+        or equal to `intersection_over_target_area`, the target object
+        gets associated to the reference object, otherwise, it gets
+        associated to the background. This parameter goes from 0 to 1,
+        by default 0.5.
+    suffixes : List[str], optional
+        a list of suffixes to be appended to table columns.
+        If None (default), it appends '_reference' for reference features
+        and increasing numbers for target features.
+    napari_viewer : Viewer, optional
+        a handle to an instance of the napari Viewer, by default None.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A table containing labels and corresponding measured features.
+        Each row associates reference label features to target label features.
+    """
     ## Get reference properties
     reference_labels_properties = measure_labels(
         label_image_reference = label_image_reference, size = size,
@@ -455,6 +617,65 @@ def measure_labels_in_labels_with_intensity(
         intersection_over_target_area: float = 0.5,
         suffixes : List[str] = None,
         napari_viewer : Viewer = None) -> "pandas.DataFrame":
+    """
+    Measure label images features, including intensity, and associates them.
+
+    Measure features from a reference label image and
+    one or more target label images. It also measure intensity features
+    from a reference intensity image and from one or more target intensity
+    images. It returns a table
+    where each column is a feature and each row associates
+    a label (and its features) from `label_image_reference`
+    to a target label (and its features) from `labels_to_measure`.
+
+    Parameters
+    ----------
+    label_image_reference : napari.types.LabelsData
+        a reference label image to measure features.
+    labels_to_measure : List[napari.types.LabelsData], array_like
+        a list of target label images to measure features.
+    intensity_image_reference : napari.types.ImageData, array_like
+        a reference intensity image to measure intensity features.
+    intensity_image_of_labels_to_measure : List[napari.types.ImageData], array_like, optional
+        a list of target intensity images to measure intensity features.
+        If None (default), intensity features are extracted from `intensity_image_reference`.
+    size : bool, optional
+        measure size related features.
+        By default True.
+    perimeter : bool, optional
+        measure perimeter related features. 
+        By default False.
+    shape : bool, optional
+        measure shape related features.
+        By default False.
+    position : bool, optional
+        measure position related features. 
+        By default False.
+    moments : bool, optional
+        measure moments related features.
+        By default False.
+    intersection_over_target_area : float, optional
+        an area ratio threshold value that determines if a label in
+        the target image belongs to another in the reference image.
+        The area ratio is calculated by the intersection area divided
+        by the target label area. If this area ratio is bigger
+        or equal to `intersection_over_target_area`, the target object
+        gets associated to the reference object, otherwise, it gets
+        associated to the background. This parameter goes from 0 to 1,
+        by default 0.5.
+    suffixes : List[str], optional
+        a list of suffixes to be appended to table columns.
+        If None (default), it appends '_reference' for reference features
+        and increasing numbers for target features.
+    napari_viewer : Viewer, optional
+        a handle to an instance of the napari Viewer, by default None.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A table containing labels and corresponding measured features.
+        Each row associates reference label features to target label features.
+    """
     ## Get reference properties
     reference_labels_properties = measure_labels_with_intensity(
         label_image_reference = label_image_reference,
