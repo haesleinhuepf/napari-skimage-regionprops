@@ -1,5 +1,3 @@
-import time
-
 try:
     import napari
     from qtpy.QtCore import QTimer
