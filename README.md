@@ -84,9 +84,9 @@ The user can select categories of features for feature extraction in the user in
   * extent
   * feret_diameter_max
   * local_centroid
-  * roundness as defined for 2D labels [by ImageJ](https://imagej.nih.gov/ij/docs/menus/analyze.html)
-  * circularity as defined for 2D labels  [by ImageJ](https://imagej.nih.gov/ij/docs/menus/analyze.html)
-  * aspect_ratio as defined for 2D labels [by ImageJ](https://imagej.nih.gov/ij/docs/menus/analyze.html)
+  * roundness as defined for 2D labels [by ImageJ](https://imagej.nih.gov/ij/docs/menus/analyze.html#set)
+  * circularity as defined for 2D labels  [by ImageJ](https://imagej.nih.gov/ij/docs/menus/analyze.html#set)
+  * aspect_ratio as defined for 2D labels [by ImageJ](https://imagej.nih.gov/ij/docs/menus/analyze.html#set)
 * position:
   * centroid
   * bbox

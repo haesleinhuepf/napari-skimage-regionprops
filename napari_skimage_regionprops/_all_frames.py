@@ -1,5 +1,3 @@
-
-import napari
 from toolz import curry
 from typing import Callable
 from functools import wraps
@@ -7,6 +5,12 @@ import inspect
 import numpy as np
 import pandas as pd
 from ._utilities import isimage
+
+try:
+    import napari
+except ModuleNotFoundError as e:
+    import warnings
+    warnings.warn(str(e))
 
 @curry
 def analyze_all_frames(function: Callable) -> Callable:

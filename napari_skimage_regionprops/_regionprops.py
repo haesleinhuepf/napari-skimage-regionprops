@@ -2,13 +2,16 @@ import warnings
 
 import numpy as np
 import pandas
-from napari import Viewer
+try:
+    import napari
+except ModuleNotFoundError as e:
+    warnings.warn(str(e))
+
 from napari_tools_menu import register_function
-import napari
 import math
 from ._all_frames import analyze_all_frames
 
-def regionprops(image_layer : napari.layers.Layer, labels_layer: napari.layers.Labels, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False, napari_viewer : Viewer = None):
+def regionprops(image_layer: "napari.layers.Layer", labels_layer: "napari.layers.Labels", size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False, napari_viewer : "napari.Viewer" = None):
     warnings.warn("napari_skimage_regionprops.regionprops is deprecated. Use regionprops_table instead.")
     image_data = None
     if image_layer is not None:
@@ -17,7 +20,7 @@ def regionprops(image_layer : napari.layers.Layer, labels_layer: napari.layers.L
     regionprops_table(image_data, labels_layer.data, size, intensity, perimeter, shape, position, moments, napari_viewer)
 
 @register_function(menu="Measurement tables > Regionprops (scikit-image, nsr)")
-def regionprops_table(image : napari.types.ImageData, labels: napari.types.LabelsData, size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False, napari_viewer : Viewer = None) -> "pandas.DataFrame":
+def regionprops_table(image: "napari.types.ImageData", labels: "napari.types.LabelsData", size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False, napari_viewer : "napari.Viewer" = None) -> "pandas.DataFrame":
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-label pair.
     """
