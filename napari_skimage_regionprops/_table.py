@@ -116,6 +116,7 @@ class TableWidget(QWidget):
             label = self._table["label"][row]
 
             frame_column = _determine_frame_column(self._table)
+            frame = 0
             if frame_column is not None and self._viewer is not None:
                 current_step = list(self._viewer.dims.current_step)
                 if len(current_step) >= 4:
@@ -155,32 +156,30 @@ class TableWidget(QWidget):
         if "label" in table.keys() and "index" not in table.keys():
             table["index"] = table["label"]
 
-            # workaround until this issue is fixed:
-            # https://github.com/napari/napari/issues/4342
-            if len(np.unique(table['index'])) != len(table['index']):
-                # indices exist multiple times, presumably because it's timelapse data
-                def get_status(
-                        position,
-                        *,
-                        view_direction=None,
-                        dims_displayed=None,
-                        world: bool = False,
-                ) -> str:
-                    value = self._layer.get_value(
-                        position,
-                        view_direction=view_direction,
-                        dims_displayed=dims_displayed,
-                        world=world,
-                    )
+        # workaround until these issue are fixed:
+        # https://github.com/napari/napari/issues/4342
+        # https://github.com/napari/napari/issues/5417
+        # if len(np.unique(table['index'])) != len(table['index']):
+        def get_status(
+                position,
+                *,
+                view_direction=None,
+                dims_displayed=None,
+                world: bool = False,
+        ) -> str:
+            value = self._layer.get_value(
+                position,
+                view_direction=view_direction,
+                dims_displayed=dims_displayed,
+                world=world,
+            )
 
-                    from napari.utils.status_messages import generate_layer_status
-                    msg = generate_layer_status(self._layer.name, position, value)
-                    return msg
-
-                self._layer.get_status = get_status
-
-                import warnings
-                warnings.warn('Status bar display of label properties disabled because labels/indices exist multiple times (napari-skimage-regionprops)')
+            from napari.utils.status_messages import generate_layer_status
+            msg = generate_layer_status(self._layer.name, position, value)
+            return msg
+        # disable napari status bar because it increases the window size, which makes zero sense
+        self._layer.get_status = get_status
+        print('Napari status bar display of label properties disabled because https://github.com/napari/napari/issues/5417 and https://github.com/napari/napari/issues/4342')
 
         self._table = table
 

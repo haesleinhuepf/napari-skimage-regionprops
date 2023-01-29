@@ -19,7 +19,7 @@ def regionprops(image_layer: "napari.layers.Layer", labels_layer: "napari.layers
 
     regionprops_table(image_data, labels_layer.data, size, intensity, perimeter, shape, position, moments, napari_viewer)
 
-@register_function(menu="Measurement > Regionprops (scikit-image, nsr)")
+@register_function(menu="Measurement tables > Regionprops (scikit-image, nsr)")
 def regionprops_table(image: "napari.types.ImageData", labels: "napari.types.LabelsData", size : bool = True, intensity : bool = True, perimeter : bool = False, shape : bool = False, position : bool = False, moments : bool = False, napari_viewer : "napari.Viewer" = None) -> "pandas.DataFrame":
     """
     Adds a table widget to a given napari viewer with quantitative analysis results derived from an image-label pair.
@@ -54,8 +54,13 @@ def regionprops_table(image: "napari.types.ImageData", labels: "napari.types.Lab
     extra_properties = []
 
     if size:
-        properties = properties + ['area', 'bbox_area', 'convex_area', 'equivalent_diameter']
-
+        properties = properties + ['area', 'bbox_area', 'equivalent_diameter']
+        # Workaround to avoid existing scikit-image bug
+        # See https://github.com/scikit-image/scikit-image/issues/6432
+        if (len(labels.shape) == 3) and (_check_2D_labels_in_3D_images(labels)):
+            warnings.warn("2D labels are present in 3D label image, 'convex_area' not calculated")
+        else:
+            properties = properties + ['convex_area']
     if intensity:
         properties = properties + ['max_intensity', 'mean_intensity', 'min_intensity']
 
@@ -72,7 +77,13 @@ def regionprops_table(image: "napari.types.ImageData", labels: "napari.types.Lab
             warnings.warn("Perimeter measurements are not supported in 3D")
 
     if shape:
-        properties = properties + ['solidity', 'extent', 'feret_diameter_max', 'local_centroid']
+        properties = properties + ['extent', 'local_centroid']
+        # Workaround to avoid existing scikit-image bug
+        # See https://github.com/scikit-image/scikit-image/issues/6432
+        if (len(labels.shape) == 3) and (_check_2D_labels_in_3D_images(labels)):
+            warnings.warn("2D labels are present in 3D label image, 'feret_diameter_max' and 'solidity' not calculated")
+        else:
+            properties = properties + ['solidity', 'feret_diameter_max']
         if len(labels.shape) == 2:
             properties = properties + ['major_axis_length', 'minor_axis_length', 'orientation', 'eccentricity']
             # we need these two to compute some shape descriptors
@@ -100,7 +111,7 @@ def regionprops_table(image: "napari.types.ImageData", labels: "napari.types.Lab
     # weighted_moments_central
     # weighted_moments_hu
     # weighted_moments_normalized
-
+    print('PROPERTIES = ', properties)
     # quantitative analysis using scikit-image's regionprops
     from skimage.measure import regionprops_table as sk_regionprops_table
     table = sk_regionprops_table(np.asarray(labels).astype(int), intensity_image=np.asarray(image),
@@ -186,9 +197,20 @@ def ellipsoid_axis_lengths(table):
     return tuple([math.sqrt(20.0 * e) for e in eigvals])
 
 regionprops_table_all_frames = analyze_all_frames(regionprops_table)
-register_function(regionprops_table_all_frames, menu="Measurement > Regionprops of all frames (nsr)")
+register_function(regionprops_table_all_frames, menu="Measurement tables > Regionprops of all frames (nsr)")
 
+def _check_2D_labels_in_3D_images(label_image):
+    '''
+    Checks if there are 2D labels in a 3D label image
+    '''
+    from skimage.measure import regionprops as sk_regionprops
 
+    measurements = sk_regionprops(label_image)
+    for props in measurements:
+        label_shape = np.array(props.bbox[3:]) - np.array(props.bbox[:3])
+        if np.any(label_shape == 1):
+            return True
+    return False
 
 try:
     # morphometrics API
@@ -215,7 +237,7 @@ try:
     from morphometrics._gui._qt.measurement_widgets import QtMeasurementWidget
     register_dock_widget(
         QtMeasurementWidget,
-        "Measurement > Region properties (morphometrics)"
+        "Measurement tables > Region properties (morphometrics)"
     )
 except:
     pass

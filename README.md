@@ -8,7 +8,7 @@
 [![Development Status](https://img.shields.io/pypi/status/napari-skimage-regionprops.svg)](https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-skimage-regionprops)](https://napari-hub.org/plugins/napari-skimage-regionprops)
 
-
+ 
 A [napari] plugin for measuring properties of labeled objects based on [scikit-image]
 
 ![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/interactive.gif)
@@ -39,6 +39,19 @@ Also these measurements can be visualized by double-clicking table headers:
 ![img.png](measure_point_intensity.png)
 
 ![img_1.png](measure_point_coordinate.png)
+
+## Working with time-lapse and tracking data
+
+Note that tables for time-lapse data should include a column named "frame", which indicates which slice in
+time the given row refers to. If you want to import your own csv files for time-lapse data make sure to include this column.
+If you have tracking data where each column specifies measurements for a track instead of a label at a specific time point,
+this column must not be added.
+
+In case you have 2D time-lapse data you need to convert it into a suitable shape using the function: `Tools > Utilities > Convert 3D stack to 2D time-lapse (time-slicer)`,
+which can be found in the [napari time slicer](https://www.napari-hub.org/plugins/napari-time-slicer).
+
+Last but not least, make sure that in case of time-lapse data the label image has labels that are subsquently labeled per timepoint.
+E.g. a dataset where label 5 is missing at timepoint 4 may be visualized incorrectly.
 
 ## Usage, programmatically
 
