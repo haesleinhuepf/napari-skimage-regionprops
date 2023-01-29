@@ -2,13 +2,14 @@ import numpy as np
 try:
     from napari_plugin_engine import napari_hook_implementation
     from napari.types import ImageData
-    from napari import Viewer
+    import napari
     from napari.layers import Image, Labels, Layer
     from typing_extensions import Annotated
     LayerInput = Annotated[Layer, {"label": "Image"}]
 except ModuleNotFoundError as e:
     import warnings
     warnings.warn(str(e))
+    LayerInput = None
 
 from napari_tools_menu import register_function
 
@@ -18,7 +19,7 @@ def napari_experimental_provide_function():
     return [duplicate_current_frame]
 
 @register_function(menu="Utilities > Duplicate current timepoint (nsr)")
-def duplicate_current_frame(layer : "LayerInput", napari_viewer: "Viewer", axis : int = 0) -> "Layer":
+def duplicate_current_frame(layer : LayerInput, napari_viewer: "napari.Viewer", axis : int = 0) -> "napari.layers.Layer":
     image = layer.data
     current_dim_value = napari_viewer.dims.current_step[axis]
     new_image = np.take(image, current_dim_value, axis)
