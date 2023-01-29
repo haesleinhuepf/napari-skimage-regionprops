@@ -97,7 +97,7 @@ The user can select categories of features for feature extraction in the user in
   * moments_hu
   * moments_normalized
 
-
+ 
 
 This [napari] plugin was generated with [Cookiecutter] using with [@napari]'s [cookiecutter-napari-plugin] template.
 
