@@ -30,16 +30,16 @@ def make_element_wise_dict(list_of_keys, list_of_values):
     return {k: v for k, v in zip(list_of_keys, list_of_values)}
 
 
-def connect_events(widget):
+def _connect_events(widget):
     def toggle_intensity_widgets(event):
         widget.intensity_image_reference.visible = event
-        # If multichannel is True when anebling intensity, then enable 
+        # If multichannel is True when anebling intensity, then enable
         # intensity image inputs
         if (event == True) & (widget.multichannel.value == True):
             widget.intensity_images_to_measure.visible = True
         else:
             widget.intensity_images_to_measure.visible = False
-            
+
     def toggle_multichannel_widgets(event):
         widget.label_images_to_measure.visible = event
         widget.intersection_over_target_area.visible = event
@@ -47,8 +47,8 @@ def connect_events(widget):
         if (event == True) & (widget.intensity.value == True):
             widget.intensity_images_to_measure.visible = True
         else:
-            widget.intensity_images_to_measure.visible = False   
-  
+            widget.intensity_images_to_measure.visible = False
+
     def toggle_summary_statistics_widgets(event):
         widget.counts.visible = event
         widget.mean.visible = event
@@ -58,11 +58,13 @@ def connect_events(widget):
         widget.median.visible = event
         widget.percentile_75.visible = event
         widget.maximum.visible = event
-    
+
     widget.intensity.changed.connect(toggle_intensity_widgets)
     widget.multichannel.changed.connect(toggle_multichannel_widgets)
-    widget.select_summary_statistics.changed.connect(toggle_summary_statistics_widgets)
-    
+    widget.select_summary_statistics.changed.connect(
+        toggle_summary_statistics_widgets
+        )
+
     # Intial visibility states
     widget.intensity_image_reference.visible = False
     widget.intensity_images_to_measure.visible = False
@@ -77,6 +79,7 @@ def connect_events(widget):
     widget.median.visible = False
     widget.percentile_75.visible = False
     widget.maximum.visible = False
+
 
 widgets_layout_settings = {
     'label_image_reference': {
@@ -96,7 +99,11 @@ widgets_layout_settings = {
         'min': 0,
         'max': 1,
         'step': 0.1,
-        'tooltip': 'A ratio that determines if an object in one channel belongs to another in a reference channel.\nIt goes from 0 (target object always belongs to background) to 1 (target object belongs to reference object only if completely inside reference)'
+        'tooltip': ('A ratio that determines if an object in one channel '
+                    'belongs to another in a reference channel.\nIt goes from '
+                    '0 (target object always belongs to background) to 1 '
+                    '(target object belongs to reference object only if '
+                    'completely inside reference)')
     },
     'std': {
         'label': 'standard deviation (std)'
@@ -109,16 +116,22 @@ widgets_layout_settings = {
     }
 }
 
+
 @register_dock_widget(
     menu="Measurement > Regionprops map multichannel (scikit-image, nsr)")
 # Need magic factory to make hidding and showing functionality available
-@magic_factory(widget_init=connect_events,
-               layout = 'vertical',
-               label_image_reference=widgets_layout_settings['label_image_reference'],
-               intensity_image_reference=widgets_layout_settings['intensity_image_reference'],
-               label_images_to_measure=widgets_layout_settings['label_images_to_measure'],
-               intensity_images_to_measure=widgets_layout_settings['intensity_images_to_measure'],
-               intersection_over_target_area=widgets_layout_settings['intersection_over_target_area'],
+@magic_factory(widget_init=_connect_events,
+               layout='vertical',
+               label_image_reference=widgets_layout_settings[
+                   'label_image_reference'],
+               intensity_image_reference=widgets_layout_settings[
+                   'intensity_image_reference'],
+               label_images_to_measure=widgets_layout_settings[
+                   'label_images_to_measure'],
+               intensity_images_to_measure=widgets_layout_settings[
+                   'intensity_images_to_measure'],
+               intersection_over_target_area=widgets_layout_settings[
+                   'intersection_over_target_area'],
                std=widgets_layout_settings['std'],
                percentile_25=widgets_layout_settings['percentile_25'],
                percentile_75=widgets_layout_settings['percentile_75'])
@@ -161,13 +174,19 @@ def napari_regionprops_map_channels_table(
     intensity_image_reference : array_like
         an intensity image, matching the `label_image_reference` shape.
     label_images_to_measure : List[array_like]
-        a list of label images, whose measured features will be related to labels from `label_image_reference`.
+        a list of label images, whose measured features will be related to
+        labels from `label_image_reference`.
     intensity_images_to_measure : List[array_like]
-        a list of label images, whose measured intensity features will be related to labels from `label_image_reference`.
+        a list of label images, whose measured intensity features will be
+        related to labels from `label_image_reference`.
     intensity : bool
-        a flag indicating that intensity features should be measured. If `True`, `intensity_image_reference` must be given.
+        a flag indicating that intensity features should be measured. If
+        `True`, `intensity_image_reference` must be given.
     multichannel : bool
-        a flag indicating that multichannel analysis should be performed, relating labels from `label_image_reference` to `label_images_to_measure`. If `True`, `label_images_to_measure` must be provided.
+        a flag indicating that multichannel analysis should be performed,
+        relating labels from `label_image_reference` to
+        `label_images_to_measure`. If `True`, `label_images_to_measure`
+        must be provided.
     size : bool
         a flag indicating to measure size features.
     perimeter :  bool
@@ -179,33 +198,46 @@ def napari_regionprops_map_channels_table(
     moments : bool
         a flag indicating to measure moments features.
     intersection_over_target_area : float
-        a ratio of areas that indicates whether an object is considered 'inside' another. It is the intersection area divided by the target object area. It goes from 0 to 1. 0 indicates object always belongs to background. 1 indicates object must be completely inside another in the reference labels.
+        a ratio of areas that indicates whether an object is considered
+        'inside' another. It is the intersection area divided by the target
+        object area. It goes from 0 to 1. 0 indicates object always belongs to
+        background. 1 indicates object must be completely inside another in the
+        reference labels.
     select_summary_statistics : bool
         a flag to make summary statistics visible in the GUI.
     counts :  bool
-        a flag indicating to calculate how many objects are 'inside' each reference labeled object.
+        a flag indicating to calculate how many objects are 'inside' each
+        reference labeled object.
     mean : bool
-        a flag indicating to calculate the mean of the objects features 'inside' each reference labeled object.
+        a flag indicating to calculate the mean of the objects features
+        'inside' each reference labeled object.
     std : bool
-        a flag indicating to calculate the standard deviation of the objects features 'inside' each reference labeled object.
+        a flag indicating to calculate the standard deviation of the objects
+        features 'inside' each reference labeled object.
     minimum : bool
-        a flag indicating to calculate the minimum of the objects features 'inside' each reference labeled object.
+        a flag indicating to calculate the minimum of the objects features
+        'inside' each reference labeled object.
     percentile_25 : bool
-        a flag indicating to calculate the 25% percentile of the objects features 'inside' each reference labeled object.
+        a flag indicating to calculate the 25% percentile of the objects
+        features 'inside' each reference labeled object.
     median : bool
-        a flag indicating to calculate the median of the objects features 'inside' each reference labeled object.
+        a flag indicating to calculate the median of the objects features
+        'inside' each reference labeled object.
     percentile_75 : bool
-        a flag indicating to calculate the 75% percentile of the objects features 'inside' each reference labeled object.
+        a flag indicating to calculate the 75% percentile of the objects
+        features 'inside' each reference labeled object.
     maximum : bool
-        a flag indicating to calculate the maximum of the objects features 'inside' each reference labeled object.
+        a flag indicating to calculate the maximum of the objects features
+        'inside' each reference labeled object.
     napari_viewer : napari.Viewer
         a handle to an instance of the napari Viewer.
 
     Returns
     -------
     pandas.DataFrame
-        A table where the first column contains the labels from the reference label image
-        and the other columns contain summary statistics of objects in other channels.
+        A table where the first column contains the labels from the reference
+        label image and the other columns contain summary statistics of objects
+        in other channels.
     """
     statistics_list = []
     if counts:
@@ -225,7 +257,7 @@ def napari_regionprops_map_channels_table(
     if maximum:
         statistics_list += ['max']
     suffixes = []
-    
+
     # Stores reference labels layer and suffixes from layer names
     if napari_viewer is not None:
         for layer in napari_viewer.layers:
@@ -244,17 +276,17 @@ def napari_regionprops_map_channels_table(
             label_images_to_measure = [label_images_to_measure]
         if not isinstance(intensity_images_to_measure, list):
             intensity_images_to_measure = [intensity_images_to_measure]
-    
-    ## Single image measurements
+
+    # Single image measurements
     if multichannel == False:
-        ### Without intensity measurements
+        # Without intensity measurements
         if intensity == False:
             table = measure_labels(
-                label_image_reference=label_image_reference, 
+                label_image_reference=label_image_reference,
                 size=size, perimeter=perimeter,
                 shape=shape, position=position,
                 moments=moments)
-        ### Or with intensity measurements
+        # Or with intensity measurements
         else:
             table = measure_labels_with_intensity(
                 label_image_reference=label_image_reference,
@@ -262,37 +294,42 @@ def napari_regionprops_map_channels_table(
                 size=size, perimeter=perimeter,
                 shape=shape, position=position,
                 moments=moments)
-    ## More than one label image measurements
+    # More than one label image measurements
     else:
-        if len(suffixes) == 0:               
+        if len(suffixes) == 0:
             n_leading_zeros = len(label_images_to_measure) // 10
-            suffixes = ['_reference'] + ['_' + str(i+1).zfill(1+n_leading_zeros)
-                                    for i in range(len(label_images_to_measure))]
-        ### Without intensity measurements
+            suffixes = ['_reference'] + ['_' + str(i+1).zfill(
+                1+n_leading_zeros)
+                for i in range(len(label_images_to_measure))]
+        # Without intensity measurements
         if intensity == False:
-            table = measure_labels_in_labels(label_image_reference=label_image_reference,
-                                          labels_to_measure=label_images_to_measure,
-                                          size=size, perimeter=perimeter,
-                                          shape=shape, position=position,
-                                          moments=moments,
-                                          intersection_over_target_area=intersection_over_target_area,
-                                          suffixes=suffixes)
-        ### Or with intensity measurements
-        else:
-            table = measure_labels_in_labels_with_intensity(
+            table = measure_labels_in_labels(
                 label_image_reference=label_image_reference,
                 labels_to_measure=label_images_to_measure,
-                intensity_image_reference=intensity_image_reference,
-                intensity_image_of_labels_to_measure=intensity_images_to_measure,
-                size=size, perimeter=perimeter,
-                shape=shape, position=position,
+                size=size,
+                perimeter=perimeter,
+                shape=shape,
+                position=position,
                 moments=moments,
                 intersection_over_target_area=intersection_over_target_area,
                 suffixes=suffixes)
-        ### Compute summary statistics instead of individual relationships
-        ### This avoids repeated number in the 'label' column
-        table = make_summary_table(table, suffixes = suffixes,
-                                    statistics_list = statistics_list)
+        # Or with intensity measurements
+        else:
+            table = measure_labels_in_labels_with_intensity(
+              label_image_reference=label_image_reference,
+              labels_to_measure=label_images_to_measure,
+              intensity_image_reference=intensity_image_reference,
+              intensity_image_of_labels_to_measure=intensity_images_to_measure,
+              size=size, perimeter=perimeter,
+              shape=shape, position=position,
+              moments=moments,
+              intersection_over_target_area=intersection_over_target_area,
+              suffixes=suffixes)
+        # Compute summary statistics instead of individual relationships
+        # This guarantees no repeated numbers in the 'label' column
+        table = make_summary_table(table,
+                                   suffixes=suffixes,
+                                   statistics_list=statistics_list)
     # Rename first column to just 'label' (to be compatible with other plugins)
     table.rename(columns={"label" + suffixes[0]: "label"}, inplace=True)
     if napari_viewer is not None:
@@ -307,15 +344,16 @@ def napari_regionprops_map_channels_table(
     else:
         return table
 
-def link_two_label_images(label_image_reference : napari.types.LabelsData,
-                labels_to_measure : napari.types.LabelsData, 
-                intersection_over_target_area: float = 0.5
-                ) -> "pandas.DataFrame":
+
+def link_two_label_images(label_image_reference: napari.types.LabelsData,
+                          labels_to_measure: napari.types.LabelsData,
+                          intersection_over_target_area: float = 0.5
+                          ) -> "pandas.DataFrame":
     """
     Associate each label from a reference to a target label image.
 
     It takes two label images, being the first a reference and the
-    second a target, and returns a table with two columns that 
+    second a target, and returns a table with two columns that
     associates each label in the target image to a label (or background)
     in the reference image.
 
@@ -345,19 +383,19 @@ def link_two_label_images(label_image_reference : napari.types.LabelsData,
     import numpy as np
     import pandas as pd
     from skimage.measure import regionprops_table as sk_regionprops_table
-    
+
     def highest_overlap(regionmask, label_image_reference,
                         overlap_threshold=intersection_over_target_area):
         """
-        Gets the label number with highest overlap with label in another image.
-        
-        This function masks a labeled image called 'label_image_reference' with 
+        Get the label number with highest overlap with label in another image.
+
+        This function masks a labeled image called 'label_image_reference' with
         'regionmask' and calculates the frequency of pixel values in that
         region. Disconsidering zeros (background), it returns the most frequent
         value if it overcomes the 'overlap_threshold'. Otherwise, it returns 0.
         In case of draws, it returns the first occurence. This function follows
         the standards of skimage.regionprops 'extra_properties'.
-         
+
         Parameters
         ----------
         regionmask : (M, N[,P]) ndarray
@@ -365,7 +403,7 @@ def link_two_label_images(label_image_reference : napari.types.LabelsData,
         label_image_reference : (M, N[,P]) ndarray
             Label image (reference channel). Labels to be measured using probe
             channel as a mask.
-        
+
         Returns
         -------
         value : int
@@ -394,9 +432,8 @@ def link_two_label_images(label_image_reference : napari.types.LabelsData,
             #  other label and gets 0
             value = 0
         return value
-    
-    # Create table that links labels from scanning channel
-    # to reference channel
+
+    # Create table that links labels from scanning channel to reference channel
     table_linking_labels = pd.DataFrame(
         sk_regionprops_table(label_image=labels_to_measure,
                              intensity_image=label_image_reference,
@@ -411,24 +448,31 @@ def link_two_label_images(label_image_reference : napari.types.LabelsData,
         },
         inplace=True)
     # Re-order columns
-    table_linking_labels = table_linking_labels[['label_reference', 'label_target']]
-    # Add eventual missing reference labels to table (they belong to background)
+    table_linking_labels = table_linking_labels[
+        ['label_reference', 'label_target']
+        ]
+    # Add eventual missing reference labels to table, they belong to background
     bg_labels_list = []
     for i in np.unique(label_image_reference)[1:].tolist():
         if i not in table_linking_labels['label_reference'].values:
             bg_labels_list.append([i, 0])
     bg_labels = pd.DataFrame(bg_labels_list,
                              columns=['label_reference', 'label_target'])
-    table_linking_labels = pd.concat([table_linking_labels, bg_labels], axis=0) \
-        .sort_values(by=['label_reference', 'label_target']).reset_index(drop=True)
+    table_linking_labels = pd.concat(
+        [table_linking_labels, bg_labels], axis=0) \
+        .sort_values(by=['label_reference', 'label_target']) \
+        .reset_index(drop=True)
 
     return table_linking_labels
 
-def measure_labels(label_image_reference : napari.types.LabelsData, 
-                   size : bool = True, perimeter : bool = False,
-                   shape : bool = False, position : bool = False,
-                   moments : bool = False,
-                   napari_viewer : Viewer = None) -> "pandas.DataFrame":
+
+def measure_labels(label_image_reference: napari.types.LabelsData,
+                   size: bool = True,
+                   perimeter: bool = False,
+                   shape: bool = False,
+                   position: bool = False,
+                   moments: bool = False,
+                   napari_viewer: Viewer = None) -> "pandas.DataFrame":
     """
     Measure a label image features.
 
@@ -442,13 +486,13 @@ def measure_labels(label_image_reference : napari.types.LabelsData,
         measure size related features.
         By default True.
     perimeter : bool, optional
-        measure perimeter related features. 
+        measure perimeter related features.
         By default False.
     shape : bool, optional
         measure shape related features.
         By default False.
     position : bool, optional
-        measure position related features. 
+        measure position related features.
         By default False.
     moments : bool, optional
         measure moments related features.
@@ -461,19 +505,27 @@ def measure_labels(label_image_reference : napari.types.LabelsData,
     pandas.DataFrame
         A table containing labels and corresponding measured features.
     """
-    table = regionprops_table(image = np.zeros_like(label_image_reference), 
-                              labels = label_image_reference, size = size,
-                              intensity = False, perimeter = perimeter,
-                              shape = shape, position = position,
-                              moments = moments, napari_viewer = napari_viewer)
+    table = regionprops_table(image=np.zeros_like(label_image_reference),
+                              labels=label_image_reference,
+                              size=size,
+                              intensity=False,
+                              perimeter=perimeter,
+                              shape=shape,
+                              position=position,
+                              moments=moments,
+                              napari_viewer=napari_viewer)
     return table
 
-def measure_labels_with_intensity(label_image_reference : napari.types.LabelsData,
-                                intensity_image_reference : napari.types.ImageData,
-                                size : bool = True, perimeter : bool = False,
-                                shape : bool = False, position : bool = False,
-                                moments : bool = False,
-                                napari_viewer : Viewer = None) -> "pandas.DataFrame":
+
+def measure_labels_with_intensity(
+        label_image_reference: napari.types.LabelsData,
+        intensity_image_reference: napari.types.ImageData,
+        size: bool = True,
+        perimeter: bool = False,
+        shape: bool = False,
+        position: bool = False,
+        moments: bool = False,
+        napari_viewer: Viewer = None) -> "pandas.DataFrame":
     """
     Measure a label image features, including intensity features.
 
@@ -489,13 +541,13 @@ def measure_labels_with_intensity(label_image_reference : napari.types.LabelsDat
         measure size related features.
         By default True.
     perimeter : bool, optional
-        measure perimeter related features. 
+        measure perimeter related features.
         By default False.
     shape : bool, optional
         measure shape related features.
         By default False.
     position : bool, optional
-        measure position related features. 
+        measure position related features.
         By default False.
     moments : bool, optional
         measure moments related features.
@@ -508,21 +560,28 @@ def measure_labels_with_intensity(label_image_reference : napari.types.LabelsDat
     pandas.DataFrame
         A table containing labels and corresponding measured features.
     """
-    table = regionprops_table(image = intensity_image_reference, 
-                              labels = label_image_reference, size = size,
-                              intensity = True, perimeter = perimeter,
-                              shape = shape, position = position,
-                              moments = moments, napari_viewer = napari_viewer)
+    table = regionprops_table(image=intensity_image_reference,
+                              labels=label_image_reference,
+                              size=size,
+                              intensity=True,
+                              perimeter=perimeter,
+                              shape=shape, position=position,
+                              moments=moments,
+                              napari_viewer=napari_viewer)
     return table
 
-def measure_labels_in_labels(label_image_reference : napari.types.LabelsData,
-                              labels_to_measure : List[napari.types.LabelsData],
-                              size : bool = True, perimeter : bool = False,
-                              shape : bool = False, position : bool = False,
-                              moments : bool = False,
-                              intersection_over_target_area: float = 0.5,
-                              suffixes : List[str] = None,
-                              napari_viewer : Viewer = None) -> List["pandas.DataFrame"]:
+
+def measure_labels_in_labels(label_image_reference: napari.types.LabelsData,
+                             labels_to_measure: List[napari.types.LabelsData],
+                             size: bool = True,
+                             perimeter: bool = False,
+                             shape: bool = False,
+                             position: bool = False,
+                             moments: bool = False,
+                             intersection_over_target_area: float = 0.5,
+                             suffixes: List[str] = None,
+                             napari_viewer: Viewer = None
+                             ) -> List["pandas.DataFrame"]:
     """
     Measure label images features and associates them.
 
@@ -542,13 +601,13 @@ def measure_labels_in_labels(label_image_reference : napari.types.LabelsData,
         measure size related features.
         By default True.
     perimeter : bool, optional
-        measure perimeter related features. 
+        measure perimeter related features.
         By default False.
     shape : bool, optional
         measure shape related features.
         By default False.
     position : bool, optional
-        measure position related features. 
+        measure position related features.
         By default False.
     moments : bool, optional
         measure moments related features.
@@ -575,11 +634,15 @@ def measure_labels_in_labels(label_image_reference : napari.types.LabelsData,
         A list of tables containing labels and corresponding measured features.
         Each row associates reference label features to target label features.
     """
-    ## Get reference properties
+    # Get reference properties
     reference_labels_properties = measure_labels(
-        label_image_reference = label_image_reference, size = size,
-        perimeter = perimeter, shape = shape, position = position,
-        moments = moments, napari_viewer = napari_viewer
+        label_image_reference=label_image_reference,
+        size=size,
+        perimeter=perimeter,
+        shape=shape,
+        position=position,
+        moments=moments,
+        napari_viewer=napari_viewer
         )
     list_table_linking_labels = []
     list_table_labels_to_measure_properties = []
@@ -594,15 +657,21 @@ def measure_labels_in_labels(label_image_reference : napari.types.LabelsData,
             intersection_over_target_area=intersection_over_target_area
             )
         list_table_linking_labels.append(table_linking_labels)
-            
+
         labels_to_measure_properties = measure_labels(
-            label_image_reference = label_image, size = size,
-            perimeter = perimeter, shape = shape, position = position,
-            moments = moments, napari_viewer = napari_viewer
+            label_image_reference=label_image,
+            size=size,
+            perimeter=perimeter,
+            shape=shape,
+            position=position,
+            moments=moments,
+            napari_viewer=napari_viewer
             )
-        list_table_labels_to_measure_properties.append(labels_to_measure_properties)
-    
-    # Merge each table with target label properties to table with reference label properties
+        list_table_labels_to_measure_properties.append(
+            labels_to_measure_properties)
+
+    # Merge each table with target label properties to table with reference
+    # label properties
     table_list = merge_measurements_to_reference(
         table_reference_labels_properties=reference_labels_properties,
         table_linking_labels=list_table_linking_labels,
@@ -610,17 +679,20 @@ def measure_labels_in_labels(label_image_reference : napari.types.LabelsData,
         suffixes=suffixes)
     return table_list
 
+
 def measure_labels_in_labels_with_intensity(
-        label_image_reference : napari.types.LabelsData,
-        labels_to_measure : List[napari.types.LabelsData],
-        intensity_image_reference : napari.types.ImageData,
-        intensity_image_of_labels_to_measure : List[napari.types.ImageData] = None,
-        size : bool = True, perimeter : bool = False,
-        shape : bool = False, position : bool = False,
-        moments : bool = False,
+        label_image_reference: napari.types.LabelsData,
+        labels_to_measure: List[napari.types.LabelsData],
+        intensity_image_reference: napari.types.ImageData,
+        intensity_image_of_labels_to_measure: List[napari.types.ImageData] = None,
+        size: bool = True,
+        perimeter: bool = False,
+        shape: bool = False,
+        position: bool = False,
+        moments: bool = False,
         intersection_over_target_area: float = 0.5,
-        suffixes : List[str] = None,
-        napari_viewer : Viewer = None) -> List["pandas.DataFrame"]:
+        suffixes: List[str] = None,
+        napari_viewer: Viewer = None) -> List["pandas.DataFrame"]:
     """
     Measure label images features, including intensity, and associates them.
 
@@ -640,20 +712,22 @@ def measure_labels_in_labels_with_intensity(
         a list of target label images to measure features.
     intensity_image_reference : napari.types.ImageData, array_like
         a reference intensity image to measure intensity features.
-    intensity_image_of_labels_to_measure : List[napari.types.ImageData], array_like, optional
+    intensity_image_of_labels_to_measure : List[napari.types.ImageData],
+    array_like, optional
         a list of target intensity images to measure intensity features.
-        If None (default), intensity features are extracted from `intensity_image_reference`.
+        If None (default), intensity features are extracted from 
+        `intensity_image_reference`.
     size : bool, optional
         measure size related features.
         By default True.
     perimeter : bool, optional
-        measure perimeter related features. 
+        measure perimeter related features.
         By default False.
     shape : bool, optional
         measure shape related features.
         By default False.
     position : bool, optional
-        measure position related features. 
+        measure position related features.
         By default False.
     moments : bool, optional
         measure moments related features.
@@ -680,50 +754,63 @@ def measure_labels_in_labels_with_intensity(
         A list of tables containing labels and corresponding measured features.
         Each row associates reference label features to target label features.
     """
-    ## Get reference properties
+    # Get reference properties
     reference_labels_properties = measure_labels_with_intensity(
-        label_image_reference = label_image_reference,
-        intensity_image_reference = intensity_image_reference,
-        size = size,
-        perimeter = perimeter, shape = shape, position = position,
-        moments = moments, napari_viewer = napari_viewer
+        label_image_reference=label_image_reference,
+        intensity_image_reference=intensity_image_reference,
+        size=size,
+        perimeter=perimeter,
+        shape=shape,
+        position=position,
+        moments=moments,
+        napari_viewer=napari_viewer
         )
     list_table_linking_labels = []
     list_table_labels_to_measure_properties = []
     # Make labels_to_measure iterable
     if not isinstance(labels_to_measure, list):
         labels_to_measure = [labels_to_measure]
-    ## If no intensity_image_of_labels_to_measure provided, use reference intensity
+    # If no intensity_image_of_labels_to_measure provided, use reference
+    # intensity
     if intensity_image_of_labels_to_measure is None:
-        intensity_image_of_labels_to_measure = [intensity_image_reference]*len(labels_to_measure)
-    ## If intensity_image_of_labels_to_measure provided, check if sizes match
+        intensity_image_of_labels_to_measure = [intensity_image_reference] * \
+            len(labels_to_measure)
+    # If intensity_image_of_labels_to_measure provided, check if sizes match
     else:
         # Make intensity_image_of_labels_to_measure iterable
         if not isinstance(intensity_image_of_labels_to_measure, list):
-            intensity_image_of_labels_to_measure = [intensity_image_of_labels_to_measure]
+            intensity_image_of_labels_to_measure = \
+                [intensity_image_of_labels_to_measure]
         if len(intensity_image_of_labels_to_measure) != len(labels_to_measure):
-            print('Error! Length of intensity_image_of_labels_to_measure and labels_to_measure must match.')
+            print(('Error! Length of intensity_image_of_labels_to_measure and'
+                   'labels_to_measure must match.'))
             return
-    
+
     # Link each labels_to_measure image to reference and get their properties
-    for label_image, intensity_image in zip(labels_to_measure, intensity_image_of_labels_to_measure):
+    for label_image, intensity_image in zip(
+            labels_to_measure, intensity_image_of_labels_to_measure):
         table_linking_labels = link_two_label_images(
             label_image_reference=label_image_reference,
             labels_to_measure=label_image,
             intersection_over_target_area=intersection_over_target_area
             )
         list_table_linking_labels.append(table_linking_labels)
-            
+
         labels_to_measure_properties = measure_labels_with_intensity(
-            label_image_reference = label_image, 
-            intensity_image_reference = intensity_image,
-            size = size,
-            perimeter = perimeter, shape = shape, position = position,
-            moments = moments, napari_viewer = napari_viewer
+            label_image_reference=label_image,
+            intensity_image_reference=intensity_image,
+            size=size,
+            perimeter=perimeter,
+            shape=shape,
+            position=position,
+            moments=moments,
+            napari_viewer=napari_viewer
             )
-        list_table_labels_to_measure_properties.append(labels_to_measure_properties)
-    
-    # Merge each table with target label properties to table with reference label properties
+        list_table_labels_to_measure_properties.append(
+            labels_to_measure_properties)
+
+    # Merge each table with target label properties to table with reference
+    # label properties
     table_list = merge_measurements_to_reference(
         table_reference_labels_properties=reference_labels_properties,
         table_linking_labels=list_table_linking_labels,
