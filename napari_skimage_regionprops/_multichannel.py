@@ -341,8 +341,8 @@ def napari_regionprops_map_channels_table(
         reference_labels_layer.properties = table
         # Display table (which also adds it to features)
         add_table(reference_labels_layer, napari_viewer)
-    else:
-        return table
+
+    return table
 
 
 def link_two_label_images(label_image_reference: napari.types.LabelsData,

@@ -179,11 +179,12 @@ def make_summary_table(table: List["pandas.DataFrame"],
                 if stat == column_stat:
                     selected_columns.append(column)
         summary_tab = summary_tab.loc[:, selected_columns]
-
+        print(tab)
+        print(tab['label' + suf])
         if counts:
             # counts [label + suf] elements grouped by label_reference
-            counts_column = tab.groupby('label' + suffixes[0]).count()[
-                'label' + suf].fillna(0)
+            counts_column = tab.astype(bool).groupby('label' + suffixes[0]).sum()[
+                'label' + suf].fillna(0).values
             # if only 'counts' was asked, append to table
             if len(statistics_list) == 0:
                 summary_tab['counts' + suf] = counts_column
