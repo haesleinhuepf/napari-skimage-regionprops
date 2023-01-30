@@ -2,35 +2,35 @@ import napari
 import pandas
 from typing import List
 
-# TO DO: make 'merge_measurements_to_reference' return a list of tables
-# because merging is giving wrong statistics like counts
-
-# measure_labels_in_labels will have to return a list
-# notebook showing functions must be updated
-
 def merge_measurements_to_reference(
     table_reference_labels_properties : "pandas.DataFrame",
     table_linking_labels : List["pandas.DataFrame"],
     table_labels_to_measure_properties : List["pandas.DataFrame"],
-    suffixes=None) -> "pandas.DataFrame":
+    suffixes=None) -> List["pandas.DataFrame"]:
     """
-    Merge 
+    Merge measurements from target table to reference table through a linking table.
 
     Parameters
     ----------
     table_reference_labels_properties : pandas.DataFrame
-        _description_
-    table_linking_labels : List[&quot;pandas.DataFrame&quot;]
-        _description_
-    table_labels_to_measure_properties : List[&quot;pandas.DataFrame&quot;]
-        _description_
-    suffixes : _type_, optional
-        _description_, by default None
+        a table to be used as a reference with a column 'label' and other columns
+        with features.
+    table_linking_labels : List["pandas.DataFrame"]
+        a list of tables. Each table should contain 2 columns, a 'label_reference'
+        and a 'label_target'. Each table row associates a target label to a reference
+        label.
+    table_labels_to_measure_properties : List["pandas.DataFrame"]
+        a list of tables to be used as a targets with a column 'label' and other
+        columns with features.
+    suffixes : List[str], optional
+        list of strings containing suffixes to be added to the output table columns.
+        If None (default), '_reference' and increasing numbers are used as suffixes.
 
     Returns
     -------
-    pandas.DataFrame
-        _description_
+    List[pandas.DataFrame]
+        a list of relationship tables, which associate each target label (with its 
+        properties) to a reference label (with its properties).
     """    
     import pandas as pd
     ## Shape input to right format
@@ -62,40 +62,63 @@ def merge_measurements_to_reference(
     for i, table_linking_labels in enumerate(list_table_linking_labels):
         table_linking_labels.rename(
                 columns={'label_reference': 'label' + suffixes[0],
-                         'label': 'label' + suffixes[i+1]},
+                         'label_target': 'label' + suffixes[i+1]},
                 inplace=True)
     ### Rename columns of tables with properties from other channels
     for i, table_labels_to_measure_properties in enumerate(list_table_labels_to_measure_properties):
         table_labels_to_measure_properties.columns = [
             props + suffixes[i+1]
             for props in table_labels_to_measure_properties.columns]
-    print('\n\ntable_reference_labels_properties = ', table_reference_labels_properties)
 
-    ## output_table starts with reference labels and their properties
-    output_table = table_reference_labels_properties
+    output_table_list = []
     ## Consecutively merge linking_labels tables and properties from other channels tables to the reference table
     for i, table_linking_labels, table_labels_to_measure_properties in zip(range(n_measurement_tables), list_table_linking_labels, list_table_labels_to_measure_properties):
-        ## !!!Problem!!!: If I do like this, with more than 2 tables, I am also duplicating the second labels
-        print('\n\table_linking_labels = ', table_linking_labels)
-        # Merge other labels to output table based on label_reference
-        output_table = pd.merge(output_table,
-                                table_linking_labels,
-                                how='outer', on='label' + suffixes[0])
+        # Merge other labels to label_reference
+        output_table = pd.merge(table_reference_labels_properties,
+                            table_linking_labels,
+                            how='outer', on='label' + suffixes[0])
         # Fill NaN labels with zeros (if label were not linked, they belong to background)
         output_table['label' + suffixes[i+1]] = output_table['label' + suffixes[i+1]].fillna(0)
         # Merge other properties to output table based on new labels column
         output_table = pd.merge(output_table,
                                 table_labels_to_measure_properties,
                                 how='outer', on='label' + suffixes[i+1])
-    # Ensure label columns type to be integer
-    for column in output_table.columns:
-        if column.startswith('label'):
-            output_table[column] = output_table[column].astype(int)
-    return output_table
+        # Ensure label columns type to be integer
+        for column in output_table.columns:
+            if column.startswith('label'):
+                output_table[column] = output_table[column].astype(int)
+        # Append output table to list (each table may have different shapes)
+        output_table_list.append(output_table)
+    return output_table_list
 
 def make_summary_table(table: List["pandas.DataFrame"],
                       suffixes=None,
                       statistics_list = ['count',]) -> "pandas.DataFrame":
+    """
+    Calculate summary statistics of a list of relationship tables.
+
+    For each relationship table, which relates target labels and its properties
+    to reference labels (and its properties), calculate summary statistics defined
+    by `statistics_list` and concatenates outputs to the rigth as new columns.
+
+    Parameters
+    ----------
+    table : List[pandas.DataFrame]
+        a relationship table or a list of them.
+    suffixes : List[str], optional
+        list of strings containing suffixes to be added to the output table columns.
+        If None (default), it looks for strings after 'label_' in the tables and 
+        uses them as suffixes.
+    statistics_list : List[str], optional
+        list of strings determining summary statistics to be calculated. Possible 
+        entries are 'count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max'. The
+        percentages correspond to percentiles.
+
+    Returns
+    -------
+    pandas.DataFrame
+        a table containing summary statistics.
+    """
     # If not provided, guess suffixes from column names (last string after '_')
     import re
     import pandas as pd
@@ -111,6 +134,8 @@ def make_summary_table(table: List["pandas.DataFrame"],
                         suffixes.append(new_entry)
             if len(suffixes) == 0:
                 print('Could not infer suffixes from column names. Please provide a list of suffixes identifying different channels')
+    if isinstance(table, pandas.DataFrame):
+        table = [table]
 
     if 'count' in statistics_list:
         counts = True
@@ -160,71 +185,4 @@ def make_summary_table(table: List["pandas.DataFrame"],
     # Flatten summary statistics table
     summary_table.columns = [' '.join(col).strip()
                         for col in summary_table.columns.values]
-    return summary_table
-
-def make_summary_table_old(table: "pandas.DataFrame",
-                      suffixes=None,
-                      statistics_list = ['count',]) -> "pandas.DataFrame":
-    # If not provided, guess suffixes from column names (last string after '_')
-    import re
-    import pandas as pd
-    if suffixes is None:
-        suffixes = []
-        pattern = 'label*(_\w+)$' # get everything after '_' that starts with 'label'
-        for name in table.columns:
-            matches = re.match(pattern, name)
-            if matches is not None:
-                new_entry = matches.group(1)
-                if new_entry not in suffixes:
-                    suffixes.append(new_entry)
-        if len(suffixes) == 0:
-            print('Could not infer suffixes from column names. Please provide a list of suffixes identifying different channels')
-            return
-    grouped = table.groupby('label' + suffixes[0])
-    probe_columns = [prop for prop in table.columns
-                     if not prop.endswith(suffixes[0])]
-    probe_measurement_columns = [name for name in probe_columns
-                     if not name.startswith('label')]
-    summary_table = grouped[probe_measurement_columns].describe().reset_index()
-    
-    # Mark counts to be added later in a single column (otherwise counts are
-    # added for every property, which is redundant)
-    if 'count' in statistics_list:
-        counts = True
-        statistics_list.remove('count')
-    else:
-        counts = False
-        
-    # Filter by selected statistics
-    selected_columns = [('label' + suffixes[0], '')]
-    for stat in statistics_list:
-        for column in summary_table.columns:
-
-            column_stat = column[-1]
-            if stat == column_stat:
-                selected_columns.append(column)
-    summary_table = summary_table.loc[:,selected_columns]
-    print('\nsummary_table = ', summary_table)
-    # Add counts
-    if counts:
-        for suf in suffixes[1:]:
-            # counts [label + suf] elements grouped by label_reference
-            print('\n\ntable = ', table, '\n\n\n')
-            print('counts = ', table.groupby('label' + suffixes[0]).count())
-            counts_column = table.groupby('label' + suffixes[0]).count()['label' + suf].fillna(0)
-            print(suf, statistics_list)
-            # if only 'counts' was asked, append to table
-            if len(statistics_list)==0:
-                summary_table['counts' + suf] = counts_column
-            # otherwise, insert 'counts' at column just before each suffix features
-            else:
-                for i, column in enumerate(summary_table.columns):
-                    if (column[0].endswith(suf)):
-                        summary_table.insert(i, 'counts' + suf, counts_column)
-                        break
-    print('\nsummary_table2 = ', summary_table)
-    # Flatten summary statistics table
-    summary_table.columns = [' '.join(col).strip()
-                     for col in summary_table.columns.values]
-    print('\nsummary_table3 = ', summary_table)
     return summary_table

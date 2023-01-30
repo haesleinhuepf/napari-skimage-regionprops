@@ -26,3 +26,5 @@ viewer.add_labels(multichannel_labels[1])
 widget = napari_regionprops_map_channels_table()
 
 viewer.window.add_dock_widget(widget)
+
+a=1

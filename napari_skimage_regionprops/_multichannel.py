@@ -238,7 +238,6 @@ def napari_regionprops_map_channels_table(
                         if np.array_equal(layer.data, labels):
                             suffixes.append('_' + layer.name)
         suffixes.insert(0, reference_suffix)
-        print(suffixes)
     # Ensures proper iterable inputs
     else:
         if not isinstance(label_images_to_measure, list):
@@ -339,7 +338,9 @@ def link_two_label_images(label_image_reference : napari.types.LabelsData,
     Returns
     -------
     pandas.DataFrame
-        _description_
+        a table with two columns: 'label_reference' and 'label_target'.
+        Each row expresses that target label is associated with the
+        corresponding reference label.
     """
     import numpy as np
     import pandas as pd
@@ -404,19 +405,22 @@ def link_two_label_images(label_image_reference : napari.types.LabelsData,
                              )
     ).astype(int)
     # rename column
-    table_linking_labels.rename(columns={'highest_overlap': 'label_reference'},
-                       inplace=True)
-    table_linking_labels = table_linking_labels[['label_reference', 'label']]
-    
+    table_linking_labels.rename(columns={
+        'highest_overlap': 'label_reference',
+        'label': 'label_target'
+        },
+        inplace=True)
+    # Re-order columns
+    table_linking_labels = table_linking_labels[['label_reference', 'label_target']]
     # Add eventual missing reference labels to table (they belong to background)
     bg_labels_list = []
     for i in np.unique(label_image_reference)[1:].tolist():
         if i not in table_linking_labels['label_reference'].values:
             bg_labels_list.append([i, 0])
     bg_labels = pd.DataFrame(bg_labels_list,
-                             columns=['label_reference', 'label'])
+                             columns=['label_reference', 'label_target'])
     table_linking_labels = pd.concat([table_linking_labels, bg_labels], axis=0) \
-        .sort_values(by=['label_reference', 'label']).reset_index(drop=True)
+        .sort_values(by=['label_reference', 'label_target']).reset_index(drop=True)
 
     return table_linking_labels
 
@@ -518,7 +522,7 @@ def measure_labels_in_labels(label_image_reference : napari.types.LabelsData,
                               moments : bool = False,
                               intersection_over_target_area: float = 0.5,
                               suffixes : List[str] = None,
-                              napari_viewer : Viewer = None) -> "pandas.DataFrame":
+                              napari_viewer : Viewer = None) -> List["pandas.DataFrame"]:
     """
     Measure label images features and associates them.
 
@@ -567,8 +571,8 @@ def measure_labels_in_labels(label_image_reference : napari.types.LabelsData,
 
     Returns
     -------
-    pandas.DataFrame
-        A table containing labels and corresponding measured features.
+    List[pandas.DataFrame]
+        A list of tables containing labels and corresponding measured features.
         Each row associates reference label features to target label features.
     """
     ## Get reference properties
@@ -598,13 +602,13 @@ def measure_labels_in_labels(label_image_reference : napari.types.LabelsData,
             )
         list_table_labels_to_measure_properties.append(labels_to_measure_properties)
     
-    # Merge tables
-    table = merge_measurements_to_reference(
+    # Merge each table with target label properties to table with reference label properties
+    table_list = merge_measurements_to_reference(
         table_reference_labels_properties=reference_labels_properties,
         table_linking_labels=list_table_linking_labels,
         table_labels_to_measure_properties=list_table_labels_to_measure_properties,
         suffixes=suffixes)
-    return table
+    return table_list
 
 def measure_labels_in_labels_with_intensity(
         label_image_reference : napari.types.LabelsData,
@@ -616,7 +620,7 @@ def measure_labels_in_labels_with_intensity(
         moments : bool = False,
         intersection_over_target_area: float = 0.5,
         suffixes : List[str] = None,
-        napari_viewer : Viewer = None) -> "pandas.DataFrame":
+        napari_viewer : Viewer = None) -> List["pandas.DataFrame"]:
     """
     Measure label images features, including intensity, and associates them.
 
@@ -672,8 +676,8 @@ def measure_labels_in_labels_with_intensity(
 
     Returns
     -------
-    pandas.DataFrame
-        A table containing labels and corresponding measured features.
+    List[pandas.DataFrame]
+        A list of tables containing labels and corresponding measured features.
         Each row associates reference label features to target label features.
     """
     ## Get reference properties
@@ -719,10 +723,10 @@ def measure_labels_in_labels_with_intensity(
             )
         list_table_labels_to_measure_properties.append(labels_to_measure_properties)
     
-    # Merge tables
-    table = merge_measurements_to_reference(
+    # Merge each table with target label properties to table with reference label properties
+    table_list = merge_measurements_to_reference(
         table_reference_labels_properties=reference_labels_properties,
         table_linking_labels=list_table_linking_labels,
         table_labels_to_measure_properties=list_table_labels_to_measure_properties,
         suffixes=suffixes)
-    return table
+    return table_list
