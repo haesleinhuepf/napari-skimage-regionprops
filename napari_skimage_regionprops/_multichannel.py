@@ -8,6 +8,7 @@ from napari_tools_menu import register_dock_widget
 from ._regionprops import regionprops_table
 from ._process_tables import merge_measurements_to_reference
 from ._process_tables import make_summary_table
+import warnings
 
 
 def make_element_wise_dict(list_of_keys, list_of_values):
@@ -33,25 +34,31 @@ def make_element_wise_dict(list_of_keys, list_of_values):
 def _connect_events(widget):
     def toggle_intensity_widgets(event):
         widget.intensity_image_reference.visible = event
-        # If multichannel is True when anebling intensity, then enable
+        # If things_inside_things is True when anebling intensity, then enable
         # intensity image inputs
-        if (event == True) & (widget.multichannel.value == True):
+        if (event == True) & (widget.things_inside_things.value == True):
             widget.intensity_images_to_measure.visible = True
         else:
             widget.intensity_images_to_measure.visible = False
 
-    def toggle_multichannel_widgets(event):
+    def toggle_things_inside_things_widgets(event):
         widget.label_images_to_measure.visible = event
         widget.intersection_over_target_area.visible = event
-        widget.select_summary_statistics.visible = event
+        widget.configure_summary_statistics.visible = event
         if (event == True) & (widget.intensity.value == True):
             widget.intensity_images_to_measure.visible = True
         else:
             widget.intensity_images_to_measure.visible = False
+        if event == True:
+            if widget.configure_summary_statistics.value == True:
+                toggle_summary_statistics_widgets(True)
+        else:
+            widget.configure_summary_statistics.value = False
+            toggle_summary_statistics_widgets(False)
 
     def toggle_summary_statistics_widgets(event):
         widget.counts.visible = event
-        widget.mean.visible = event
+        widget.average.visible = event
         widget.std.visible = event
         widget.minimum.visible = event
         widget.percentile_25.visible = event
@@ -60,19 +67,19 @@ def _connect_events(widget):
         widget.maximum.visible = event
 
     widget.intensity.changed.connect(toggle_intensity_widgets)
-    widget.multichannel.changed.connect(toggle_multichannel_widgets)
-    widget.select_summary_statistics.changed.connect(
+    widget.things_inside_things.changed.connect(toggle_things_inside_things_widgets)
+    widget.configure_summary_statistics.changed.connect(
         toggle_summary_statistics_widgets
         )
 
     # Intial visibility states
     widget.intensity_image_reference.visible = False
     widget.intensity_images_to_measure.visible = False
-    widget.label_images_to_measure.visible = False
-    widget.select_summary_statistics.visible = False
-    widget.intersection_over_target_area.visible = False
+    widget.label_images_to_measure.visible = True
+    widget.configure_summary_statistics.visible = True
+    widget.intersection_over_target_area.visible = True
     widget.counts.visible = False
-    widget.mean.visible = False
+    widget.average.visible = False
     widget.std.visible = False
     widget.minimum.visible = False
     widget.percentile_25.visible = False
@@ -118,7 +125,7 @@ widgets_layout_settings = {
 
 
 @register_dock_widget(
-    menu="Measurement > Regionprops map multichannel (scikit-image, nsr)")
+    menu="Measurement > Regionprops measure things inside things (scikit-image, nsr)")
 # Need magic factory to make hidding and showing functionality available
 @magic_factory(widget_init=_connect_events,
                layout='vertical',
@@ -141,16 +148,16 @@ def napari_regionprops_map_channels_table(
         label_images_to_measure: List[napari.types.LabelsData],
         intensity_images_to_measure: List[napari.types.ImageData],
         intensity: bool = False,
-        multichannel: bool = False,
+        things_inside_things: bool = True,
         size: bool = True,
         perimeter: bool = False,
         shape: bool = False,
         position: bool = False,
         moments: bool = False,
         intersection_over_target_area: float = 0.5,
-        select_summary_statistics: bool = False,
-        counts: bool = True,
-        mean: bool = False,
+        configure_summary_statistics: bool = False,
+        counts: bool = False,
+        average: bool = True,
         std: bool = False,
         minimum: bool = False,
         percentile_25: bool = False,
@@ -182,55 +189,55 @@ def napari_regionprops_map_channels_table(
     intensity : bool
         a flag indicating that intensity features should be measured. If
         `True`, `intensity_image_reference` must be given.
-    multichannel : bool
-        a flag indicating that multichannel analysis should be performed,
+    things_inside_things : bool
+        a flag indicating that things_inside_things analysis should be performed,
         relating labels from `label_image_reference` to
         `label_images_to_measure`. If `True`, `label_images_to_measure`
         must be provided.
     size : bool
-        a flag indicating to measure size features.
+        a flag indicating to measure size features. By default True.
     perimeter :  bool
-        a flag indicating to measure perimeter features.
+        a flag indicating to measure perimeter features. By default False.
     shape : bool
-        a flag indicating to measure shape features.
+        a flag indicating to measure shape features. By default False.
     position : bool
-        a flag indicating to measure position features.
+        a flag indicating to measure position features. By default False.
     moments : bool
-        a flag indicating to measure moments features.
+        a flag indicating to measure moments features. By default False.
     intersection_over_target_area : float
         a ratio of areas that indicates whether an object is considered
         'inside' another. It is the intersection area divided by the target
         object area. It goes from 0 to 1. 0 indicates object always belongs to
         background. 1 indicates object must be completely inside another in the
-        reference labels.
-    select_summary_statistics : bool
+        reference labels. By default 0.5.
+    configure_summary_statistics : bool
         a flag to make summary statistics visible in the GUI.
     counts :  bool
         a flag indicating to calculate how many objects are 'inside' each
-        reference labeled object.
-    mean : bool
-        a flag indicating to calculate the mean of the objects features
-        'inside' each reference labeled object.
+        reference labeled object. By default False.
+    average : bool
+        a flag indicating to calculate the average of the objects features
+        'inside' each reference labeled object. By default True.
     std : bool
         a flag indicating to calculate the standard deviation of the objects
-        features 'inside' each reference labeled object.
+        features 'inside' each reference labeled object. By default False.
     minimum : bool
         a flag indicating to calculate the minimum of the objects features
-        'inside' each reference labeled object.
+        'inside' each reference labeled object. By default False.
     percentile_25 : bool
         a flag indicating to calculate the 25% percentile of the objects
-        features 'inside' each reference labeled object.
+        features 'inside' each reference labeled object. By default False.
     median : bool
         a flag indicating to calculate the median of the objects features
-        'inside' each reference labeled object.
+        'inside' each reference labeled object. By default False.
     percentile_75 : bool
         a flag indicating to calculate the 75% percentile of the objects
-        features 'inside' each reference labeled object.
+        features 'inside' each reference labeled object. By default False.
     maximum : bool
         a flag indicating to calculate the maximum of the objects features
-        'inside' each reference labeled object.
+        'inside' each reference labeled object. By default False.
     napari_viewer : napari.Viewer
-        a handle to an instance of the napari Viewer.
+        a handle to an instance of the napari Viewer. By default None.
 
     Returns
     -------
@@ -242,7 +249,7 @@ def napari_regionprops_map_channels_table(
     statistics_list = []
     if counts:
         statistics_list += ['count']
-    if mean:
+    if average:
         statistics_list += ['mean']
     if std:
         statistics_list += ['std']
@@ -276,9 +283,15 @@ def napari_regionprops_map_channels_table(
             label_images_to_measure = [label_images_to_measure]
         if not isinstance(intensity_images_to_measure, list):
             intensity_images_to_measure = [intensity_images_to_measure]
+        # in case function is used without viewer and suffixes are missing
+        if len(suffixes) == 0:
+            n_leading_zeros = len(label_images_to_measure) // 10
+            suffixes = ['_reference'] + ['_' + str(i+1).zfill(
+                1+n_leading_zeros)
+                for i in range(len(label_images_to_measure))]
 
     # Single image measurements
-    if multichannel == False:
+    if things_inside_things == False:
         # Without intensity measurements
         if intensity == False:
             table = measure_labels(
@@ -294,42 +307,61 @@ def napari_regionprops_map_channels_table(
                 size=size, perimeter=perimeter,
                 shape=shape, position=position,
                 moments=moments)
+
     # More than one label image measurements
     else:
-        if len(suffixes) == 0:
-            n_leading_zeros = len(label_images_to_measure) // 10
-            suffixes = ['_reference'] + ['_' + str(i+1).zfill(
-                1+n_leading_zeros)
-                for i in range(len(label_images_to_measure))]
-        # Without intensity measurements
-        if intensity == False:
-            table = measure_labels_in_labels(
+        # If no summary statistics or no features, call regionprops to
+        # return table with only labels
+        if ((len(statistics_list) == 0)) or (not any(
+            [intensity, size, perimeter, shape, position, moments])):
+            table = measure_labels(
+                label_image_reference=label_image_reference,
+                size=size, perimeter=perimeter,
+                shape=shape, position=position,
+                moments=moments)
+        else:
+            # Check if user provided 'label_images_to_measure'
+            if len(label_images_to_measure) == 0:
+                warnings.warn(('Error! With \'things inside things\' enabled,'
+                ' at least one \'Label Images(s) to Measure\' is necessary!'))
+                return
+            
+            # Without intensity measurements
+            if intensity == False:
+                table = measure_labels_in_labels(
+                    label_image_reference=label_image_reference,
+                    labels_to_measure=label_images_to_measure,
+                    size=size,
+                    perimeter=perimeter,
+                    shape=shape,
+                    position=position,
+                    moments=moments,
+                    intersection_over_target_area=intersection_over_target_area,
+                    suffixes=suffixes)
+
+            # Or with intensity measurements
+            else:
+                # Check if user provided 'intensity_images_to_measure'
+                if len(intensity_images_to_measure) == 0:
+                    warnings.warn(('Error! With \'things inside things\' and \'intensity\''
+                    ' enabled, at least one \'Intensity Images(s) to Measure\' is'
+                     'necessary!'))
+                    return
+                table = measure_labels_in_labels_with_intensity(
                 label_image_reference=label_image_reference,
                 labels_to_measure=label_images_to_measure,
-                size=size,
-                perimeter=perimeter,
-                shape=shape,
-                position=position,
+                intensity_image_reference=intensity_image_reference,
+                intensity_image_of_labels_to_measure=intensity_images_to_measure,
+                size=size, perimeter=perimeter,
+                shape=shape, position=position,
                 moments=moments,
                 intersection_over_target_area=intersection_over_target_area,
                 suffixes=suffixes)
-        # Or with intensity measurements
-        else:
-            table = measure_labels_in_labels_with_intensity(
-              label_image_reference=label_image_reference,
-              labels_to_measure=label_images_to_measure,
-              intensity_image_reference=intensity_image_reference,
-              intensity_image_of_labels_to_measure=intensity_images_to_measure,
-              size=size, perimeter=perimeter,
-              shape=shape, position=position,
-              moments=moments,
-              intersection_over_target_area=intersection_over_target_area,
-              suffixes=suffixes)
-        # Compute summary statistics instead of individual relationships
-        # This guarantees no repeated numbers in the 'label' column
-        table = make_summary_table(table,
-                                   suffixes=suffixes,
-                                   statistics_list=statistics_list)
+            # Compute summary statistics instead of individual relationships
+            # This guarantees no repeated numbers in the 'label' column
+            table = make_summary_table(table,
+                                    suffixes=suffixes,
+                                    statistics_list=statistics_list)
     # Rename first column to just 'label' (to be compatible with other plugins)
     table.rename(columns={"label" + suffixes[0]: "label"}, inplace=True)
     if napari_viewer is not None:
@@ -340,7 +372,7 @@ def napari_regionprops_map_channels_table(
         # Append table to properties of reference layer
         reference_labels_layer.properties = table
         # Display table (which also adds it to features)
-        add_table(reference_labels_layer, napari_viewer)
+        add_table(reference_labels_layer, napari_viewer, tabify = True)
 
     return table
 

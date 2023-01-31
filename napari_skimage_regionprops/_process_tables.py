@@ -104,6 +104,12 @@ def merge_measurements_to_reference(
     return output_table_list
 
 
+def count_non_zeros(df):
+    import numpy as np
+    import pandas as pd
+    return pd.DataFrame(data=np.count_nonzero(df, axis=0)[np.newaxis, :], columns=df.columns)
+
+
 def make_summary_table(table: List["pandas.DataFrame"],
                        suffixes=None,
                        statistics_list=['count',]) -> "pandas.DataFrame":
@@ -169,22 +175,28 @@ def make_summary_table(table: List["pandas.DataFrame"],
                                      if not name.startswith('label')]
         summary_tab = grouped[probe_measurement_columns]\
             .describe().reset_index()
-
+        
         # Filter by selected statistics
         selected_columns = [('label' + suffixes[0], '')]
         for stat in statistics_list:
             for column in summary_tab.columns:
-
                 column_stat = column[-1]
                 if stat == column_stat:
                     selected_columns.append(column)
         summary_tab = summary_tab.loc[:, selected_columns]
-        print(tab)
-        print(tab['label' + suf])
+        # print(summary_tab.columns)
+        summary_tab = summary_tab.rename(columns={'mean': 'average'}, level=1)
+        # summary_tab.rename(columns={'gdp':'log(gdp)'}, inplace=True)
+
+        # for column in summary_tab.columns:
+        #     if column[-1] == 'mean':
+        #         column[-1] = 'average'
+
+        # print(summary_tab.columns)
         if counts:
             # counts [label + suf] elements grouped by label_reference
-            counts_column = tab.astype(bool).groupby('label' + suffixes[0]).sum()[
-                'label' + suf].fillna(0).values
+            counts_column = tab.groupby('label' + suffixes[0]).apply(
+                count_non_zeros)['label' + suf].fillna(0).values
             # if only 'counts' was asked, append to table
             if len(statistics_list) == 0:
                 summary_tab['counts' + suf] = counts_column
@@ -195,9 +207,7 @@ def make_summary_table(table: List["pandas.DataFrame"],
                     if (column[0].endswith(suf)):
                         summary_tab.insert(i, 'counts' + suf, counts_column)
                         break
-
         summary_table_list.append(summary_tab)
-
     # Join summary tables
     summary_table = summary_table_list[0]
     for summary_tab in summary_table_list[1:]:

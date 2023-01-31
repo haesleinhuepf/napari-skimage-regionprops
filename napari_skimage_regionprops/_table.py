@@ -205,7 +205,7 @@ class TableWidget(QWidget):
 
 
 @register_function(menu="Measurement > Show table (nsr)")
-def add_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableWidget:
+def add_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer, tabify: bool = False) -> TableWidget:
     """
     Add a table to a viewer and return the table widget. The table will show the `properties` of the given layer.
     """
@@ -213,7 +213,7 @@ def add_table(labels_layer: napari.layers.Layer, viewer:napari.Viewer) -> TableW
     if dock_widget is None:
         dock_widget = TableWidget(labels_layer, viewer)
         # add widget to napari
-        viewer.window.add_dock_widget(dock_widget, area='right', name="Properties of " + labels_layer.name)
+        viewer.window.add_dock_widget(dock_widget, area='right', name="Properties of " + labels_layer.name, tabify = tabify)
     else:
         dock_widget.set_content(labels_layer.properties)
         if not dock_widget.parent().isVisible():

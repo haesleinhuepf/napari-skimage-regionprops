@@ -391,7 +391,7 @@ def test_shape_descriptors():
 
 def test_napari_regionprops_map_2channels_2D(make_napari_viewer):
     import numpy as np
-    from napari_skimage_regionprops import napari_regionprops_map_channels_table
+    from napari_skimage_regionprops import regionprops_measure_things_inside_things
     
     viewer = make_napari_viewer()
     
@@ -415,7 +415,7 @@ def test_napari_regionprops_map_2channels_2D(make_napari_viewer):
     viewer.add_labels(ref_labels)
     viewer.add_labels(target_labels)
 
-    widget = napari_regionprops_map_channels_table()
+    widget = regionprops_measure_things_inside_things()
     regionprops_map_channels_table = widget._function
     # Measure everything we can
     table = regionprops_map_channels_table(
@@ -424,7 +424,7 @@ def test_napari_regionprops_map_2channels_2D(make_napari_viewer):
         [target_labels],
         [multichannel_image[..., 1]],
         intensity = True,
-        multichannel = True,
+        things_inside_things = True,
         size = True,
         perimeter = True,
         shape = True,
@@ -453,7 +453,7 @@ def test_napari_regionprops_map_2channels_2D(make_napari_viewer):
 
 def test_napari_regionprops_map_3channels_2D(make_napari_viewer):
     import numpy as np
-    from napari_skimage_regionprops import napari_regionprops_map_channels_table
+    from napari_skimage_regionprops import regionprops_measure_things_inside_things
     
     viewer = make_napari_viewer()
     
@@ -476,13 +476,12 @@ def test_napari_regionprops_map_3channels_2D(make_napari_viewer):
     target_labels_B = np.array([[1, 1, 0, 0],
                                 [1, 0, 0, 0],
                                 [0, 0, 0, 0]])
-                    
 
     viewer.add_labels(ref_labels)
     viewer.add_labels(target_labels)
     viewer.add_labels(target_labels_B)
 
-    widget = napari_regionprops_map_channels_table()
+    widget = regionprops_measure_things_inside_things()
     regionprops_map_channels_table = widget._function
 
     # Measure everything we can
@@ -492,7 +491,7 @@ def test_napari_regionprops_map_3channels_2D(make_napari_viewer):
         [target_labels, target_labels_B],
         [multichannel_image[..., 1], multichannel_image[..., 2]],
         intensity = True,
-        multichannel = True,
+        things_inside_things = True,
         size = True,
         perimeter = True,
         shape = True,
@@ -525,7 +524,7 @@ def test_napari_regionprops_map_3channels_2D(make_napari_viewer):
 
 def test_napari_regionprops_map_2channels_3D(make_napari_viewer):
     import numpy as np
-    from napari_skimage_regionprops import napari_regionprops_map_channels_table
+    from napari_skimage_regionprops import regionprops_measure_things_inside_things
     
     viewer = make_napari_viewer()
     
@@ -541,8 +540,8 @@ def test_napari_regionprops_map_2channels_3D(make_napari_viewer):
     # Create 2 label images (a reference and a target)
     ref_labels_2D = np.array(
         [[0, 1, 1],
-        [0, 1, 1],
-        [0, 0, 1]])
+         [0, 1, 1],
+         [0, 0, 1]])
     ref_labels_3D = np.stack(
         [ref_labels_2D,
         ref_labels_2D,
@@ -550,20 +549,18 @@ def test_napari_regionprops_map_2channels_3D(make_napari_viewer):
     )
     target_labels_2D = np.array(
         [[2, 2, 2],
-        [1, 2, 0],
-        [1, 1, 0]])
+         [1, 2, 0],
+         [1, 1, 0]])
     target_labels_3D = np.stack(
         [target_labels_2D,
         target_labels_2D,
         target_labels_2D]
     )
 
-                
-
     viewer.add_labels(ref_labels_3D)
     viewer.add_labels(target_labels_3D)
 
-    widget = napari_regionprops_map_channels_table()
+    widget = regionprops_measure_things_inside_things()
     regionprops_map_channels_table = widget._function
 
     # Measure everything we can
@@ -573,7 +570,7 @@ def test_napari_regionprops_map_2channels_3D(make_napari_viewer):
         [target_labels_3D],
         [multichannel_image[1]],
         intensity = True,
-        multichannel = True,
+        things_inside_things = True,
         size = True,
         perimeter = True,
         shape = True,
