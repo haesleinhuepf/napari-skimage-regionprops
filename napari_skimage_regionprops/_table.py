@@ -2,7 +2,7 @@ try:
     import napari
     from qtpy.QtCore import QTimer
     from qtpy.QtWidgets import QTableWidget, QHBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
-except ModuleNotFoundError as e:
+except Exception as e:
     import warnings
     warnings.warn(str(e))
     class QWidget:

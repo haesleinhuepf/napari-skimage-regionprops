@@ -3,7 +3,7 @@ from napari_tools_menu import register_function
 
 try:
     import napari
-except ModuleNotFoundError as e:
+except Exception as e:
     import warnings
     warnings.warn(str(e))
 

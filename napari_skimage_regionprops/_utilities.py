@@ -6,7 +6,7 @@ try:
     from napari.layers import Image, Labels, Layer
     from typing_extensions import Annotated
     LayerInput = Annotated[Layer, {"label": "Image"}]
-except ModuleNotFoundError as e:
+except Exception as e:
     import warnings
     warnings.warn(str(e))
     LayerInput = None
