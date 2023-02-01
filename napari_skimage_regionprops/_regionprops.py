@@ -111,7 +111,6 @@ def regionprops_table(image: "napari.types.ImageData", labels: "napari.types.Lab
     # weighted_moments_central
     # weighted_moments_hu
     # weighted_moments_normalized
-    print('PROPERTIES = ', properties)
     # quantitative analysis using scikit-image's regionprops
     from skimage.measure import regionprops_table as sk_regionprops_table
     table = sk_regionprops_table(np.asarray(labels).astype(int), intensity_image=np.asarray(image),
