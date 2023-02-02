@@ -3,6 +3,6 @@ numpy
 scikit-image
 napari
 pandas
-napari-tools-menu>=0.1.18
+napari-tools-menu>=0.1.19
 napari-workflows
 imageio!=2.22.1
