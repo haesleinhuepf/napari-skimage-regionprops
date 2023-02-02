@@ -8,7 +8,7 @@ from ._utilities import isimage
 
 try:
     import napari
-except ModuleNotFoundError as e:
+except Exception as e:
     import warnings
     warnings.warn(str(e))
 

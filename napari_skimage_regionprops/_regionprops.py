@@ -4,7 +4,7 @@ import numpy as np
 import pandas
 try:
     import napari
-except ModuleNotFoundError as e:
+except Exception as e:
     warnings.warn(str(e))
 
 from napari_tools_menu import register_function
