@@ -91,7 +91,9 @@ class TableWidget(QWidget):
                                                         face_color=selected_column,
                                                         face_colormap="jet",
                                                         size=self._layer.size,
-                                                        name=selected_column + " in " + self._layer.name
+                                                        name=selected_column + " in " + self._layer.name,
+                                                        affine=self._layer.affine,
+                                                        scale=self._layer.scale
                                                         )
                     new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
 
