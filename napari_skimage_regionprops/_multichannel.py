@@ -125,7 +125,7 @@ widgets_layout_settings = {
 
 
 @register_dock_widget(
-    menu="Measurement tables > Regionprops Measure Things Inside Things (scikit-image, nsr)")
+    menu="Measurement tables > Measure things inside ihings (scikit-image, nsr)")
 # Need magic factory to make hidding and showing functionality available
 @magic_factory(widget_init=_connect_events,
                layout='vertical',
