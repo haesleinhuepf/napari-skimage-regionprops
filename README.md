@@ -53,6 +53,15 @@ which can be found in the [napari time slicer](https://www.napari-hub.org/plugin
 Last but not least, make sure that in case of time-lapse data the label image has labels that are subsquently labeled per timepoint.
 E.g. a dataset where label 5 is missing at timepoint 4 may be visualized incorrectly.
 
+## Usage: multichannel or multi-label data
+
+If you want to relate objects from one channels to objects from another channel, you can use `Tools > Measurement tables > Regionprops Measure Things Inside Things (scikit-image, nsr)`. This plugin module allos you to answer questions like:
+  - how many objects I have inside other objects?
+  - what is the average intensity of the objects inside other objects?
+ For that, you need at least two labeled images in napari. You can relate objects along with their features. If intensity features are also wanted, then you also need to provide two intensity images. Below, there is a small example on how to use it. Also, take a look at [this example notebook](https://github.com/haesleinhuepf/napari-skimage-regionprops/blob/master/demo/measure_things_inside_things_plugin.ipynb).
+ 
+ ![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/things_inside_things_demo.gif)
+
 ## Usage, programmatically
 
 You can also control the tables programmatically. See this 
