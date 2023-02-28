@@ -80,7 +80,8 @@ class TableWidget(QWidget):
                     new_layer = self._viewer.add_image( visualize_measurement_on_labels(self._layer, selected_column, self._viewer) ,
                                                         name=selected_column + " in " + self._layer.name ,
                                                         affine=self._layer.affine ,
-                                                        scale=self._layer.scale
+                                                        scale=self._layer.scale,
+                                                        rotate=self._layer.rotate
                                                         )
                     new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
                     new_layer.colormap = "jet"
