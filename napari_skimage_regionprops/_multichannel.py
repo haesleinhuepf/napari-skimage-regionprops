@@ -272,11 +272,18 @@ def regionprops_measure_things_inside_things(
                 if np.array_equal(layer.data, label_image_reference):
                     reference_labels_layer = layer
                     reference_suffix = '_' + layer.name
-                else:
-                    for labels in label_images_to_measure:
-                        if np.array_equal(layer.data, labels):
-                            suffixes.append('_' + layer.name)
         suffixes.insert(0, reference_suffix)
+        for i, labels in enumerate(label_images_to_measure):
+            for layer in napari_viewer.layers:
+                if (type(layer) is napari.layers.Labels)\
+                and (np.array_equal(layer.data, labels)):
+                    new_suffix = '_' + layer.name
+                    if new_suffix not in suffixes:
+                        suffixes.append(new_suffix)
+                    else:
+                        # labels_to_measure layer is a duplicated reference
+                        n_leading_zeros = len(label_images_to_measure) // 10
+                        suffixes.append(new_suffix + str(i+1).zfill(1+n_leading_zeros))
     # Ensures proper iterable inputs
     else:
         if not isinstance(label_images_to_measure, list):
