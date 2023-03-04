@@ -146,7 +146,7 @@ def regionprops_measure_things_inside_things(
         label_images_to_measure: List["napari.types.LabelsData"],
         intensity_images_to_measure: List["napari.types.ImageData"],
         intensity: bool = False,
-        things_inside_things: bool = True,
+        things_inside_things: bool = False,
         size: bool = True,
         perimeter: bool = False,
         shape: bool = False,
