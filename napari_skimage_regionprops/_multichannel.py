@@ -1,14 +1,12 @@
-import napari
 import pandas
 import numpy as np
-from napari import Viewer
 from typing import List
 from magicgui import magic_factory
 from napari_tools_menu import register_dock_widget
 from ._regionprops import regionprops_table
 from ._process_tables import merge_measurements_to_reference
 from ._process_tables import make_summary_table
-from napari.utils import notifications
+
 
 
 def make_element_wise_dict(list_of_keys, list_of_values):
@@ -143,10 +141,10 @@ widgets_layout_settings = {
                percentile_25=widgets_layout_settings['percentile_25'],
                percentile_75=widgets_layout_settings['percentile_75'])
 def regionprops_measure_things_inside_things(
-        label_image_reference: napari.types.LabelsData,
-        intensity_image_reference: napari.types.ImageData,
-        label_images_to_measure: List[napari.types.LabelsData],
-        intensity_images_to_measure: List[napari.types.ImageData],
+        label_image_reference: "napari.types.LabelsData",
+        intensity_image_reference: "napari.types.ImageData",
+        label_images_to_measure: List["napari.types.LabelsData"],
+        intensity_images_to_measure: List["napari.types.ImageData"],
         intensity: bool = False,
         things_inside_things: bool = True,
         size: bool = True,
@@ -164,7 +162,7 @@ def regionprops_measure_things_inside_things(
         median: bool = False,
         percentile_75: bool = False,
         maximum: bool = False,
-        napari_viewer: Viewer = None) -> "pandas.DataFrame":
+        napari_viewer: "napari.Viewer" = None) -> "pandas.DataFrame":
     """
     Add a table widget to a napari viewer with mapped summary statistics.
 
@@ -246,6 +244,9 @@ def regionprops_measure_things_inside_things(
         label image and the other columns contain summary statistics of objects
         in other channels.
     """
+    from napari.utils import notifications
+    import napari
+
     statistics_list = []
     if counts:
         statistics_list += ['count']
@@ -268,15 +269,14 @@ def regionprops_measure_things_inside_things(
     # Stores reference labels layer and suffixes from layer names
     if napari_viewer is not None:
         for layer in napari_viewer.layers:
-            if type(layer) is napari.layers.Labels:
+            if isinstance(layer, napari.layers.Labels):
                 if np.array_equal(layer.data, label_image_reference):
                     reference_labels_layer = layer
                     reference_suffix = '_' + layer.name
         suffixes.insert(0, reference_suffix)
         for i, labels in enumerate(label_images_to_measure):
             for layer in napari_viewer.layers:
-                if (type(layer) is napari.layers.Labels)\
-                and (np.array_equal(layer.data, labels)):
+                if isinstance(layer, napari.layers.Labels) and np.array_equal(layer.data, labels):
                     new_suffix = '_' + layer.name
                     if new_suffix not in suffixes:
                         suffixes.append(new_suffix)
@@ -319,8 +319,7 @@ def regionprops_measure_things_inside_things(
     else:
         # If no summary statistics or no features, call regionprops to
         # return table with only labels
-        if ((len(statistics_list) == 0)) or (not any(
-            [intensity, size, perimeter, shape, position, moments])):
+        if len(statistics_list) == 0 or not any([intensity, size, perimeter, shape, position, moments]):
             table = measure_labels(
                 label_image_reference=label_image_reference,
                 size=size, perimeter=perimeter,
@@ -384,8 +383,8 @@ def regionprops_measure_things_inside_things(
     return table
 
 
-def link_two_label_images(label_image_reference: napari.types.LabelsData,
-                          labels_to_measure: napari.types.LabelsData,
+def link_two_label_images(label_image_reference: "napari.types.LabelsData",
+                          labels_to_measure: "napari.types.LabelsData",
                           intersection_over_target_area: float = 0.5
                           ) -> "pandas.DataFrame":
     """
@@ -505,13 +504,13 @@ def link_two_label_images(label_image_reference: napari.types.LabelsData,
     return table_linking_labels
 
 
-def measure_labels(label_image_reference: napari.types.LabelsData,
+def measure_labels(label_image_reference: "napari.types.LabelsData",
                    size: bool = True,
                    perimeter: bool = False,
                    shape: bool = False,
                    position: bool = False,
                    moments: bool = False,
-                   napari_viewer: Viewer = None) -> "pandas.DataFrame":
+                   napari_viewer: "napari.Viewer" = None) -> "pandas.DataFrame":
     """
     Measure a label image features.
 
@@ -557,14 +556,14 @@ def measure_labels(label_image_reference: napari.types.LabelsData,
 
 
 def measure_labels_with_intensity(
-        label_image_reference: napari.types.LabelsData,
-        intensity_image_reference: napari.types.ImageData,
+        label_image_reference: "napari.types.LabelsData",
+        intensity_image_reference: "napari.types.ImageData",
         size: bool = True,
         perimeter: bool = False,
         shape: bool = False,
         position: bool = False,
         moments: bool = False,
-        napari_viewer: Viewer = None) -> "pandas.DataFrame":
+        napari_viewer: "napari.Viewer" = None) -> "pandas.DataFrame":
     """
     Measure a label image features, including intensity features.
 
@@ -610,8 +609,8 @@ def measure_labels_with_intensity(
     return table
 
 
-def measure_labels_in_labels(label_image_reference: napari.types.LabelsData,
-                             labels_to_measure: List[napari.types.LabelsData],
+def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
+                             labels_to_measure: List["napari.types.LabelsData"],
                              size: bool = True,
                              perimeter: bool = False,
                              shape: bool = False,
@@ -619,7 +618,7 @@ def measure_labels_in_labels(label_image_reference: napari.types.LabelsData,
                              moments: bool = False,
                              intersection_over_target_area: float = 0.5,
                              suffixes: List[str] = None,
-                             napari_viewer: Viewer = None
+                             napari_viewer: "napari.Viewer" = None
                              ) -> List["pandas.DataFrame"]:
     """
     Measure label images features and associates them.
@@ -720,10 +719,10 @@ def measure_labels_in_labels(label_image_reference: napari.types.LabelsData,
 
 
 def measure_labels_in_labels_with_intensity(
-        label_image_reference: napari.types.LabelsData,
-        labels_to_measure: List[napari.types.LabelsData],
-        intensity_image_reference: napari.types.ImageData,
-        intensity_image_of_labels_to_measure: List[napari.types.ImageData] = None,
+        label_image_reference: "napari.types.LabelsData",
+        labels_to_measure: List["napari.types.LabelsData"],
+        intensity_image_reference: "napari.types.ImageData",
+        intensity_image_of_labels_to_measure: List["napari.types.ImageData"] = None,
         size: bool = True,
         perimeter: bool = False,
         shape: bool = False,
@@ -731,7 +730,7 @@ def measure_labels_in_labels_with_intensity(
         moments: bool = False,
         intersection_over_target_area: float = 0.5,
         suffixes: List[str] = None,
-        napari_viewer: Viewer = None) -> List["pandas.DataFrame"]:
+        napari_viewer: "napari.Viewer" = None) -> List["pandas.DataFrame"]:
     """
     Measure label images features, including intensity, and associates them.
 
