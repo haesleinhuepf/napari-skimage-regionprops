@@ -178,7 +178,7 @@ def make_summary_table(table: List["pandas.DataFrame"],
     for tab, suf in zip(table, suffixes[1:]):
         grouped = tab.groupby('label' + suffixes[0])
         probe_columns = [prop for prop in tab.columns
-                         if not prop.endswith(suffixes[0])]
+                         if prop.endswith(suf)]
         probe_measurement_columns = [name for name in probe_columns
                                      if not name.startswith('label')]
         summary_tab = grouped[probe_measurement_columns]\

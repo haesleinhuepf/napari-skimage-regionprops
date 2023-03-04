@@ -8,7 +8,7 @@ from napari_tools_menu import register_dock_widget
 from ._regionprops import regionprops_table
 from ._process_tables import merge_measurements_to_reference
 from ._process_tables import make_summary_table
-import warnings
+from napari.utils import notifications
 
 
 def make_element_wise_dict(list_of_keys, list_of_values):
@@ -125,7 +125,7 @@ widgets_layout_settings = {
 
 
 @register_dock_widget(
-    menu="Measurement tables > Measure things inside ihings (scikit-image, nsr)")
+    menu="Measurement tables > Measure things inside things (scikit-image, nsr)")
 # Need magic factory to make hidding and showing functionality available
 @magic_factory(widget_init=_connect_events,
                layout='vertical',
@@ -272,11 +272,18 @@ def regionprops_measure_things_inside_things(
                 if np.array_equal(layer.data, label_image_reference):
                     reference_labels_layer = layer
                     reference_suffix = '_' + layer.name
-                else:
-                    for labels in label_images_to_measure:
-                        if np.array_equal(layer.data, labels):
-                            suffixes.append('_' + layer.name)
         suffixes.insert(0, reference_suffix)
+        for i, labels in enumerate(label_images_to_measure):
+            for layer in napari_viewer.layers:
+                if (type(layer) is napari.layers.Labels)\
+                and (np.array_equal(layer.data, labels)):
+                    new_suffix = '_' + layer.name
+                    if new_suffix not in suffixes:
+                        suffixes.append(new_suffix)
+                    else:
+                        # labels_to_measure layer is a duplicated reference
+                        n_leading_zeros = len(label_images_to_measure) // 10
+                        suffixes.append(new_suffix + str(i+1).zfill(1+n_leading_zeros))
     # Ensures proper iterable inputs
     else:
         if not isinstance(label_images_to_measure, list):
@@ -322,7 +329,7 @@ def regionprops_measure_things_inside_things(
         else:
             # Check if user provided 'label_images_to_measure'
             if len(label_images_to_measure) == 0:
-                warnings.warn(('Error! With \'things inside things\' enabled,'
+                notifications.show_warning(('Error! With \'things inside things\' enabled,'
                 ' at least one \'Label Images(s) to Measure\' is necessary!'))
                 return
             
@@ -343,7 +350,7 @@ def regionprops_measure_things_inside_things(
             else:
                 # Check if user provided 'intensity_images_to_measure'
                 if len(intensity_images_to_measure) == 0:
-                    warnings.warn(('Error! With \'things inside things\' and \'intensity\''
+                    notifications.show_warning(('Error! With \'things inside things\' and \'intensity\''
                     ' enabled, at least one \'Intensity Images(s) to Measure\' is'
                      'necessary!'))
                     return
@@ -467,8 +474,8 @@ def link_two_label_images(label_image_reference: napari.types.LabelsData,
 
     # Create table that links labels from scanning channel to reference channel
     table_linking_labels = pd.DataFrame(
-        sk_regionprops_table(label_image=labels_to_measure,
-                             intensity_image=label_image_reference,
+        sk_regionprops_table(label_image=np.asarray(labels_to_measure).astype(int),
+                             intensity_image=np.asarray(label_image_reference).astype(int),
                              properties=['label', ],
                              extra_properties=[highest_overlap]
                              )
