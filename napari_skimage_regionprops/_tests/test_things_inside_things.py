@@ -22,8 +22,8 @@ def test_napari_regionprops_map_2channels_2D(make_napari_viewer):
                               [0, 2, 2, 0],
                               [2, 2, 2, 1]])
 
-    viewer.add_labels(ref_labels)
-    viewer.add_labels(target_labels)
+    viewer.add_labels(ref_labels, name='ref_labels')
+    viewer.add_labels(target_labels, name='target_labels')
 
     widget = regionprops_measure_things_inside_things()
     regionprops_measure_things_inside_things_function = widget._function
@@ -87,9 +87,9 @@ def test_napari_regionprops_map_3channels_2D(make_napari_viewer):
                                 [1, 0, 0, 0],
                                 [0, 0, 0, 0]])
 
-    viewer.add_labels(ref_labels)
-    viewer.add_labels(target_labels)
-    viewer.add_labels(target_labels_B)
+    viewer.add_labels(ref_labels, name='ref_labels')
+    viewer.add_labels(target_labels, name='target_labels')
+    viewer.add_labels(target_labels_B, name='target_labels_B')
 
     widget = regionprops_measure_things_inside_things()
     regionprops_measure_things_inside_things_function = widget._function
@@ -167,8 +167,8 @@ def test_napari_regionprops_map_2channels_3D(make_napari_viewer):
         target_labels_2D]
     )
 
-    viewer.add_labels(ref_labels_3D)
-    viewer.add_labels(target_labels_3D)
+    viewer.add_labels(ref_labels_3D, name='ref_labels_3D')
+    viewer.add_labels(target_labels_3D, name='target_labels_3D')
 
     widget = regionprops_measure_things_inside_things()
     regionprops_measure_things_inside_things_function = widget._function
