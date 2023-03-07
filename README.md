@@ -55,7 +55,7 @@ E.g. a dataset where label 5 is missing at timepoint 4 may be visualized incorre
 
 ## Usage: multichannel or multi-label data
 
-If you want to relate objects from one channels to objects from another channel, you can use `Tools > Measurement tables > Measure things inside things (scikit-image, nsr)`. 
+If you want to relate objects from one channels to objects from another channel, you can use `Tools > Measurement tables > Object Features/Properties (scikit-image, nsr)`. 
 This plugin module allos you to answer questions like:
   - how many objects I have inside other objects?
   - what is the average intensity of the objects inside other objects?
