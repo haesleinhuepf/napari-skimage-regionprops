@@ -26,7 +26,7 @@ use_scm = {"write_to": "napari_skimage_regionprops/_version.py"}
 
 setup(
     name='napari-skimage-regionprops',
-    author='Robert Haase',
+    author='Marcelo Zoccoler, Robert Haase',
     author_email='robert.haase@tu-dresden.de',
     license='BSD-3',
     url='https://github.com/haesleinhuepf/napari-skimage-regionprops',
@@ -36,7 +36,7 @@ setup(
     packages=find_packages(),
     python_requires='>=3.8',
     install_requires=requirements,
-    version='0.8.1',
+    version='0.8.2',
     #use_scm_version=use_scm,
     setup_requires=['setuptools_scm'],
     classifiers=[
