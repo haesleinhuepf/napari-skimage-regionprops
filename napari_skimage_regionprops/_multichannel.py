@@ -126,7 +126,7 @@ widgets_layout_settings = {
 
 
 @register_dock_widget(
-    menu="Measurement tables > Objects Features/Properties (scikit-image, nsr)")
+    menu="Measurement tables > Object Features/Properties (scikit-image, nsr)")
 # Need magic factory to make hidding and showing functionality available
 @magic_factory(widget_init=_connect_events,
                layout='vertical',
