@@ -201,7 +201,6 @@ def test_napari_regionprops_map_2channels_3D(make_napari_viewer):
     
     assert table.shape == (2, 1549)
     # Check counts
-    print('COLUMNS = ', table.columns)
     assert np.array_equal(table['counts_target_labels_3D'].values, np.array([1., 1.]))
     # Check local_centroid-2 average
     assert np.allclose(table['local_centroid-2_target_labels_3D average'].values, np.array([0.333333, 1.]))
