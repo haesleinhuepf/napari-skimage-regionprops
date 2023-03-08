@@ -59,7 +59,7 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
         return stack
     else:
         measurements = np.asarray(table[column]).tolist()
-        if 0 not in table['label'].values:
+        if (0 not in table['label'].values) and (0 in labels):
             measurements.insert(0, 0)
         return relabel(labels, measurements)
 
