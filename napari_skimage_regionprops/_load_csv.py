@@ -7,14 +7,13 @@ except Exception as e:
     import warnings
     warnings.warn(str(e))
 
-
 @register_function(menu="Measurement > Load from CSV (nsr)")
 def load_csv(csv_filename:"magicgui.types.PathLike", labels_layer: "napari.layers.Labels", viewer: "napari.Viewer" = None):
     """Save contents of a CSV file into a given layer's properties"""
     import pandas as pd
 
     # preload to get find datatypes:
-    preload_reg_probs = pd.read_csv("results.csv", nrows=2)
+    preload_reg_probs = pd.read_csv(csv_filename, nrows=2)
     dtypes={}
     for c_i, c in enumerate(preload_reg_probs.columns):
         if preload_reg_probs.dtypes[c_i] == np.float64:

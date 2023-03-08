@@ -29,6 +29,7 @@ class TableWidget(QWidget):
 
         self._view = QTableWidget()
         self._view.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.limit_visible_rows = 1000
         if hasattr(layer, "properties"):
             self.set_content(layer.properties)
         else:
@@ -191,8 +192,13 @@ class TableWidget(QWidget):
         self._layer.properties = table
 
         self._view.clear()
+
+        max_rows = len(next(iter(table.values())))
+        if self.limit_visible_rows:
+            max_rows = np.min([self.limit_visible_rows, max_rows])
+
         try:
-            self._view.setRowCount(len(next(iter(table.values()))))
+            self._view.setRowCount(max_rows)
             self._view.setColumnCount(len(table))
         except StopIteration:
             pass
@@ -201,6 +207,8 @@ class TableWidget(QWidget):
 
             self._view.setHorizontalHeaderItem(i, QTableWidgetItem(column))
             for j, value in enumerate(table.get(column)):
+                if j>max_rows:
+                    break
                 self._view.setItem(j, i, QTableWidgetItem(str(value)))
 
     def get_content(self) -> dict:
