@@ -1,10 +1,11 @@
 import numpy as np
 from napari_tools_menu import register_function
 import numpy
+import warnings
 
 @register_function(menu="Measurement maps > Measurements on labels (nsr)")
 @register_function(menu="Visualization > Measurements on labels (nsr)")
-def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:str = "label", viewer:"napari.Viewer" = None) -> "napari.types.ImageData":
+def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:str = "label", use_map_array=False, viewer:"napari.Viewer" = None) -> "napari.types.ImageData":
     """
     Visualize a quantiative measurement on a label image by replacing the label IDs with specified table colum values.
     """
@@ -59,21 +60,27 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
         return stack
     else:
         measurements = np.asarray(table[column]).tolist()
-        if (0 not in table['label'].values) and (0 in labels):
-            measurements.insert(0, 0)
-        return relabel(labels, measurements)
+        if use_map_array:
+            # Ensure background measurements are present in measurements
+            if (0 not in table['label'].values) and (0 in labels):
+                measurements.insert(0, 0)
+        return relabel(labels, measurements, use_map_array)
 
-def relabel_timepoint(labels, table, column, frame_column, timepoint):
+def relabel_timepoint(labels, table, column, frame_column, timepoint, use_map_array=False):
     labels_one_timepoint = labels[timepoint]
     if frame_column is not None:
         table_one_timepoint = table[table[frame_column] == timepoint]
     else:
         table_one_timepoint = table
     measurements = np.asarray(table_one_timepoint[column]).tolist()
-    return relabel(labels_one_timepoint, measurements)
+    return relabel(labels_one_timepoint, measurements, use_map_array)
 
-def relabel(image, measurements):
+def relabel(image, measurements, use_map_array=False):
     import importlib
+    if use_map_array:
+        return relabel_skimage(image, measurements)
+    else:
+        warnings.warn('Warning! `use_map_array == False` (default now) will be deprecated in future versions! To adhere to future behavior and stop this warning, set `use_map_array` to `True`.')
     loader = importlib.find_loader("pyclesperanto_prototype")
     found = loader is not None
 
@@ -84,7 +91,11 @@ def relabel(image, measurements):
 
 def relabel_cle(image, measurements):
     import pyclesperanto_prototype as cle
-    return cle.pull(cle.replace_intensities(image, np.array(measurements)))
+    return cle.pull(cle.replace_intensities(image, np.insert(np.array(measurements), 0, 0)))
 
 def relabel_numpy(image, measurements):
-    return numpy.take(np.array(measurements), image)
+    return numpy.take(np.insert(np.array(measurements), 0, 0), image)
+
+def relabel_skimage(image, measurements):
+    from skimage.util import map_array
+    return map_array(image, np.unique(image), measurements)
