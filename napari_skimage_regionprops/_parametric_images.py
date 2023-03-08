@@ -59,6 +59,8 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
         return stack
     else:
         measurements = np.asarray(table[column]).tolist()
+        if 0 not in table['label']:
+            measurements.insert(0, 0)
         return relabel(labels, measurements)
 
 def relabel_timepoint(labels, table, column, frame_column, timepoint):
@@ -82,7 +84,7 @@ def relabel(image, measurements):
 
 def relabel_cle(image, measurements):
     import pyclesperanto_prototype as cle
-    return cle.pull(cle.replace_intensities(image, np.insert(np.array(measurements), 0, 0)))
+    return cle.pull(cle.replace_intensities(image, np.array(measurements)))
 
 def relabel_numpy(image, measurements):
-    return numpy.take(np.insert(np.array(measurements), 0, 0), image)
+    return numpy.take(np.array(measurements), image)
