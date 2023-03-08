@@ -98,4 +98,4 @@ def relabel_numpy(image, measurements):
 
 def relabel_skimage(image, measurements):
     from skimage.util import map_array
-    return map_array(image, np.unique(image), measurements)
+    return map_array(image, np.unique(image), np.array(measurements))
