@@ -29,10 +29,10 @@ class TableWidget(QWidget):
 
         self._view = QTableWidget()
         self._view.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.limit_visible_rows = None
+        self.limit_visible_rows = 0
         if "limit_number_rows" in layer.metadata:
             if layer.metadata["limit_number_rows"]:
-                self.limit_visible_rows = 1000
+                self.limit_visible_rows = layer.metadata["limit_number_rows"]
         if hasattr(layer, "properties"):
             self.set_content(layer.properties)
         else:
@@ -197,7 +197,7 @@ class TableWidget(QWidget):
         self._view.clear()
 
         max_rows = len(next(iter(table.values())))
-        if self.limit_visible_rows:
+        if self.limit_visible_rows>0:
             max_rows = np.min([self.limit_visible_rows, max_rows])
 
         try:
