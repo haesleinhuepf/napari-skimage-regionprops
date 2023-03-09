@@ -33,13 +33,12 @@ def load_csv(csv_filename:"magicgui.types.PathLike", labels_layer: napari.layers
         label_column = pd.DataFrame(
             {"label": np.array(range(1, (len(reg_props) + 1)))}
         )
-        edited_reg_props = pd.concat([label_column, reg_props], axis=1)
+        reg_props = pd.concat([label_column, reg_props], axis=1)
 
     if hasattr(labels_layer, "properties"):
         labels_layer.properties = reg_props
     if hasattr(labels_layer, "features"):
         labels_layer.features = reg_props
-
     labels_layer.metadata["limit_number_rows"] = limit_number_visible_rows
 
     if viewer is not None:
