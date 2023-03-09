@@ -82,9 +82,11 @@ def test_timelapse_analyse_all_timepoints_with_viewer(make_napari_viewer):
 
     assert df.shape[0] == 8
 
-    from napari_skimage_regionprops import visualize_measurement_on_labels
+    from napari_skimage_regionprops import visualize_measurement_on_labels, visualize_measurement_on_labels_with_map_array
 
     visualize_measurement_on_labels(labels_layer, column="mean_intensity", viewer=viewer)
+
+    visualize_measurement_on_labels_with_map_array(labels_layer, column="mean_intensity", viewer=viewer)
 
 def test_frame_variable_in_timelapse(make_napari_viewer):
     viewer = make_napari_viewer()

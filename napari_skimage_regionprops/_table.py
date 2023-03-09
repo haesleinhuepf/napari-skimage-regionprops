@@ -76,8 +76,8 @@ class TableWidget(QWidget):
             print("Selected column", selected_column)
             if selected_column is not None:
                 if isinstance(self._layer, napari.layers.Labels):
-                    from ._parametric_images import visualize_measurement_on_labels
-                    new_layer = self._viewer.add_image( visualize_measurement_on_labels(self._layer, selected_column, self._viewer) ,
+                    from ._parametric_images import visualize_measurement_on_labels, visualize_measurement_on_labels_with_map_array
+                    new_layer = self._viewer.add_image( visualize_measurement_on_labels_with_map_array(self._layer, selected_column, self._viewer) ,
                                                         name=selected_column + " in " + self._layer.name ,
                                                         affine=self._layer.affine ,
                                                         scale=self._layer.scale,

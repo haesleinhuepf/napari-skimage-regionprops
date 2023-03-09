@@ -54,8 +54,10 @@ def test_regionprops(make_napari_viewer):
     assert np.array_equal([9, 6, 6, 1], area_measurements)
 
     # generate a parametric image
-    from napari_skimage_regionprops import visualize_measurement_on_labels
+    from napari_skimage_regionprops import visualize_measurement_on_labels, visualize_measurement_on_labels_with_map_array
     result = visualize_measurement_on_labels(labels_layer, "area", viewer)
+    assert result is not None
+    result = visualize_measurement_on_labels_with_map_array(labels_layer, "area", viewer)
     assert result is not None
 
     reference = np.asarray([
