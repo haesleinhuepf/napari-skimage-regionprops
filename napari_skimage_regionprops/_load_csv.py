@@ -8,7 +8,7 @@ except Exception as e:
     warnings.warn(str(e))
 
 @register_function(menu="Measurement > Load from CSV (nsr)")
-def load_csv(csv_filename:"magicgui.types.PathLike", labels_layer: napari.layers.Labels, limit_number_visible_rows: int =None, viewer: "napari.Viewer" = None):
+def load_csv(csv_filename:"magicgui.types.PathLike", labels_layer: "napari.layers.Labels", limit_number_visible_rows: int =None, viewer: "napari.Viewer" = None):
     """Save contents of a CSV file into a given layer's properties"""
     import pandas as pd
 
