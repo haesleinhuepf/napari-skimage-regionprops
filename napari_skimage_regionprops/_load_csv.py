@@ -22,23 +22,23 @@ def load_csv(csv_filename:"magicgui.types.PathLike", labels_layer: napari.layers
             dtypes[c] = preload_reg_probs.dtypes[c_i]
 
 
-    # load region properties from csv file
+    #load region properties from csv file
     reg_props = pd.read_csv(csv_filename, dtype=dtypes)
     try:
-        edited_reg_props = reg_props.drop(["Unnamed: 0"], axis=1)
+        reg_props = reg_props.drop(["Unnamed: 0"], axis=1)
     except KeyError:
-        edited_reg_props = reg_props
+        reg_props = reg_props
 
-    if "label" not in edited_reg_props.keys().tolist():
+    if "label" not in reg_props.keys().tolist():
         label_column = pd.DataFrame(
-            {"label": np.array(range(1, (len(edited_reg_props) + 1)))}
+            {"label": np.array(range(1, (len(reg_props) + 1)))}
         )
-        edited_reg_props = pd.concat([label_column, edited_reg_props], axis=1)
+        edited_reg_props = pd.concat([label_column, reg_props], axis=1)
 
     if hasattr(labels_layer, "properties"):
-        labels_layer.properties = edited_reg_props
+        labels_layer.properties = reg_props
     if hasattr(labels_layer, "features"):
-        labels_layer.features = edited_reg_props
+        labels_layer.features = reg_props
 
     labels_layer.metadata["limit_number_rows"] = limit_number_visible_rows
 
