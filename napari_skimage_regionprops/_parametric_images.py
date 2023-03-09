@@ -2,11 +2,10 @@ import numpy as np
 from napari_tools_menu import register_function
 import numpy
 from deprecated import deprecated
-from napari.utils import notifications
 
-@register_function(menu="Measurement maps > Measurements on labels with map array (nsr)")
-@register_function(menu="Visualization > Measurements on labels with map array (nsr)")
-def visualize_measurement_on_labels_with_map_array(labels_layer:"napari.layers.Labels", column:str = "label", viewer:"napari.Viewer" = None) -> "napari.types.ImageData":
+@register_function(menu="Measurement maps > Measurements on labels (nsr)")
+@register_function(menu="Visualization > Measurements on labels (nsr)")
+def map_measurements_on_labels(labels_layer:"napari.layers.Labels", column:str = "label", viewer:"napari.Viewer" = None) -> "napari.types.ImageData":
     """
     Visualize a quantiative measurement on a label image by replacing the label IDs with specified table colum values.
     """
@@ -81,9 +80,7 @@ def relabel_skimage(image, measurements):
     from skimage.util import map_array
     return map_array(image, np.unique(image), np.array(measurements))
 
-@deprecated("This function is deprecated! To adhere to future behavior and suppress this warning, use 'visualize_measurement_on_labels_with_map_array' instead")
-@register_function(menu="Measurement maps > Measurements on labels (nsr)")
-@register_function(menu="Visualization > Measurements on labels (nsr)")
+@deprecated("This function is deprecated! To adhere to future behavior and suppress this warning, use 'map_measurements_on_labels' instead")
 def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:str = "label", viewer:"napari.Viewer" = None) -> "napari.types.ImageData":
     """
     Visualize a quantiative measurement on a label image by replacing the label IDs with specified table colum values.
@@ -92,8 +89,9 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
     import dask.array as da
     from dask import delayed
     from functools import partial
+    from napari.utils import notifications
     if viewer is not None:
-        notifications.show_warning("This function is deprecated! To adhere to future behavior and suppress this warning, use 'Measurements on labels with map array (nsr)' instead")
+        notifications.show_warning("This function is deprecated! To adhere to future behavior and suppress this warning, use 'map_measurements_on_labels' instead (from 'Tools -> Measurement maps -> Measurements on labels (nsr)'.")
     labels = labels_layer.data
     table = pd.DataFrame(labels_layer.properties)
 
