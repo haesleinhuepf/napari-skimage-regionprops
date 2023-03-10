@@ -1,7 +1,7 @@
 try:
     import napari
-    from qtpy.QtCore import QTimer
-    from qtpy.QtWidgets import QTableWidget, QHBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog
+    from qtpy.QtCore import QTimer, Qt
+    from qtpy.QtWidgets import QTableWidget, QHBoxLayout, QTableWidgetItem, QWidget, QGridLayout, QPushButton, QFileDialog, QLabel, QVBoxLayout
 except Exception as e:
     import warnings
     warnings.warn(str(e))
@@ -29,10 +29,10 @@ class TableWidget(QWidget):
 
         self._view = QTableWidget()
         self._view.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.limit_visible_rows = 0
+        self.limit_visible_rows = None
+        self.data_not_shown_label = None
         if "limit_number_rows" in layer.metadata:
-            if layer.metadata["limit_number_rows"]:
-                self.limit_visible_rows = layer.metadata["limit_number_rows"]
+            self.limit_visible_rows = layer.metadata["limit_number_rows"]
         if hasattr(layer, "properties"):
             self.set_content(layer.properties)
         else:
@@ -49,13 +49,24 @@ class TableWidget(QWidget):
         save_button.clicked.connect(self._save_clicked)
 
         self.setWindowTitle("Properties of " + layer.name)
-        self.setLayout(QGridLayout())
+
         action_widget = QWidget()
         action_widget.setLayout(QHBoxLayout())
-        action_widget.layout().addWidget(copy_button)
-        action_widget.layout().addWidget(save_button)
+        action_widget.layout().addWidget(copy_button, alignment=Qt.AlignTop)
+        action_widget.layout().addWidget(save_button, alignment=Qt.AlignTop)
+        self.setLayout(QVBoxLayout())
         self.layout().addWidget(action_widget)
-        self.layout().addWidget(self._view)
+
+        if self.data_not_shown_label:
+            notshown_widget = QWidget()
+            notshown_widget.setLayout(QHBoxLayout())
+            notshown_widget.layout().addWidget(self.data_not_shown_label, alignment=Qt.AlignTop)
+            self.layout().addWidget(notshown_widget)
+            self.layout().setSizeConstraint(QVBoxLayout.SetMinimumSize)
+
+        else:
+
+            self.layout().addWidget(self._view)
         action_widget.layout().setSpacing(3)
         action_widget.layout().setContentsMargins(0, 0, 0, 0)
 
@@ -197,7 +208,7 @@ class TableWidget(QWidget):
         self._view.clear()
 
         max_rows = len(next(iter(table.values())))
-        if self.limit_visible_rows>0:
+        if self.limit_visible_rows is not None:
             max_rows = np.min([self.limit_visible_rows, max_rows])
 
         try:
@@ -206,13 +217,16 @@ class TableWidget(QWidget):
         except StopIteration:
             pass
 
-        for i, column in enumerate(table.keys()):
+        if max_rows == 0:
+            self.data_not_shown_label = QLabel("Data not shown")
+        else:
+            for i, column in enumerate(table.keys()):
 
-            self._view.setHorizontalHeaderItem(i, QTableWidgetItem(column))
-            for j, value in enumerate(table.get(column)):
-                if j>max_rows:
-                    break
-                self._view.setItem(j, i, QTableWidgetItem(str(value)))
+                self._view.setHorizontalHeaderItem(i, QTableWidgetItem(column))
+                for j, value in enumerate(table.get(column)):
+                    if j>max_rows:
+                        break
+                    self._view.setItem(j, i, QTableWidgetItem(str(value)))
 
     def get_content(self) -> dict:
         """
