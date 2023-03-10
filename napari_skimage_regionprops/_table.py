@@ -156,7 +156,6 @@ class TableWidget(QWidget):
         """
         Overwrites the content of the table with the content of a given dictionary.
         """
-        print("Set content???")
         if table is None:
             table = {}
 
@@ -207,19 +206,18 @@ class TableWidget(QWidget):
         except StopIteration:
             pass
 
+        for i, column in enumerate(table.keys()):
+            self._view.setHorizontalHeaderItem(i, QTableWidgetItem(column))
+            for j, value in enumerate(table.get(column)):
+                if j>max_rows:
+                    break
+                self._view.setItem(j, i, QTableWidgetItem(str(value)))
+
         if max_rows == 0:
             self._view.setRowCount(1)
-            for i, column in enumerate(table.keys()):
-                self._view.setHorizontalHeaderItem(i, QTableWidgetItem(column))
             self._view.setItem(0, 0, QTableWidgetItem(str("Data not shown")))
             self._view.setSpan(0, 0, 1, len(table.keys())+1)
-        else:
-            for i, column in enumerate(table.keys()):
-                self._view.setHorizontalHeaderItem(i, QTableWidgetItem(column))
-                for j, value in enumerate(table.get(column)):
-                    if j>max_rows:
-                        break
-                    self._view.setItem(j, i, QTableWidgetItem(str(value)))
+
 
     def get_content(self) -> dict:
         """
@@ -270,12 +268,10 @@ def add_table(labels_layer: "napari.layers.Layer", viewer: "napari.Viewer", tabi
     """
     dock_widget = get_table(labels_layer, viewer)
     if dock_widget is None:
-        print("HERE")
         dock_widget = TableWidget(labels_layer, viewer)
         # add widget to napari
         viewer.window.add_dock_widget(dock_widget, area='right', name="Properties of " + labels_layer.name, tabify = tabify)
     else:
-        print("HERE2")
         dock_widget.set_content(labels_layer.properties)
         if not dock_widget.parent().isVisible():
             dock_widget.parent().setVisible(True)
