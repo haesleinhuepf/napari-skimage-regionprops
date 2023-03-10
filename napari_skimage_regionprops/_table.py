@@ -30,7 +30,6 @@ class TableWidget(QWidget):
         self._view = QTableWidget()
         self._view.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.limit_visible_rows = None
-        self.data_not_shown_label = None
         if "limit_number_rows" in layer.metadata:
             self.limit_visible_rows = layer.metadata["limit_number_rows"]
         if hasattr(layer, "properties"):
@@ -52,21 +51,11 @@ class TableWidget(QWidget):
 
         action_widget = QWidget()
         action_widget.setLayout(QHBoxLayout())
-        action_widget.layout().addWidget(copy_button, alignment=Qt.AlignTop)
-        action_widget.layout().addWidget(save_button, alignment=Qt.AlignTop)
+        action_widget.layout().addWidget(copy_button)
+        action_widget.layout().addWidget(save_button)
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(action_widget)
-
-        if self.data_not_shown_label:
-            notshown_widget = QWidget()
-            notshown_widget.setLayout(QHBoxLayout())
-            notshown_widget.layout().addWidget(self.data_not_shown_label, alignment=Qt.AlignTop)
-            self.layout().addWidget(notshown_widget)
-            self.layout().setSizeConstraint(QVBoxLayout.SetMinimumSize)
-
-        else:
-
-            self.layout().addWidget(self._view)
+        self.layout().addWidget(self._view)
         action_widget.layout().setSpacing(3)
         action_widget.layout().setContentsMargins(0, 0, 0, 0)
 
@@ -167,6 +156,7 @@ class TableWidget(QWidget):
         """
         Overwrites the content of the table with the content of a given dictionary.
         """
+        print("Set content???")
         if table is None:
             table = {}
 
@@ -218,10 +208,13 @@ class TableWidget(QWidget):
             pass
 
         if max_rows == 0:
-            self.data_not_shown_label = QLabel("Data not shown")
+            self._view.setRowCount(1)
+            for i, column in enumerate(table.keys()):
+                self._view.setHorizontalHeaderItem(i, QTableWidgetItem(column))
+            self._view.setItem(0, 0, QTableWidgetItem(str("Data not shown")))
+            self._view.setSpan(0, 0, 1, len(table.keys())+1)
         else:
             for i, column in enumerate(table.keys()):
-
                 self._view.setHorizontalHeaderItem(i, QTableWidgetItem(column))
                 for j, value in enumerate(table.get(column)):
                     if j>max_rows:
@@ -277,10 +270,12 @@ def add_table(labels_layer: "napari.layers.Layer", viewer: "napari.Viewer", tabi
     """
     dock_widget = get_table(labels_layer, viewer)
     if dock_widget is None:
+        print("HERE")
         dock_widget = TableWidget(labels_layer, viewer)
         # add widget to napari
         viewer.window.add_dock_widget(dock_widget, area='right', name="Properties of " + labels_layer.name, tabify = tabify)
     else:
+        print("HERE2")
         dock_widget.set_content(labels_layer.properties)
         if not dock_widget.parent().isVisible():
             dock_widget.parent().setVisible(True)

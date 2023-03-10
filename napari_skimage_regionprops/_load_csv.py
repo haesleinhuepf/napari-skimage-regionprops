@@ -41,6 +41,8 @@ def load_csv(csv_filename:"magicgui.types.PathLike", labels_layer: "napari.layer
         labels_layer.features = reg_props
     if show_table is False:
         labels_layer.metadata["limit_number_rows"] = 0
+    else:
+        labels_layer.metadata["limit_number_rows"] = 500
 
     if viewer is not None:
         from ._table import add_table
