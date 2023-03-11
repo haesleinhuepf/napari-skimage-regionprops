@@ -69,7 +69,7 @@ def map_measurements_on_labels(labels_layer:"napari.layers.Labels", column:str =
     
 
 
-@deprecated("This function is deprecated! To adhere to future behavior and suppress this warning, use 'map_measurements_on_labels' instead")
+@deprecated("visualize_measurement_on_labels() is deprecated. Use map_measurements_on_labels() instead")
 def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:str = "label", viewer:"napari.Viewer" = None) -> "napari.types.ImageData":
     """
     Visualize a quantiative measurement on a label image by replacing the label IDs with specified table colum values.
