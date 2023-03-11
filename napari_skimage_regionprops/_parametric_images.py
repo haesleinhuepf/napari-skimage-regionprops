@@ -59,13 +59,10 @@ def map_measurements_on_labels(labels_layer:"napari.layers.Labels", column:str =
             axis=0)
         return stack
     else:
-        measurements = np.asarray(table[column]).tolist()
-        
-        # Ensure background measurements are present in measurements
-        # if also present in labels
-        if (0 not in table['label'].values) and (0 in labels):
-            measurements.insert(0, 0)
-        return relabel_skimage(labels, measurements)
+        label_list = np.asarray(table['label']).tolist()
+        measurement_list = np.asarray(table[column]).tolist()
+
+        return relabel_skimage(labels, label_list, measurement_list)
     
 
 
@@ -135,12 +132,14 @@ def relabel_timepoint_with_map_array(labels, table, column, frame_column, timepo
         table_one_timepoint = table[table[frame_column] == timepoint]
     else:
         table_one_timepoint = table
-    measurements = np.asarray(table_one_timepoint[column]).tolist()
-    return relabel_skimage(labels_one_timepoint, measurements)
 
-def relabel_skimage(image, measurements):
+    label_list = np.asarray(table_one_timepoint['label']).tolist()
+    measurement_list = np.asarray(table_one_timepoint[column]).tolist()
+    return relabel_skimage(labels_one_timepoint, label_list, measurement_list)
+
+def relabel_skimage(image, label_list, measurement_list):
     from skimage.util import map_array
-    return map_array(image, np.unique(image), np.array(measurements))
+    return map_array(image, np.asarray(label_list), np.array(measurement_list))
 
 def relabel_timepoint(labels, table, column, frame_column, timepoint):
     labels_one_timepoint = labels[timepoint]
