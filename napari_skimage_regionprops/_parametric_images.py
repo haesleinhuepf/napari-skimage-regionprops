@@ -150,6 +150,7 @@ def relabel_timepoint(labels, table, column, frame_column, timepoint):
     measurements = np.asarray(table_one_timepoint[column]).tolist()
     return relabel(labels_one_timepoint, measurements)
 
+@deprecated("relabel() is deprecated. Use skimage.util.map_array() instead")
 def relabel(image, measurements):
     import importlib
     loader = importlib.find_loader("pyclesperanto_prototype")
@@ -160,9 +161,11 @@ def relabel(image, measurements):
     else:
         return relabel_numpy(image, measurements)
 
+@deprecated("relabel_cle() is deprecated. Use skimage.util.map_array() instead")
 def relabel_cle(image, measurements):
     import pyclesperanto_prototype as cle
     return cle.pull(cle.replace_intensities(image, np.insert(np.array(measurements), 0, 0)))
 
+@deprecated("relabel_numpy() is deprecated. Use skimage.util.map_array() instead")
 def relabel_numpy(image, measurements):
     return numpy.take(np.insert(np.array(measurements), 0, 0), image)
