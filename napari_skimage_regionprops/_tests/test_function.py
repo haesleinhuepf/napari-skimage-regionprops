@@ -54,8 +54,10 @@ def test_regionprops(make_napari_viewer):
     assert np.array_equal([9, 6, 6, 1], area_measurements)
 
     # generate a parametric image
-    from napari_skimage_regionprops import visualize_measurement_on_labels
+    from napari_skimage_regionprops import visualize_measurement_on_labels, map_measurements_on_labels
     result = visualize_measurement_on_labels(labels_layer, "area", viewer)
+    assert result is not None
+    result = map_measurements_on_labels(labels_layer, "area", viewer)
     assert result is not None
 
     reference = np.asarray([
@@ -415,3 +417,147 @@ def test_2d_labels_in_3d_image():
     assert "convex_area" not in table.keys()
     assert "feret_max_diameter" not in table.keys()
     assert "solidity" not in table.keys()
+
+def test_map_measurements_WITHOUT_BG_on_sequential_labels_WITHOUT_BG(make_napari_viewer):
+    import numpy as np
+    from pandas import DataFrame
+    from napari_skimage_regionprops._parametric_images import map_measurements_on_labels
+    
+    measurements = [6, 9, 12, 15]
+    labels = np.array(
+        [[1, 2],
+         [3, 4]]
+         )
+    output = np.array(
+        [[6, 9],
+         [12, 15]]
+    )
+
+    table = DataFrame({
+        'label': np.unique(labels[labels != 0]),
+        'measurements': measurements})
+
+    viewer = make_napari_viewer()
+    labels_layer = viewer.add_labels(labels, features=table)
+    result = map_measurements_on_labels(labels_layer, column='measurements')
+    assert np.array_equal(output, result)
+
+def test_map_measurements_WITHOUT_BG_on_NON_sequential_labels_WITHOUT_BG(make_napari_viewer):
+    import numpy as np
+    from pandas import DataFrame
+    from napari_skimage_regionprops._parametric_images import map_measurements_on_labels
+    
+    measurements = [6, 9, 12, 15]
+    labels = np.array(
+        [[2, 4],
+         [6, 8]]
+         )
+    output = np.array(
+        [[6, 9],
+         [12, 15]]
+    )
+
+    table = DataFrame({
+        'label': np.unique(labels[labels != 0]),
+        'measurements': measurements})
+
+    viewer = make_napari_viewer()
+    labels_layer = viewer.add_labels(labels, features=table)
+    result = map_measurements_on_labels(labels_layer, column='measurements')
+    assert np.array_equal(output, result)
+
+def test_map_measurements_WITHOUT_BG_on_sequential_labels_WITH_BG(make_napari_viewer):
+    import numpy as np
+    from pandas import DataFrame
+    from napari_skimage_regionprops._parametric_images import map_measurements_on_labels
+    
+    measurements = [6, 9, 12]
+    labels = np.array(
+        [[0, 1],
+         [2, 3]]
+         )
+    output = np.array(
+        [[0, 6],
+         [9, 12]]
+    )
+
+    table = DataFrame({
+        'label': np.unique(labels[labels != 0]),
+        'measurements': measurements})
+
+    viewer = make_napari_viewer()
+    labels_layer = viewer.add_labels(labels, features=table)
+    result = map_measurements_on_labels(labels_layer, column='measurements')
+    assert np.array_equal(output, result)
+
+def test_map_measurements_WITHOUT_BG_on_NON_sequential_labels_WITH_BG(make_napari_viewer):
+    import numpy as np
+    from pandas import DataFrame
+    from napari_skimage_regionprops._parametric_images import map_measurements_on_labels
+    
+    measurements = [6, 9, 12]
+    labels = np.array(
+        [[0, 2],
+         [4, 6]]
+         )
+    output = np.array(
+        [[0, 6],
+         [9, 12]]
+    )
+
+    table = DataFrame({
+        'label': np.unique(labels[labels != 0]),
+        'measurements': measurements})
+
+    viewer = make_napari_viewer()
+    labels_layer = viewer.add_labels(labels, features=table)
+    result = map_measurements_on_labels(labels_layer, column='measurements')
+    assert np.array_equal(output, result)
+
+def test_map_measurements_WITH_BG_on_sequential_labels_WITH_BG(make_napari_viewer):
+    import numpy as np
+    from pandas import DataFrame
+    from napari_skimage_regionprops._parametric_images import map_measurements_on_labels
+    
+    measurements = [3, 6, 9, 12]
+    labels = np.array(
+        [[0, 1],
+         [2, 3]]
+         )
+    output = np.array(
+        [[3, 6],
+         [9, 12]]
+    )
+
+    table = DataFrame({
+        'label': np.unique(labels),
+        'measurements': measurements})
+
+    viewer = make_napari_viewer()
+    labels_layer = viewer.add_labels(labels, features=table)
+    result = map_measurements_on_labels(labels_layer, column='measurements')
+    assert np.array_equal(output, result)
+
+def test_map_measurements_WITH_BG_on_NON_sequential_labels_WITH_BG(make_napari_viewer):
+    import numpy as np
+    from pandas import DataFrame
+    from napari_skimage_regionprops._parametric_images import map_measurements_on_labels
+    
+    measurements = [3, 6, 9, 12]
+    labels = np.array(
+        [[0, 2],
+         [4, 6]]
+         )
+    output = np.array(
+        [[3, 6],
+         [9, 12]]
+    )
+
+    table = DataFrame({
+        'label': np.unique(labels),
+        'measurements': measurements})
+
+    viewer = make_napari_viewer()
+    labels_layer = viewer.add_labels(labels, features=table)
+    result = map_measurements_on_labels(labels_layer, column='measurements')
+    assert np.array_equal(output, result)
