@@ -70,7 +70,7 @@ Also, take a look at [this example notebook](https://github.com/haesleinhuepf/na
 
 You can also control the tables programmatically. See this 
 [example notebook](https://github.com/haesleinhuepf/napari-skimage-regionprops/blob/master/demo/tables.ipynb) for details on regionprops and
-[this example notebook](https://github.com/haesleinhuepf/napari-skimage-regionprops/blob/master/demo/measure_points.ipynb) for details on measuring intensity at point coordinates.
+[this example notebook](https://github.com/haesleinhuepf/napari-skimage-regionprops/blob/master/demo/measure_points.ipynb) for details on measuring intensity at point coordinates. For creating parametric map images, see [this notebook](https://github.com/haesleinhuepf/napari-skimage-regionprops/blob/master/demo/map_measurements.ipynb).
 
 
 ## Features
