@@ -67,18 +67,7 @@ def map_measurements_on_labels(labels_layer:"napari.layers.Labels", column:str =
             measurements.insert(0, 0)
         return relabel_skimage(labels, measurements)
     
-def relabel_timepoint_with_map_array(labels, table, column, frame_column, timepoint):
-    labels_one_timepoint = labels[timepoint]
-    if frame_column is not None:
-        table_one_timepoint = table[table[frame_column] == timepoint]
-    else:
-        table_one_timepoint = table
-    measurements = np.asarray(table_one_timepoint[column]).tolist()
-    return relabel_skimage(labels_one_timepoint, measurements)
 
-def relabel_skimage(image, measurements):
-    from skimage.util import map_array
-    return map_array(image, np.unique(image), np.array(measurements))
 
 @deprecated("This function is deprecated! To adhere to future behavior and suppress this warning, use 'map_measurements_on_labels' instead")
 def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:str = "label", viewer:"napari.Viewer" = None) -> "napari.types.ImageData":
@@ -139,6 +128,19 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
     else:
         measurements = np.asarray(table[column]).tolist()
         return relabel(labels, measurements)
+
+def relabel_timepoint_with_map_array(labels, table, column, frame_column, timepoint):
+    labels_one_timepoint = labels[timepoint]
+    if frame_column is not None:
+        table_one_timepoint = table[table[frame_column] == timepoint]
+    else:
+        table_one_timepoint = table
+    measurements = np.asarray(table_one_timepoint[column]).tolist()
+    return relabel_skimage(labels_one_timepoint, measurements)
+
+def relabel_skimage(image, measurements):
+    from skimage.util import map_array
+    return map_array(image, np.unique(image), np.array(measurements))
 
 def relabel_timepoint(labels, table, column, frame_column, timepoint):
     labels_one_timepoint = labels[timepoint]
