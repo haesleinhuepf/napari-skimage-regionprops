@@ -62,7 +62,7 @@ def map_measurements_on_labels(labels_layer:"napari.layers.Labels", column:str =
         label_list = np.asarray(table['label']).tolist()
         measurement_list = np.asarray(table[column]).tolist()
 
-        return relabel_skimage(labels, label_list, measurement_list)
+        return relabel_with_map_array(labels, label_list, measurement_list)
     
 
 
@@ -126,6 +126,7 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
         measurements = np.asarray(table[column]).tolist()
         return relabel(labels, measurements)
 
+
 def relabel_timepoint_with_map_array(labels, table, column, frame_column, timepoint):
     labels_one_timepoint = labels[timepoint]
     if frame_column is not None:
@@ -135,12 +136,21 @@ def relabel_timepoint_with_map_array(labels, table, column, frame_column, timepo
 
     label_list = np.asarray(table_one_timepoint['label']).tolist()
     measurement_list = np.asarray(table_one_timepoint[column]).tolist()
-    return relabel_skimage(labels_one_timepoint, label_list, measurement_list)
+    return relabel_with_map_array(labels_one_timepoint, label_list, measurement_list)
 
-def relabel_skimage(image, label_list, measurement_list):
+def relabel_with_map_array(image, label_list, measurement_list):
+    """
+    Produce parametric map image from a label image, a list of labels and a list of measurements.
+    The two lists must provide labels and corresponding values in the same order.
+
+    See also
+    --------
+    https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.map_array
+    """
     from skimage.util import map_array
     return map_array(image, np.asarray(label_list), np.array(measurement_list))
 
+@deprecated("relabel_timepoint() is deprecated. Use relabel_timepoint_with_map_array() instead")
 def relabel_timepoint(labels, table, column, frame_column, timepoint):
     labels_one_timepoint = labels[timepoint]
     if frame_column is not None:
