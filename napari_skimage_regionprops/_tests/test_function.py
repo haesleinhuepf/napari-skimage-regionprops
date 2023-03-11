@@ -466,6 +466,32 @@ def test_map_measurements_WITHOUT_BG_on_NON_sequential_labels_WITHOUT_BG(make_na
     result = map_measurements_on_labels(labels_layer, column='measurements')
     assert np.array_equal(output, result)
 
+
+def test_map_measurements_WITHOUT_BG_on_NON_sequential_labels_WITHOUT_BG_unsorted(make_napari_viewer):
+    import numpy as np
+    from pandas import DataFrame
+    from napari_skimage_regionprops._parametric_images import map_measurements_on_labels
+
+    measurements = [6, 9, 12, 15]
+    labels = np.array(
+        [[2, 4],
+         [6, 8]]
+    )
+    output = np.array(
+        [[9, 6],
+         [12, 15]]
+    )
+
+    table = DataFrame({
+        'label': [4, 2, 6, 8],
+        'measurements': measurements})
+
+    viewer = make_napari_viewer()
+    labels_layer = viewer.add_labels(labels, features=table)
+    result = map_measurements_on_labels(labels_layer, column='measurements')
+    assert np.array_equal(output, result)
+
+
 def test_map_measurements_WITHOUT_BG_on_sequential_labels_WITH_BG(make_napari_viewer):
     import numpy as np
     from pandas import DataFrame

@@ -59,28 +59,14 @@ def map_measurements_on_labels(labels_layer:"napari.layers.Labels", column:str =
             axis=0)
         return stack
     else:
-        measurements = np.asarray(table[column]).tolist()
-        
-        # Ensure background measurements are present in measurements
-        # if also present in labels
-        if (0 not in table['label'].values) and (0 in labels):
-            measurements.insert(0, 0)
-        return relabel_skimage(labels, measurements)
+        label_list = np.asarray(table['label']).tolist()
+        measurement_list = np.asarray(table[column]).tolist()
+
+        return relabel_with_map_array(labels, label_list, measurement_list)
     
-def relabel_timepoint_with_map_array(labels, table, column, frame_column, timepoint):
-    labels_one_timepoint = labels[timepoint]
-    if frame_column is not None:
-        table_one_timepoint = table[table[frame_column] == timepoint]
-    else:
-        table_one_timepoint = table
-    measurements = np.asarray(table_one_timepoint[column]).tolist()
-    return relabel_skimage(labels_one_timepoint, measurements)
 
-def relabel_skimage(image, measurements):
-    from skimage.util import map_array
-    return map_array(image, np.unique(image), np.array(measurements))
 
-@deprecated("This function is deprecated! To adhere to future behavior and suppress this warning, use 'map_measurements_on_labels' instead")
+@deprecated("visualize_measurement_on_labels() is deprecated. Use map_measurements_on_labels() instead")
 def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:str = "label", viewer:"napari.Viewer" = None) -> "napari.types.ImageData":
     """
     Visualize a quantiative measurement on a label image by replacing the label IDs with specified table colum values.
@@ -140,6 +126,31 @@ def visualize_measurement_on_labels(labels_layer:"napari.layers.Labels", column:
         measurements = np.asarray(table[column]).tolist()
         return relabel(labels, measurements)
 
+
+def relabel_timepoint_with_map_array(labels, table, column, frame_column, timepoint):
+    labels_one_timepoint = labels[timepoint]
+    if frame_column is not None:
+        table_one_timepoint = table[table[frame_column] == timepoint]
+    else:
+        table_one_timepoint = table
+
+    label_list = np.asarray(table_one_timepoint['label']).tolist()
+    measurement_list = np.asarray(table_one_timepoint[column]).tolist()
+    return relabel_with_map_array(labels_one_timepoint, label_list, measurement_list)
+
+def relabel_with_map_array(image, label_list, measurement_list):
+    """
+    Produce parametric map image from a label image, a list of labels and a list of measurements.
+    The two lists must provide labels and corresponding values in the same order.
+
+    See also
+    --------
+    https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.map_array
+    """
+    from skimage.util import map_array
+    return map_array(image, np.asarray(label_list), np.array(measurement_list))
+
+@deprecated("relabel_timepoint() is deprecated. Use relabel_timepoint_with_map_array() instead")
 def relabel_timepoint(labels, table, column, frame_column, timepoint):
     labels_one_timepoint = labels[timepoint]
     if frame_column is not None:
@@ -149,6 +160,7 @@ def relabel_timepoint(labels, table, column, frame_column, timepoint):
     measurements = np.asarray(table_one_timepoint[column]).tolist()
     return relabel(labels_one_timepoint, measurements)
 
+@deprecated("relabel() is deprecated. Use skimage.util.map_array() instead")
 def relabel(image, measurements):
     import importlib
     loader = importlib.find_loader("pyclesperanto_prototype")
@@ -159,9 +171,11 @@ def relabel(image, measurements):
     else:
         return relabel_numpy(image, measurements)
 
+@deprecated("relabel_cle() is deprecated. Use skimage.util.map_array() instead")
 def relabel_cle(image, measurements):
     import pyclesperanto_prototype as cle
     return cle.pull(cle.replace_intensities(image, np.insert(np.array(measurements), 0, 0)))
 
+@deprecated("relabel_numpy() is deprecated. Use skimage.util.map_array() instead")
 def relabel_numpy(image, measurements):
     return numpy.take(np.insert(np.array(measurements), 0, 0), image)
