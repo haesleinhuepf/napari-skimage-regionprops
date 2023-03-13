@@ -32,21 +32,21 @@ def make_element_wise_dict(list_of_keys, list_of_values):
 def _connect_events(widget):
     def toggle_intensity_widgets(event):
         widget.intensity_image_reference.visible = event
-        # If things_inside_things is True when enabling intensity, then enable
+        # If relate_to_other_channels is True when enabling intensity, then enable
         # intensity image inputs
-        if (event == True) & (widget.things_inside_things.value == True):
-            widget.intensity_images_to_measure.visible = True
+        if (event == True) & (widget.relate_to_other_channels.value == True):
+            widget.intensity_images_other_channels.visible = True
         else:
-            widget.intensity_images_to_measure.visible = False
+            widget.intensity_images_other_channels.visible = False
 
-    def toggle_things_inside_things_widgets(event):
-        widget.label_images_to_measure.visible = event
-        widget.intersection_over_target_area.visible = event
+    def toggle_relate_to_other_channels_widgets(event):
+        widget.label_images_other_channels.visible = event
+        widget.intersection_over_other_channel_obj_area.visible = event
         widget.configure_summary_statistics.visible = event
         if (event == True) & (widget.intensity.value == True):
-            widget.intensity_images_to_measure.visible = True
+            widget.intensity_images_other_channels.visible = True
         else:
-            widget.intensity_images_to_measure.visible = False
+            widget.intensity_images_other_channels.visible = False
         if event == True:
             if widget.configure_summary_statistics.value == True:
                 toggle_summary_statistics_widgets(True)
@@ -65,17 +65,17 @@ def _connect_events(widget):
         widget.maximum.visible = event
 
     widget.intensity.changed.connect(toggle_intensity_widgets)
-    widget.things_inside_things.changed.connect(toggle_things_inside_things_widgets)
+    widget.relate_to_other_channels.changed.connect(toggle_relate_to_other_channels_widgets)
     widget.configure_summary_statistics.changed.connect(
         toggle_summary_statistics_widgets
         )
 
     # Intial visibility states
     widget.intensity_image_reference.visible = False
-    widget.intensity_images_to_measure.visible = False
-    widget.label_images_to_measure.visible = False
+    widget.intensity_images_other_channels.visible = False
+    widget.label_images_other_channels.visible = False
     widget.configure_summary_statistics.visible = False
-    widget.intersection_over_target_area.visible = False
+    widget.intersection_over_other_channel_obj_area.visible = False
     widget.counts.visible = False
     widget.average.visible = False
     widget.std.visible = False
@@ -93,16 +93,16 @@ widgets_layout_settings = {
     'intensity_image_reference': {
         'label': 'Intensity Image Reference'
     },
-    'label_images_to_measure': {
+    'label_images_other_channels': {
         'label': 'Label Image(s) from other Channel(s)'
     },
-    'intensity_images_to_measure': {
+    'intensity_images_other_channels': {
         'label': 'Intensity Image(s) from other Channel(s)'
     },
-    'things_inside_things': {
+    'relate_to_other_channels': {
         'label': 'relate to other channel(s)'
     },
-    'intersection_over_target_area': {
+    'intersection_over_other_channel_obj_area': {
         'widget_type': 'FloatSlider',
         'min': 0,
         'max': 1,
@@ -134,30 +134,30 @@ widgets_layout_settings = {
                    'label_image_reference'],
                intensity_image_reference=widgets_layout_settings[
                    'intensity_image_reference'],
-               label_images_to_measure=widgets_layout_settings[
-                   'label_images_to_measure'],
-               intensity_images_to_measure=widgets_layout_settings[
-                   'intensity_images_to_measure'],
-               intersection_over_target_area=widgets_layout_settings[
-                   'intersection_over_target_area'],
-               things_inside_things=widgets_layout_settings[
-                   'things_inside_things'],
+               label_images_other_channels=widgets_layout_settings[
+                   'label_images_other_channels'],
+               intensity_images_other_channels=widgets_layout_settings[
+                   'intensity_images_other_channels'],
+               intersection_over_other_channel_obj_area=widgets_layout_settings[
+                   'intersection_over_other_channel_obj_area'],
+               relate_to_other_channels=widgets_layout_settings[
+                   'relate_to_other_channels'],
                std=widgets_layout_settings['std'],
                percentile_25=widgets_layout_settings['percentile_25'],
                percentile_75=widgets_layout_settings['percentile_75'])
-def regionprops_measure_things_inside_things(
+def regionprops_measure_relationship_to_other_channels(
         label_image_reference: "napari.types.LabelsData",
         intensity_image_reference: "napari.types.ImageData",
-        label_images_to_measure: List["napari.types.LabelsData"],
-        intensity_images_to_measure: List["napari.types.ImageData"],
+        label_images_other_channels: List["napari.types.LabelsData"],
+        intensity_images_other_channels: List["napari.types.ImageData"],
         intensity: bool = False,
-        things_inside_things: bool = False,
+        relate_to_other_channels: bool = False,
         size: bool = True,
         perimeter: bool = False,
         shape: bool = False,
         position: bool = False,
         moments: bool = False,
-        intersection_over_target_area: float = 0.5,
+        intersection_over_other_channel_obj_area: float = 0.5,
         configure_summary_statistics: bool = False,
         counts: bool = False,
         average: bool = True,
@@ -183,19 +183,19 @@ def regionprops_measure_things_inside_things(
         a label image used as a reference.
     intensity_image_reference : array_like
         an intensity image, matching the `label_image_reference` shape.
-    label_images_to_measure : List[array_like]
+    label_images_other_channels : List[array_like]
         a list of label images, whose measured features will be related to
         labels from `label_image_reference`.
-    intensity_images_to_measure : List[array_like]
+    intensity_images_other_channels : List[array_like]
         a list of label images, whose measured intensity features will be
         related to labels from `label_image_reference`.
     intensity : bool
         a flag indicating that intensity features should be measured. If
         `True`, `intensity_image_reference` must be given.
-    things_inside_things : bool
-        a flag indicating that things_inside_things analysis should be performed,
+    relate_to_other_channels : bool
+        a flag indicating that relate_to_other_channels analysis should be performed,
         relating labels from `label_image_reference` to
-        `label_images_to_measure`. If `True`, `label_images_to_measure`
+        `label_images_other_channels`. If `True`, `label_images_other_channels`
         must be provided.
     size : bool
         a flag indicating to measure size features. By default True.
@@ -207,7 +207,7 @@ def regionprops_measure_things_inside_things(
         a flag indicating to measure position features. By default False.
     moments : bool
         a flag indicating to measure moments features. By default False.
-    intersection_over_target_area : float
+    intersection_over_other_channel_obj_area : float
         a ratio of areas that indicates whether an object is considered
         'inside' another. It is the intersection area divided by the target
         object area. It goes from 0 to 1. 0 indicates object always belongs to
@@ -279,7 +279,7 @@ def regionprops_measure_things_inside_things(
                     reference_labels_layer = layer
                     reference_suffix = '_' + layer.name
         suffixes.insert(0, reference_suffix)
-        for i, labels in enumerate(label_images_to_measure):
+        for i, labels in enumerate(label_images_other_channels):
             for layer in napari_viewer.layers:
                 if isinstance(layer, napari.layers.Labels) and np.array_equal(layer.data, labels):
                     new_suffix = '_' + layer.name
@@ -287,23 +287,23 @@ def regionprops_measure_things_inside_things(
                         suffixes.append(new_suffix)
                     else:
                         # labels_to_measure layer is a duplicated reference
-                        n_leading_zeros = len(label_images_to_measure) // 10
+                        n_leading_zeros = len(label_images_other_channels) // 10
                         suffixes.append(new_suffix + str(i+1).zfill(1+n_leading_zeros))
     # Ensures proper iterable inputs
     else:
-        if not isinstance(label_images_to_measure, list):
-            label_images_to_measure = [label_images_to_measure]
-        if not isinstance(intensity_images_to_measure, list):
-            intensity_images_to_measure = [intensity_images_to_measure]
+        if not isinstance(label_images_other_channels, list):
+            label_images_other_channels = [label_images_other_channels]
+        if not isinstance(intensity_images_other_channels, list):
+            intensity_images_other_channels = [intensity_images_other_channels]
         # in case function is used without viewer and suffixes are missing
         if len(suffixes) == 0:
-            n_leading_zeros = len(label_images_to_measure) // 10
+            n_leading_zeros = len(label_images_other_channels) // 10
             suffixes = ['_reference'] + ['_' + str(i+1).zfill(
                 1+n_leading_zeros)
-                for i in range(len(label_images_to_measure))]
+                for i in range(len(label_images_other_channels))]
 
     # Single image measurements
-    if things_inside_things == False:
+    if relate_to_other_channels == False:
         # Without intensity measurements
         if intensity == False:
             table = measure_labels(
@@ -331,8 +331,8 @@ def regionprops_measure_things_inside_things(
                 shape=shape, position=position,
                 moments=moments)
         else:
-            # Check if user provided 'label_images_to_measure'
-            if len(label_images_to_measure) == 0:
+            # Check if user provided 'label_images_other_channels'
+            if len(label_images_other_channels) == 0:
                 notifications.show_warning(('Error! Add a labels layer to '
                                             '\'Label Image(s) from other '
                                             'Channel(s)\' when \'relate '
@@ -344,19 +344,19 @@ def regionprops_measure_things_inside_things(
             if intensity == False:
                 table = measure_labels_in_labels(
                     label_image_reference=label_image_reference,
-                    labels_to_measure=label_images_to_measure,
+                    labels_to_measure=label_images_other_channels,
                     size=size,
                     perimeter=perimeter,
                     shape=shape,
                     position=position,
                     moments=moments,
-                    intersection_over_target_area=intersection_over_target_area,
+                    intersection_over_other_channel_obj_area=intersection_over_other_channel_obj_area,
                     suffixes=suffixes)
 
             # Or with intensity measurements
             else:
-                # Check if user provided 'intensity_images_to_measure'
-                if len(intensity_images_to_measure) == 0:
+                # Check if user provided 'intensity_images_other_channels'
+                if len(intensity_images_other_channels) == 0:
                     notifications.show_warning(('Error! Add an image layer to '
                                             '\'Intensity Image(s) from other '
                                             'Channel(s)\' when both \'relate '
@@ -366,13 +366,13 @@ def regionprops_measure_things_inside_things(
                     return
                 table = measure_labels_in_labels_with_intensity(
                 label_image_reference=label_image_reference,
-                labels_to_measure=label_images_to_measure,
+                labels_to_measure=label_images_other_channels,
                 intensity_image_reference=intensity_image_reference,
-                intensity_image_of_labels_to_measure=intensity_images_to_measure,
+                intensity_image_of_labels_to_measure=intensity_images_other_channels,
                 size=size, perimeter=perimeter,
                 shape=shape, position=position,
                 moments=moments,
-                intersection_over_target_area=intersection_over_target_area,
+                intersection_over_other_channel_obj_area=intersection_over_other_channel_obj_area,
                 suffixes=suffixes)
             # Compute summary statistics instead of individual relationships
             # This guarantees no repeated numbers in the 'label' column
@@ -396,7 +396,7 @@ def regionprops_measure_things_inside_things(
 
 def link_two_label_images(label_image_reference: "napari.types.LabelsData",
                           labels_to_measure: "napari.types.LabelsData",
-                          intersection_over_target_area: float = 0.5
+                          intersection_over_other_channel_obj_area: float = 0.5
                           ) -> "pandas.DataFrame":
     """
     Associate each label from a reference to a target label image.
@@ -412,12 +412,12 @@ def link_two_label_images(label_image_reference: "napari.types.LabelsData",
         a label image to be used as reference labels.
     labels_to_measure : napari.types.LabelsData
         a label image to be used as target labels.
-    intersection_over_target_area : float, optional
+    intersection_over_other_channel_obj_area : float, optional
         an area ratio threshold value that determines if a label in
         the target image belongs to another in the reference image.
         The area ratio is calculated by the intersection area divided
         by the target label area. If this area ratio is bigger
-        or equal to `intersection_over_target_area`, the target object
+        or equal to `intersection_over_other_channel_obj_area`, the target object
         gets associated to the reference object, otherwise, it gets
         associated to the background. This parameter goes from 0 to 1,
         by default 0.5.
@@ -434,7 +434,7 @@ def link_two_label_images(label_image_reference: "napari.types.LabelsData",
     from skimage.measure import regionprops_table as sk_regionprops_table
 
     def highest_overlap(regionmask, label_image_reference,
-                        overlap_threshold=intersection_over_target_area):
+                        overlap_threshold=intersection_over_other_channel_obj_area):
         """
         Get the label number with highest overlap with label in another image.
 
@@ -627,7 +627,7 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
                              shape: bool = False,
                              position: bool = False,
                              moments: bool = False,
-                             intersection_over_target_area: float = 0.5,
+                             intersection_over_other_channel_obj_area: float = 0.5,
                              suffixes: List[str] = None,
                              napari_viewer: "napari.Viewer" = None
                              ) -> List["pandas.DataFrame"]:
@@ -661,12 +661,12 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
     moments : bool, optional
         measure moments related features.
         By default False.
-    intersection_over_target_area : float, optional
+    intersection_over_other_channel_obj_area : float, optional
         an area ratio threshold value that determines if a label in
         the target image belongs to another in the reference image.
         The area ratio is calculated by the intersection area divided
         by the target label area. If this area ratio is bigger
-        or equal to `intersection_over_target_area`, the target object
+        or equal to `intersection_over_other_channel_obj_area`, the target object
         gets associated to the reference object, otherwise, it gets
         associated to the background. This parameter goes from 0 to 1,
         by default 0.5.
@@ -703,7 +703,7 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
         table_linking_labels = link_two_label_images(
             label_image_reference=label_image_reference,
             labels_to_measure=label_image,
-            intersection_over_target_area=intersection_over_target_area
+            intersection_over_other_channel_obj_area=intersection_over_other_channel_obj_area
             )
         list_table_linking_labels.append(table_linking_labels)
 
@@ -739,7 +739,7 @@ def measure_labels_in_labels_with_intensity(
         shape: bool = False,
         position: bool = False,
         moments: bool = False,
-        intersection_over_target_area: float = 0.5,
+        intersection_over_other_channel_obj_area: float = 0.5,
         suffixes: List[str] = None,
         napari_viewer: "napari.Viewer" = None) -> List["pandas.DataFrame"]:
     """
@@ -781,12 +781,12 @@ def measure_labels_in_labels_with_intensity(
     moments : bool, optional
         measure moments related features.
         By default False.
-    intersection_over_target_area : float, optional
+    intersection_over_other_channel_obj_area : float, optional
         an area ratio threshold value that determines if a label in
         the target image belongs to another in the reference image.
         The area ratio is calculated by the intersection area divided
         by the target label area. If this area ratio is bigger
-        or equal to `intersection_over_target_area`, the target object
+        or equal to `intersection_over_other_channel_obj_area`, the target object
         gets associated to the reference object, otherwise, it gets
         associated to the background. This parameter goes from 0 to 1,
         by default 0.5.
@@ -841,7 +841,7 @@ def measure_labels_in_labels_with_intensity(
         table_linking_labels = link_two_label_images(
             label_image_reference=label_image_reference,
             labels_to_measure=label_image,
-            intersection_over_target_area=intersection_over_target_area
+            intersection_over_other_channel_obj_area=intersection_over_other_channel_obj_area
             )
         list_table_linking_labels.append(table_linking_labels)
 
