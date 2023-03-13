@@ -1,7 +1,7 @@
 
 def test_napari_regionprops_map_2channels_2D(make_napari_viewer):
     import numpy as np
-    from napari_skimage_regionprops import regionprops_measure_things_inside_things
+    from napari_skimage_regionprops import regionprops_measure_relationship_to_other_channels
     
     viewer = make_napari_viewer()
     
@@ -25,10 +25,10 @@ def test_napari_regionprops_map_2channels_2D(make_napari_viewer):
     viewer.add_labels(ref_labels, name='ref_labels')
     viewer.add_labels(target_labels, name='target_labels')
 
-    widget = regionprops_measure_things_inside_things()
-    regionprops_measure_things_inside_things_function = widget._function
+    widget = regionprops_measure_relationship_to_other_channels()
+    regionprops_measure_relationship_to_other_channels_function = widget._function
     # Measure everything we can
-    table = regionprops_measure_things_inside_things_function(
+    table = regionprops_measure_relationship_to_other_channels_function(
         ref_labels,
         multichannel_image[..., 0],
         [target_labels],
@@ -63,7 +63,7 @@ def test_napari_regionprops_map_2channels_2D(make_napari_viewer):
 
 def test_napari_regionprops_map_3channels_2D(make_napari_viewer):
     import numpy as np
-    from napari_skimage_regionprops import regionprops_measure_things_inside_things
+    from napari_skimage_regionprops import regionprops_measure_relationship_to_other_channels
     
     viewer = make_napari_viewer()
     
@@ -91,11 +91,11 @@ def test_napari_regionprops_map_3channels_2D(make_napari_viewer):
     viewer.add_labels(target_labels, name='target_labels')
     viewer.add_labels(target_labels_B, name='target_labels_B')
 
-    widget = regionprops_measure_things_inside_things()
-    regionprops_measure_things_inside_things_function = widget._function
+    widget = regionprops_measure_relationship_to_other_channels()
+    regionprops_measure_relationship_to_other_channels_function = widget._function
 
     # Measure everything we can
-    table = regionprops_measure_things_inside_things_function(
+    table = regionprops_measure_relationship_to_other_channels_function(
         ref_labels,
         multichannel_image[..., 0],
         [target_labels, target_labels_B],
@@ -134,7 +134,7 @@ def test_napari_regionprops_map_3channels_2D(make_napari_viewer):
 
 def test_napari_regionprops_map_2channels_3D(make_napari_viewer):
     import numpy as np
-    from napari_skimage_regionprops import regionprops_measure_things_inside_things
+    from napari_skimage_regionprops import regionprops_measure_relationship_to_other_channels
     
     viewer = make_napari_viewer()
     
@@ -170,11 +170,11 @@ def test_napari_regionprops_map_2channels_3D(make_napari_viewer):
     viewer.add_labels(ref_labels_3D, name='ref_labels_3D')
     viewer.add_labels(target_labels_3D, name='target_labels_3D')
 
-    widget = regionprops_measure_things_inside_things()
-    regionprops_measure_things_inside_things_function = widget._function
+    widget = regionprops_measure_relationship_to_other_channels()
+    regionprops_measure_relationship_to_other_channels_function = widget._function
 
     # Measure everything we can
-    table = regionprops_measure_things_inside_things_function(
+    table = regionprops_measure_relationship_to_other_channels_function(
         ref_labels_3D,
         multichannel_image[0],
         [target_labels_3D],
