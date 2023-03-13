@@ -282,7 +282,7 @@ def regionprops_measure_relationship_to_other_channels(
                     if new_suffix not in suffixes:
                         suffixes.append(new_suffix)
                     else:
-                        # labels_to_measure layer is a duplicated reference
+                        # label_image_other_channel layer is a duplicated reference
                         n_leading_zeros = len(label_images_other_channels) // 10
                         suffixes.append(new_suffix + str(i+1).zfill(1+n_leading_zeros))
     # Ensures proper iterable inputs
@@ -340,7 +340,7 @@ def regionprops_measure_relationship_to_other_channels(
             if intensity == False:
                 table = measure_labels_in_labels(
                     label_image_reference=label_image_reference,
-                    labels_to_measure=label_images_other_channels,
+                    label_image_other_channel=label_images_other_channels,
                     size=size,
                     perimeter=perimeter,
                     shape=shape,
@@ -362,9 +362,9 @@ def regionprops_measure_relationship_to_other_channels(
                     return
                 table = measure_labels_in_labels_with_intensity(
                 label_image_reference=label_image_reference,
-                labels_to_measure=label_images_other_channels,
+                label_image_other_channel=label_images_other_channels,
                 intensity_image_reference=intensity_image_reference,
-                intensity_image_of_labels_to_measure=intensity_images_other_channels,
+                intensity_image_other_channel=intensity_images_other_channels,
                 size=size, perimeter=perimeter,
                 shape=shape, position=position,
                 moments=moments,
@@ -391,7 +391,7 @@ def regionprops_measure_relationship_to_other_channels(
 
 
 def link_two_label_images(label_image_reference: "napari.types.LabelsData",
-                          labels_to_measure: "napari.types.LabelsData",
+                          label_image_other_channel: "napari.types.LabelsData",
                           intersection_over_target_obj_area: float = 0.5
                           ) -> "pandas.DataFrame":
     """
@@ -406,7 +406,7 @@ def link_two_label_images(label_image_reference: "napari.types.LabelsData",
     ----------
     label_image_reference : napari.types.LabelsData
         a label image to be used as reference labels.
-    labels_to_measure : napari.types.LabelsData
+    label_image_other_channel : napari.types.LabelsData
         a label image to be used as target labels.
     intersection_over_target_obj_area : float, optional
         an area ratio threshold value that determines if a label in
@@ -480,7 +480,7 @@ def link_two_label_images(label_image_reference: "napari.types.LabelsData",
 
     # Create table that links labels from scanning channel to reference channel
     table_linking_labels = pd.DataFrame(
-        sk_regionprops_table(label_image=np.asarray(labels_to_measure).astype(int),
+        sk_regionprops_table(label_image=np.asarray(label_image_other_channel).astype(int),
                              intensity_image=np.asarray(label_image_reference).astype(int),
                              properties=['label', ],
                              extra_properties=[highest_overlap]
@@ -622,7 +622,7 @@ def measure_labels_with_intensity(
 
 
 def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
-                             labels_to_measure: List["napari.types.LabelsData"],
+                             label_image_other_channel: List["napari.types.LabelsData"],
                              size: bool = True,
                              perimeter: bool = False,
                              shape: bool = False,
@@ -639,13 +639,13 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
     one or more target label images. It returns a table
     where each column is a feature and each row associates
     a label (and its features) from `label_image_reference`
-    to a target label (and its features) from `labels_to_measure`.
+    to a target label (and its features) from `label_image_other_channel`.
 
     Parameters
     ----------
     label_image_reference : napari.types.LabelsData
         a reference label image to measure features.
-    labels_to_measure : List[napari.types.LabelsData]
+    label_image_other_channel : List[napari.types.LabelsData]
         a list of target label images to measure features.
     size : bool, optional
         measure size related features.
@@ -698,14 +698,14 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
         )
     list_table_linking_labels = []
     list_table_other_channel_labels_properties = []
-    # Make labels_to_measure iterable
-    if not isinstance(labels_to_measure, list):
-        labels_to_measure = [labels_to_measure]
-    # Link each labels_to_measure image to reference and get their properties
-    for label_image in labels_to_measure:
+    # Make label_image_other_channel iterable
+    if not isinstance(label_image_other_channel, list):
+        label_image_other_channel = [label_image_other_channel]
+    # Link each label_image_other_channel image to reference and get their properties
+    for label_image in label_image_other_channel:
         table_linking_labels = link_two_label_images(
             label_image_reference=label_image_reference,
-            labels_to_measure=label_image,
+            label_image_other_channel=label_image,
             intersection_over_target_obj_area=intersection_over_target_obj_area
             )
         list_table_linking_labels.append(table_linking_labels)
@@ -734,9 +734,9 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
 
 def measure_labels_in_labels_with_intensity(
         label_image_reference: "napari.types.LabelsData",
-        labels_to_measure: List["napari.types.LabelsData"],
+        label_image_other_channel: List["napari.types.LabelsData"],
         intensity_image_reference: "napari.types.ImageData",
-        intensity_image_of_labels_to_measure: List["napari.types.ImageData"] = None,
+        intensity_image_other_channel: List["napari.types.ImageData"] = None,
         size: bool = True,
         perimeter: bool = False,
         shape: bool = False,
@@ -754,17 +754,17 @@ def measure_labels_in_labels_with_intensity(
     images. It returns a table
     where each column is a feature and each row associates
     a label (and its features) from `label_image_reference`
-    to a target label (and its features) from `labels_to_measure`.
+    to a target label (and its features) from `label_image_other_channel`.
 
     Parameters
     ----------
     label_image_reference : napari.types.LabelsData
         a reference label image to measure features.
-    labels_to_measure : List[napari.types.LabelsData], array_like
+    label_image_other_channel : List[napari.types.LabelsData], array_like
         a list of target label images to measure features.
     intensity_image_reference : napari.types.ImageData, array_like
         a reference intensity image to measure intensity features.
-    intensity_image_of_labels_to_measure : List[napari.types.ImageData],
+    intensity_image_other_channel : List[napari.types.ImageData],
     array_like, optional
         a list of target intensity images to measure intensity features.
         If None (default), intensity features are extracted from 
@@ -821,31 +821,31 @@ def measure_labels_in_labels_with_intensity(
         )
     list_table_linking_labels = []
     list_table_other_channel_labels_properties = []
-    # Make labels_to_measure iterable
-    if not isinstance(labels_to_measure, list):
-        labels_to_measure = [labels_to_measure]
-    # If no intensity_image_of_labels_to_measure provided, use reference
+    # Make label_image_other_channel iterable
+    if not isinstance(label_image_other_channel, list):
+        label_image_other_channel = [label_image_other_channel]
+    # If no intensity_image_other_channel provided, use reference
     # intensity
-    if intensity_image_of_labels_to_measure is None:
-        intensity_image_of_labels_to_measure = [intensity_image_reference] * \
-            len(labels_to_measure)
-    # If intensity_image_of_labels_to_measure provided, check if sizes match
+    if intensity_image_other_channel is None:
+        intensity_image_other_channel = [intensity_image_reference] * \
+            len(label_image_other_channel)
+    # If intensity_image_other_channel provided, check if sizes match
     else:
-        # Make intensity_image_of_labels_to_measure iterable
-        if not isinstance(intensity_image_of_labels_to_measure, list):
-            intensity_image_of_labels_to_measure = \
-                [intensity_image_of_labels_to_measure]
-        if len(intensity_image_of_labels_to_measure) != len(labels_to_measure):
-            print(('Error! Length of intensity_image_of_labels_to_measure and'
-                   'labels_to_measure must match.'))
+        # Make intensity_image_other_channel iterable
+        if not isinstance(intensity_image_other_channel, list):
+            intensity_image_other_channel = \
+                [intensity_image_other_channel]
+        if len(intensity_image_other_channel) != len(label_image_other_channel):
+            print(('Error! Length of intensity_image_other_channel and'
+                   'label_image_other_channel must match.'))
             return
 
-    # Link each labels_to_measure image to reference and get their properties
+    # Link each label_image_other_channel image to reference and get their properties
     for label_image, intensity_image in zip(
-            labels_to_measure, intensity_image_of_labels_to_measure):
+            label_image_other_channel, intensity_image_other_channel):
         table_linking_labels = link_two_label_images(
             label_image_reference=label_image_reference,
-            labels_to_measure=label_image,
+            label_image_other_channel=label_image,
             intersection_over_target_obj_area=intersection_over_target_obj_area
             )
         list_table_linking_labels.append(table_linking_labels)

@@ -98,6 +98,7 @@ def merge_measurements_to_reference(
         for column in output_table.columns:
             if column.startswith('label'):
                 output_table[column] = output_table[column].astype(int)
+        output_table = output_table.sort_values(by='label' + suffixes[0])
         # Append output table to list (each table may have different shapes)
         output_table_list.append(output_table)
     return output_table_list
