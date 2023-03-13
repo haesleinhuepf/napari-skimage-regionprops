@@ -35,7 +35,7 @@ def _connect_events(widget):
 
     def toggle_relate_to_other_channels_widgets(event):
         widget.label_images_other_channels.visible = event
-        widget.intersection_over_other_channel_obj_area.visible = event
+        widget.intersection_over_target_obj_area.visible = event
         widget.configure_summary_statistics.visible = event
         if (event == True) & (widget.intensity.value == True):
             widget.intensity_images_other_channels.visible = True
@@ -69,7 +69,7 @@ def _connect_events(widget):
     widget.intensity_images_other_channels.visible = False
     widget.label_images_other_channels.visible = False
     widget.configure_summary_statistics.visible = False
-    widget.intersection_over_other_channel_obj_area.visible = False
+    widget.intersection_over_target_obj_area.visible = False
     widget.counts.visible = False
     widget.average.visible = False
     widget.std.visible = False
@@ -96,7 +96,7 @@ widgets_layout_settings = {
     'relate_to_other_channels': {
         'label': 'relate to other channel(s)'
     },
-    'intersection_over_other_channel_obj_area': {
+    'intersection_over_target_obj_area': {
         'widget_type': 'FloatSlider',
         'min': 0,
         'max': 1,
@@ -132,8 +132,8 @@ widgets_layout_settings = {
                    'label_images_other_channels'],
                intensity_images_other_channels=widgets_layout_settings[
                    'intensity_images_other_channels'],
-               intersection_over_other_channel_obj_area=widgets_layout_settings[
-                   'intersection_over_other_channel_obj_area'],
+               intersection_over_target_obj_area=widgets_layout_settings[
+                   'intersection_over_target_obj_area'],
                relate_to_other_channels=widgets_layout_settings[
                    'relate_to_other_channels'],
                std=widgets_layout_settings['std'],
@@ -151,7 +151,7 @@ def regionprops_measure_relationship_to_other_channels(
         shape: bool = False,
         position: bool = False,
         moments: bool = False,
-        intersection_over_other_channel_obj_area: float = 0.5,
+        intersection_over_target_obj_area: float = 0.5,
         configure_summary_statistics: bool = False,
         counts: bool = False,
         average: bool = True,
@@ -201,7 +201,7 @@ def regionprops_measure_relationship_to_other_channels(
         a flag indicating to measure position features. By default False.
     moments : bool
         a flag indicating to measure moments features. By default False.
-    intersection_over_other_channel_obj_area : float
+    intersection_over_target_obj_area : float
         a ratio of areas that indicates whether an object is considered
         'inside' another. It is the intersection area divided by the target
         object area. It goes from 0 to 1. 0 indicates object always belongs to
@@ -346,7 +346,7 @@ def regionprops_measure_relationship_to_other_channels(
                     shape=shape,
                     position=position,
                     moments=moments,
-                    intersection_over_other_channel_obj_area=intersection_over_other_channel_obj_area,
+                    intersection_over_target_obj_area=intersection_over_target_obj_area,
                     suffixes=suffixes)
 
             # Or with intensity measurements
@@ -368,7 +368,7 @@ def regionprops_measure_relationship_to_other_channels(
                 size=size, perimeter=perimeter,
                 shape=shape, position=position,
                 moments=moments,
-                intersection_over_other_channel_obj_area=intersection_over_other_channel_obj_area,
+                intersection_over_target_obj_area=intersection_over_target_obj_area,
                 suffixes=suffixes)
             # Compute summary statistics instead of individual relationships
             # This guarantees no repeated numbers in the 'label' column
@@ -392,7 +392,7 @@ def regionprops_measure_relationship_to_other_channels(
 
 def link_two_label_images(label_image_reference: "napari.types.LabelsData",
                           labels_to_measure: "napari.types.LabelsData",
-                          intersection_over_other_channel_obj_area: float = 0.5
+                          intersection_over_target_obj_area: float = 0.5
                           ) -> "pandas.DataFrame":
     """
     Associate each label from a reference to a target label image.
@@ -408,12 +408,12 @@ def link_two_label_images(label_image_reference: "napari.types.LabelsData",
         a label image to be used as reference labels.
     labels_to_measure : napari.types.LabelsData
         a label image to be used as target labels.
-    intersection_over_other_channel_obj_area : float, optional
+    intersection_over_target_obj_area : float, optional
         an area ratio threshold value that determines if a label in
         the target image belongs to another in the reference image.
         The area ratio is calculated by the intersection area divided
         by the target label area. If this area ratio is bigger
-        or equal to `intersection_over_other_channel_obj_area`, the target object
+        or equal to `intersection_over_target_obj_area`, the target object
         gets associated to the reference object, otherwise, it gets
         associated to the background. This parameter goes from 0 to 1,
         by default 0.5.
@@ -430,7 +430,7 @@ def link_two_label_images(label_image_reference: "napari.types.LabelsData",
     from skimage.measure import regionprops_table as sk_regionprops_table
 
     def highest_overlap(regionmask, label_image_reference,
-                        overlap_threshold=intersection_over_other_channel_obj_area):
+                        overlap_threshold=intersection_over_target_obj_area):
         """
         Get the label number with highest overlap with label in another image.
 
@@ -628,7 +628,7 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
                              shape: bool = False,
                              position: bool = False,
                              moments: bool = False,
-                             intersection_over_other_channel_obj_area: float = 0.5,
+                             intersection_over_target_obj_area: float = 0.5,
                              suffixes: List[str] = None,
                              napari_viewer: "napari.Viewer" = None
                              ) -> List["pandas.DataFrame"]:
@@ -662,12 +662,12 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
     moments : bool, optional
         measure moments related features.
         By default False.
-    intersection_over_other_channel_obj_area : float, optional
+    intersection_over_target_obj_area : float, optional
         an area ratio threshold value that determines if a label in
         the target image belongs to another in the reference image.
         The area ratio is calculated by the intersection area divided
         by the target label area. If this area ratio is bigger
-        or equal to `intersection_over_other_channel_obj_area`, the target object
+        or equal to `intersection_over_target_obj_area`, the target object
         gets associated to the reference object, otherwise, it gets
         associated to the background. This parameter goes from 0 to 1,
         by default 0.5.
@@ -706,7 +706,7 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
         table_linking_labels = link_two_label_images(
             label_image_reference=label_image_reference,
             labels_to_measure=label_image,
-            intersection_over_other_channel_obj_area=intersection_over_other_channel_obj_area
+            intersection_over_target_obj_area=intersection_over_target_obj_area
             )
         list_table_linking_labels.append(table_linking_labels)
 
@@ -742,7 +742,7 @@ def measure_labels_in_labels_with_intensity(
         shape: bool = False,
         position: bool = False,
         moments: bool = False,
-        intersection_over_other_channel_obj_area: float = 0.5,
+        intersection_over_target_obj_area: float = 0.5,
         suffixes: List[str] = None,
         napari_viewer: "napari.Viewer" = None) -> List["pandas.DataFrame"]:
     """
@@ -784,12 +784,12 @@ def measure_labels_in_labels_with_intensity(
     moments : bool, optional
         measure moments related features.
         By default False.
-    intersection_over_other_channel_obj_area : float, optional
+    intersection_over_target_obj_area : float, optional
         an area ratio threshold value that determines if a label in
         the target image belongs to another in the reference image.
         The area ratio is calculated by the intersection area divided
         by the target label area. If this area ratio is bigger
-        or equal to `intersection_over_other_channel_obj_area`, the target object
+        or equal to `intersection_over_target_obj_area`, the target object
         gets associated to the reference object, otherwise, it gets
         associated to the background. This parameter goes from 0 to 1,
         by default 0.5.
@@ -846,7 +846,7 @@ def measure_labels_in_labels_with_intensity(
         table_linking_labels = link_two_label_images(
             label_image_reference=label_image_reference,
             labels_to_measure=label_image,
-            intersection_over_other_channel_obj_area=intersection_over_other_channel_obj_area
+            intersection_over_target_obj_area=intersection_over_target_obj_area
             )
         list_table_linking_labels.append(table_linking_labels)
 
