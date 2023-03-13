@@ -1,4 +1,3 @@
-import pandas
 from typing import List
 
 
@@ -157,7 +156,7 @@ def make_summary_table(table: List["pandas.DataFrame"],
                 print(('Could not infer suffixes from column names. Please '
                        'provide a list of suffixes identifying different '
                        'channels'))
-    if isinstance(table, pandas.DataFrame):
+    if isinstance(table, pd.DataFrame):
         table = [table]
 
     if 'count' in statistics_list:

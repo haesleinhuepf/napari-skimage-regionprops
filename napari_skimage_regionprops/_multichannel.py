@@ -1,12 +1,6 @@
-import pandas
-import numpy as np
 from typing import List
 from magicgui import magic_factory
 from napari_tools_menu import register_dock_widget
-from ._regionprops import regionprops_table
-from ._process_tables import merge_measurements_to_reference
-from ._process_tables import make_summary_table
-
 
 
 def make_element_wise_dict(list_of_keys, list_of_values):
@@ -250,7 +244,9 @@ def regionprops_measure_relationship_to_other_channels(
         in other channels.
     """
     from napari.utils import notifications
+    from ._process_tables import make_summary_table
     import napari
+    import numpy as np
 
     statistics_list = []
     if counts:
@@ -554,6 +550,9 @@ def measure_labels(label_image_reference: "napari.types.LabelsData",
     pandas.DataFrame
         A table containing labels and corresponding measured features.
     """
+    from ._regionprops import regionprops_table
+    import numpy as np
+
     table = regionprops_table(image=np.zeros_like(label_image_reference),
                               labels=label_image_reference,
                               size=size,
@@ -609,6 +608,8 @@ def measure_labels_with_intensity(
     pandas.DataFrame
         A table containing labels and corresponding measured features.
     """
+    from ._regionprops import regionprops_table
+
     table = regionprops_table(image=intensity_image_reference,
                               labels=label_image_reference,
                               size=size,
@@ -683,6 +684,8 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
         A list of tables containing labels and corresponding measured features.
         Each row associates reference label features to target label features.
     """
+    from ._process_tables import merge_measurements_to_reference
+
     # Get reference properties
     reference_labels_properties = measure_labels(
         label_image_reference=label_image_reference,
@@ -803,6 +806,8 @@ def measure_labels_in_labels_with_intensity(
         A list of tables containing labels and corresponding measured features.
         Each row associates reference label features to target label features.
     """
+    from ._process_tables import merge_measurements_to_reference
+
     # Get reference properties
     reference_labels_properties = measure_labels_with_intensity(
         label_image_reference=label_image_reference,
