@@ -694,7 +694,7 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
         napari_viewer=napari_viewer
         )
     list_table_linking_labels = []
-    list_table_labels_to_measure_properties = []
+    list_table_other_channel_labels_properties = []
     # Make labels_to_measure iterable
     if not isinstance(labels_to_measure, list):
         labels_to_measure = [labels_to_measure]
@@ -716,7 +716,7 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
             moments=moments,
             napari_viewer=napari_viewer
             )
-        list_table_labels_to_measure_properties.append(
+        list_table_other_channel_labels_properties.append(
             labels_to_measure_properties)
 
     # Merge each table with target label properties to table with reference
@@ -724,7 +724,7 @@ def measure_labels_in_labels(label_image_reference: "napari.types.LabelsData",
     table_list = merge_measurements_to_reference(
         table_reference_labels_properties=reference_labels_properties,
         table_linking_labels=list_table_linking_labels,
-        table_labels_to_measure_properties=list_table_labels_to_measure_properties,
+        table_other_channel_labels_properties=list_table_other_channel_labels_properties,
         suffixes=suffixes)
     return table_list
 
@@ -815,7 +815,7 @@ def measure_labels_in_labels_with_intensity(
         napari_viewer=napari_viewer
         )
     list_table_linking_labels = []
-    list_table_labels_to_measure_properties = []
+    list_table_other_channel_labels_properties = []
     # Make labels_to_measure iterable
     if not isinstance(labels_to_measure, list):
         labels_to_measure = [labels_to_measure]
@@ -855,7 +855,7 @@ def measure_labels_in_labels_with_intensity(
             moments=moments,
             napari_viewer=napari_viewer
             )
-        list_table_labels_to_measure_properties.append(
+        list_table_other_channel_labels_properties.append(
             labels_to_measure_properties)
 
     # Merge each table with target label properties to table with reference
@@ -863,6 +863,6 @@ def measure_labels_in_labels_with_intensity(
     table_list = merge_measurements_to_reference(
         table_reference_labels_properties=reference_labels_properties,
         table_linking_labels=list_table_linking_labels,
-        table_labels_to_measure_properties=list_table_labels_to_measure_properties,
+        table_other_channel_labels_properties=list_table_other_channel_labels_properties,
         suffixes=suffixes)
     return table_list
