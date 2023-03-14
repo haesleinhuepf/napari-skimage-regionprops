@@ -1,11 +1,10 @@
-import pandas
 from typing import List
 
 
 def merge_measurements_to_reference(
         table_reference_labels_properties: "pandas.DataFrame",
         table_linking_labels: List["pandas.DataFrame"],
-        table_labels_to_measure_properties: List["pandas.DataFrame"],
+        table_other_channel_labels_properties: List["pandas.DataFrame"],
         suffixes=None) -> List["pandas.DataFrame"]:
     """
     Merge measurements from target to reference table through a linking table.
@@ -19,7 +18,7 @@ def merge_measurements_to_reference(
         a list of tables. Each table should contain 2 columns, a
         label_reference' and a 'label_target'. Each table row associates a
         target label to a reference label.
-    table_labels_to_measure_properties : List["pandas.DataFrame"]
+    table_other_channel_labels_properties : List["pandas.DataFrame"]
         a list of tables to be used as targets with a column 'label' and other
         columns with features.
     suffixes : List[str], optional
@@ -40,20 +39,20 @@ def merge_measurements_to_reference(
         list_table_linking_labels = [table_linking_labels]
     else:
         list_table_linking_labels = table_linking_labels
-    if not isinstance(table_labels_to_measure_properties, list):
-        list_table_labels_to_measure_properties = [
-            table_labels_to_measure_properties]
+    if not isinstance(table_other_channel_labels_properties, list):
+        list_table_other_channel_labels_properties = [
+            table_other_channel_labels_properties]
     else:
-        list_table_labels_to_measure_properties = \
-            table_labels_to_measure_properties
+        list_table_other_channel_labels_properties = \
+            table_other_channel_labels_properties
     # Build custom suffixes or check if provided suffixes match data size
-    n_measurement_tables = len(list_table_labels_to_measure_properties)
+    n_measurement_tables = len(list_table_other_channel_labels_properties)
     if suffixes is None:
         n_leading_zeros = n_measurement_tables // 10
         suffixes = ['_reference'] + ['_' + str(i+1).zfill(1+n_leading_zeros)
                                      for i in range(n_measurement_tables)]
     else:
-        if len(suffixes) != len(table_labels_to_measure_properties) + 1:
+        if len(suffixes) != len(table_other_channel_labels_properties) + 1:
             print(('Error: List of suffixes must have the same length as the'
                   'number of tables containing measurements'))
             return
@@ -70,19 +69,19 @@ def merge_measurements_to_reference(
                          'label_target': 'label' + suffixes[i+1]},
                 inplace=True)
     # Rename columns of tables with properties from other channels
-    for i, table_labels_to_measure_properties in enumerate(
-            list_table_labels_to_measure_properties):
-        table_labels_to_measure_properties.columns = [
+    for i, table_other_channel_labels_properties in enumerate(
+            list_table_other_channel_labels_properties):
+        table_other_channel_labels_properties.columns = [
             props + suffixes[i+1]
-            for props in table_labels_to_measure_properties.columns]
+            for props in table_other_channel_labels_properties.columns]
 
     output_table_list = []
     # Consecutively merge linking_labels tables and properties from other 
     # channels tables to the reference table
-    for i, table_linking_labels, table_labels_to_measure_properties in zip(
+    for i, table_linking_labels, table_other_channel_labels_properties in zip(
             range(n_measurement_tables),
             list_table_linking_labels,
-            list_table_labels_to_measure_properties):
+            list_table_other_channel_labels_properties):
         # Merge other labels to label_reference
         output_table = pd.merge(table_reference_labels_properties,
                                 table_linking_labels,
@@ -93,12 +92,13 @@ def merge_measurements_to_reference(
             'label' + suffixes[i+1]].fillna(0)
         # Merge other properties to output table based on new labels column
         output_table = pd.merge(output_table,
-                                table_labels_to_measure_properties,
+                                table_other_channel_labels_properties,
                                 how='outer', on='label' + suffixes[i+1])
         # Ensure label columns type to be integer
         for column in output_table.columns:
             if column.startswith('label'):
                 output_table[column] = output_table[column].astype(int)
+        output_table = output_table.sort_values(by='label' + suffixes[0])
         # Append output table to list (each table may have different shapes)
         output_table_list.append(output_table)
     return output_table_list
@@ -157,7 +157,7 @@ def make_summary_table(table: List["pandas.DataFrame"],
                 print(('Could not infer suffixes from column names. Please '
                        'provide a list of suffixes identifying different '
                        'channels'))
-    if isinstance(table, pandas.DataFrame):
+    if isinstance(table, pd.DataFrame):
         table = [table]
 
     if 'count' in statistics_list:
