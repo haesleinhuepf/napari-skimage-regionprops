@@ -62,7 +62,7 @@ This plugin module allos you to answer questions like:
 For that, you need at least two labeled images in napari. You can relate objects along with their features. 
 If intensity features are also wanted, then you also need to provide two intensity images. 
 Below, there is a small example on how to use it. 
-Also, take a look at [this example notebook](https://github.com/haesleinhuepf/napari-skimage-regionprops/blob/master/demo/measure_things_inside_things_plugin.ipynb).
+Also, take a look at [this example notebook](https://github.com/haesleinhuepf/napari-skimage-regionprops/blob/master/demo/measure_relationship_to_other_channels_plugin.ipynb).
  
  ![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/things_inside_things_demo.gif)
 
