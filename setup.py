@@ -36,7 +36,7 @@ setup(
     packages=find_packages(),
     python_requires='>=3.8',
     install_requires=requirements,
-    version='0.10.0',
+    version='0.10.1',
     #use_scm_version=use_scm,
     setup_requires=['setuptools_scm'],
     classifiers=[
