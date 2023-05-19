@@ -148,7 +148,7 @@ def relabel_with_map_array(image, label_list, measurement_list):
     https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.map_array
     """
     from skimage.util import map_array
-    return map_array(image, np.asarray(label_list), np.array(measurement_list))
+    return map_array(np.asarray(image), np.asarray(label_list), np.array(measurement_list))
 
 @deprecated("relabel_timepoint() is deprecated. Use relabel_timepoint_with_map_array() instead")
 def relabel_timepoint(labels, table, column, frame_column, timepoint):
