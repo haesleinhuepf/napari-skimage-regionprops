@@ -76,7 +76,7 @@ You can also control the tables programmatically. See this
 ## Features
 The user can select categories of features for feature extraction in the user interface. These categories contain measurements from the scikit-image [regionprops list of measurements](https://scikit-image.org/docs/dev/api/skimage.measure.html#skimage.measure.regionprops) library:
 * size:
-  * area
+  * area (given as number of pixels in 2D, voxels in 3D)
   * bbox_area
   * convex_area
   * equivalent_diameter
