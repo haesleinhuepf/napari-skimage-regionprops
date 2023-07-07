@@ -76,8 +76,9 @@ class TableWidget(QWidget):
         """
         If table header is double clicked, create a feature map from the selected column.
         """
+        from ._parametric_images import create_feature_map
         selected_column = list(self._table.keys())[self._view.currentColumn()]
-        print(selected_column)
+        print('Selected ', selected_column)
         layer = create_feature_map(self._layer, selected_column)
         layer.name = selected_column + " in " + self._layer.name
         self._viewer.add_layer(layer)
@@ -210,80 +211,6 @@ class TableWidget(QWidget):
             table = pd.merge(table, _table, how=how, copy=False)
 
         self.set_content(table.to_dict('list'))
-
-
-def create_feature_map(layer: "napari.layers.Layer",
-                       selected_column: str,
-                       colormap: str = 'jet'
-                       ) -> "napari.layers.Layer":
-    """
-    Create feature map from layer and column name.
-
-    Parameters
-    ----------
-    layer : "napari.layers.Layer"
-        Layer to create feature map from.
-    column_name : str
-        Column name to create feature map from.
-
-    Returns
-    -------
-    "napari.layers.Layer"
-        Feature map.
-    """
-    # Label layers
-    properties = {}
-    if isinstance(layer, napari.layers.Labels):
-        from ._parametric_images import map_measurements_on_labels
-        if "label" not in layer.properties.keys():
-            raise ValueError("Layer does not have a 'label' property.")
-        if selected_column is None:
-            return None
-
-        print("Selected column", selected_column)
-
-        data = map_measurements_on_labels(
-            layer, selected_column)
-
-        properties['colormap'] = colormap
-        layertype = 'image'
-
-    # Points layer
-    elif isinstance(layer, napari.layers.Points):
-        data = layer.data
-        properties['face_color'] = selected_column
-        properties['face_colormap'] = colormap
-        layertype = 'points'
-
-    # Surface layer
-    elif isinstance(layer, napari.layers.Surface):
-        data = list(layer.data)
-
-        # We may have stored features in the metadata to avoid napari complaining
-        if not hasattr(layer, "features") and 'features' not in layer.metadata.keys():
-            raise ValueError("Layer does not have a 'features' property.")
-
-        if not hasattr(layer, "features") and "features" in layer.metadata.keys():
-            layer.features = layer.metadata["features"]
-            layer.metadata.pop("features")
-
-        data[2] = np.asarray(layer.features[selected_column].values)
-
-        properties['colormap'] = colormap
-        if "annotation" in selected_column or "CLUSTER_ID" in selected_column:
-            properties.colormap = "hsv"
-        layertype = 'surface'
-
-    elif isinstance(layer, napari.layers.Vectors):
-        data = layer.data
-        properties['edge_color'] = selected_column
-        properties['edge_colormap'] = colormap
-        layertype = 'vectors'
-
-    properties['contrast_limits'] = [np.min(layer.features[selected_column]),
-                                     np.max(layer.features[selected_column])]
-
-    return napari.layers.Layer.create(data, properties, layertype)
 
 
 @register_function(menu="Measurement > Show table (nsr)")
