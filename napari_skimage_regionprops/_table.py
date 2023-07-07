@@ -34,6 +34,11 @@ class TableWidget(QWidget):
             content = layer.properties
         elif hasattr(layer, "features"):
             content = layer.features.to_dict('list')
+
+        # to accomodate passing features to surfaces through the metadata
+        elif 'features' in layer.metadata.keys():
+            layer.features = layer.metadata['features']
+            content = layer.features.to_dict('list')
         self.set_content(content)
 
         self._view.clicked.connect(self._clicked_table)
@@ -78,7 +83,7 @@ class TableWidget(QWidget):
         """
         from ._parametric_images import create_feature_map
         selected_column = list(self._table.keys())[self._view.currentColumn()]
-        print('Selected ', selected_column)
+        print('Selected', selected_column)
         layer = create_feature_map(self._layer, selected_column)
         layer.name = selected_column + " in " + self._layer.name
         self._viewer.add_layer(layer)
