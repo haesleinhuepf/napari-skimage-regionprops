@@ -3,7 +3,7 @@ import numpy as np
 
 def test_label_featuremaps(make_napari_viewer):
     from napari_skimage_regionprops import regionprops
-    from .._table import create_feature_map
+    from .._parametric_images import create_feature_map
 
     viewer = make_napari_viewer()
     
@@ -29,7 +29,7 @@ def test_label_featuremaps(make_napari_viewer):
 
 def test_vector_featuremaps(make_napari_viewer):
     from napari_skimage_regionprops import regionprops
-    from .._table import create_feature_map
+    from .._parametric_images import create_feature_map
     import pandas as pd
 
     viewer = make_napari_viewer()
@@ -47,7 +47,7 @@ def test_vector_featuremaps(make_napari_viewer):
 
 def test_points_featuremaps(make_napari_viewer):
     from napari_skimage_regionprops import regionprops
-    from .._table import create_feature_map
+    from .._parametric_images import create_feature_map
     import pandas as pd
 
     viewer = make_napari_viewer()
@@ -65,7 +65,7 @@ def test_points_featuremaps(make_napari_viewer):
 
 def test_surface_featuremaps(make_napari_viewer):
     from napari_skimage_regionprops import regionprops
-    from .._table import create_feature_map
+    from .._parametric_images import create_feature_map
     import pandas as pd
 
     viewer = make_napari_viewer()
