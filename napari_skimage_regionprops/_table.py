@@ -29,10 +29,12 @@ class TableWidget(QWidget):
 
         self._view = QTableWidget()
         self._view.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+
         if hasattr(layer, "properties"):
-            self.set_content(layer.properties)
-        else:
-            self.set_content({})
+            content = layer.properties
+        elif hasattr(layer, "features"):
+            content = layer.features.to_dict('list')
+        self.set_content(content)
 
         self._view.clicked.connect(self._clicked_table)
         self._view.horizontalHeader().sectionDoubleClicked.connect(self._double_clicked_table)
@@ -71,49 +73,14 @@ class TableWidget(QWidget):
                     self._viewer.dims.current_step = current_step
 
     def _double_clicked_table(self):
-        if "label" in self._table.keys():
-            selected_column = list(self._table.keys())[self._view.currentColumn()]
-            print("Selected column", selected_column)
-            if selected_column is not None:
-                if isinstance(self._layer, napari.layers.Labels):
-                    from ._parametric_images import visualize_measurement_on_labels, map_measurements_on_labels
-                    new_layer = self._viewer.add_image( map_measurements_on_labels(self._layer, selected_column, self._viewer) ,
-                                                        name=selected_column + " in " + self._layer.name ,
-                                                        affine=self._layer.affine ,
-                                                        scale=self._layer.scale,
-                                                        rotate=self._layer.rotate
-                                                        )
-                    new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
-                    new_layer.colormap = "jet"
-                elif isinstance(self._layer, napari.layers.Points):
-                    features = self._layer.features
-                    new_layer = self._viewer.add_points(self._layer.data,
-                                                        features=features,
-                                                        face_color=selected_column,
-                                                        face_colormap="jet",
-                                                        size=self._layer.size,
-                                                        name=selected_column + " in " + self._layer.name,
-                                                        affine=self._layer.affine,
-                                                        scale=self._layer.scale,
-                                                        rotate=self._layer.rotate
-                                                        )
-                    new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
-
-        if "vertex_index" in self._table.keys():
-            selected_column = list(self._table.keys())[self._view.currentColumn()]
-            print("Selected column (T)", selected_column)
-            if selected_column is not None and isinstance(self._layer, napari.layers.Surface):
-                values = np.asarray(self._table[selected_column])
-                data = self._layer.data
-                data = [np.asarray(data[0]).copy(), np.asarray(data[1]).copy(), values]
-
-                new_layer = self._viewer.add_surface(data,
-                    name=selected_column + " in " + self._layer.name)
-                new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
-                if "annotation" in selected_column or "CLUSTER_ID" in selected_column:
-                    new_layer.colormap = "hsv"
-                else:
-                    new_layer.colormap = "jet"
+        """
+        If table header is double clicked, create a feature map from the selected column.
+        """
+        selected_column = list(self._table.keys())[self._view.currentColumn()]
+        print(selected_column)
+        layer = create_feature_map(self._layer, selected_column)
+        layer.name = selected_column + " in " + self._layer.name
+        self._viewer.add_layer(layer)
 
     def _after_labels_clicked(self):
         if "label" in self._table.keys() and hasattr(self._layer, "selected_label"):
@@ -243,6 +210,80 @@ class TableWidget(QWidget):
             table = pd.merge(table, _table, how=how, copy=False)
 
         self.set_content(table.to_dict('list'))
+
+
+def create_feature_map(layer: "napari.layers.Layer",
+                       selected_column: str,
+                       colormap: str = 'jet'
+                       ) -> "napari.layers.Layer":
+    """
+    Create feature map from layer and column name.
+
+    Parameters
+    ----------
+    layer : "napari.layers.Layer"
+        Layer to create feature map from.
+    column_name : str
+        Column name to create feature map from.
+
+    Returns
+    -------
+    "napari.layers.Layer"
+        Feature map.
+    """
+    # Label layers
+    properties = {}
+    if isinstance(layer, napari.layers.Labels):
+        from ._parametric_images import map_measurements_on_labels
+        if "label" not in layer.properties.keys():
+            raise ValueError("Layer does not have a 'label' property.")
+        if selected_column is None:
+            return None
+
+        print("Selected column", selected_column)
+
+        data = map_measurements_on_labels(
+            layer, selected_column)
+
+        properties['colormap'] = colormap
+        layertype = 'image'
+
+    # Points layer
+    elif isinstance(layer, napari.layers.Points):
+        data = layer.data
+        properties['face_color'] = selected_column
+        properties['face_colormap'] = colormap
+        layertype = 'points'
+
+    # Surface layer
+    elif isinstance(layer, napari.layers.Surface):
+        data = list(layer.data)
+
+        # We may have stored features in the metadata to avoid napari complaining
+        if not hasattr(layer, "features") and 'features' not in layer.metadata.keys():
+            raise ValueError("Layer does not have a 'features' property.")
+
+        if not hasattr(layer, "features") and "features" in layer.metadata.keys():
+            layer.features = layer.metadata["features"]
+            layer.metadata.pop("features")
+
+        data[2] = np.asarray(layer.features[selected_column].values)
+
+        properties['colormap'] = colormap
+        if "annotation" in selected_column or "CLUSTER_ID" in selected_column:
+            properties.colormap = "hsv"
+        layertype = 'surface'
+
+    elif isinstance(layer, napari.layers.Vectors):
+        data = layer.data
+        properties['edge_color'] = selected_column
+        properties['edge_colormap'] = colormap
+        layertype = 'vectors'
+
+    properties['contrast_limits'] = [np.min(layer.features[selected_column]),
+                                     np.max(layer.features[selected_column])]
+
+    return napari.layers.Layer.create(data, properties, layertype)
 
 
 @register_function(menu="Measurement > Show table (nsr)")
