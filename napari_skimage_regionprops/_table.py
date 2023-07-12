@@ -29,10 +29,19 @@ class TableWidget(QWidget):
 
         self._view = QTableWidget()
         self._view.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+
         if hasattr(layer, "properties"):
-            self.set_content(layer.properties)
+            content = layer.properties
+        elif hasattr(layer, "features"):
+            content = layer.features.to_dict('list')
+
+        # to accomodate passing features to surfaces through the metadata
+        elif 'features' in layer.metadata.keys():
+            layer.features = layer.metadata['features']
+            content = layer.features.to_dict('list')
         else:
-            self.set_content({})
+             content = {}
+        self.set_content(content)
 
         self._view.clicked.connect(self._clicked_table)
         self._view.horizontalHeader().sectionDoubleClicked.connect(self._double_clicked_table)
@@ -71,49 +80,15 @@ class TableWidget(QWidget):
                     self._viewer.dims.current_step = current_step
 
     def _double_clicked_table(self):
-        if "label" in self._table.keys():
-            selected_column = list(self._table.keys())[self._view.currentColumn()]
-            print("Selected column", selected_column)
-            if selected_column is not None:
-                if isinstance(self._layer, napari.layers.Labels):
-                    from ._parametric_images import visualize_measurement_on_labels, map_measurements_on_labels
-                    new_layer = self._viewer.add_image( map_measurements_on_labels(self._layer, selected_column, self._viewer) ,
-                                                        name=selected_column + " in " + self._layer.name ,
-                                                        affine=self._layer.affine ,
-                                                        scale=self._layer.scale,
-                                                        rotate=self._layer.rotate
-                                                        )
-                    new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
-                    new_layer.colormap = "jet"
-                elif isinstance(self._layer, napari.layers.Points):
-                    features = self._layer.features
-                    new_layer = self._viewer.add_points(self._layer.data,
-                                                        features=features,
-                                                        face_color=selected_column,
-                                                        face_colormap="jet",
-                                                        size=self._layer.size,
-                                                        name=selected_column + " in " + self._layer.name,
-                                                        affine=self._layer.affine,
-                                                        scale=self._layer.scale,
-                                                        rotate=self._layer.rotate
-                                                        )
-                    new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
-
-        if "vertex_index" in self._table.keys():
-            selected_column = list(self._table.keys())[self._view.currentColumn()]
-            print("Selected column (T)", selected_column)
-            if selected_column is not None and isinstance(self._layer, napari.layers.Surface):
-                values = np.asarray(self._table[selected_column])
-                data = self._layer.data
-                data = [np.asarray(data[0]).copy(), np.asarray(data[1]).copy(), values]
-
-                new_layer = self._viewer.add_surface(data,
-                    name=selected_column + " in " + self._layer.name)
-                new_layer.contrast_limits = [np.min(self._table[selected_column]), np.max(self._table[selected_column])]
-                if "annotation" in selected_column or "CLUSTER_ID" in selected_column:
-                    new_layer.colormap = "hsv"
-                else:
-                    new_layer.colormap = "jet"
+        """
+        If table header is double clicked, create a feature map from the selected column.
+        """
+        from ._parametric_images import create_feature_map
+        selected_column = list(self._table.keys())[self._view.currentColumn()]
+        print('Selected', selected_column)
+        layer = create_feature_map(self._layer, selected_column)
+        layer.name = selected_column + " in " + self._layer.name
+        self._viewer.add_layer(layer)
 
     def _after_labels_clicked(self):
         if "label" in self._table.keys() and hasattr(self._layer, "selected_label"):
