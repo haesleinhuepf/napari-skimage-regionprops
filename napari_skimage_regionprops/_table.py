@@ -39,6 +39,8 @@ class TableWidget(QWidget):
         elif 'features' in layer.metadata.keys():
             layer.features = layer.metadata['features']
             content = layer.features.to_dict('list')
+        else:
+             content = {}
         self.set_content(content)
 
         self._view.clicked.connect(self._clicked_table)
