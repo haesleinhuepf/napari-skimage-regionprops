@@ -78,6 +78,10 @@ def create_feature_map(layer: "napari.layers.Layer",
             properties.colormap = "hsv"
         layertype = 'surface'
 
+    properties['affine'] = layer.affine
+    properties['scale'] = layer.scale
+    properties['rotate'] = layer.rotate
+
     return Layer.create(data, properties, layertype)
 
 
