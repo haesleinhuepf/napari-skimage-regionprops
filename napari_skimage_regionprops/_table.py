@@ -31,6 +31,8 @@ class TableWidget(QWidget):
         self._view.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         if hasattr(layer, "properties"):
             self.set_content(layer.properties)
+        elif hasattr(layer, "features"):
+            self.set_content(layer.features.to_dict(orient="list"))
         else:
             self.set_content({})
 
