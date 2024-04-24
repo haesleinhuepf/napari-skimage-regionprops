@@ -1,5 +1,6 @@
 import numpy as np
 from napari_tools_menu import register_function
+from napari.utils.notifications import show_warning
 
 try:
     import napari
@@ -32,8 +33,15 @@ def load_csv(csv_filename:"magicgui.types.PathLike", labels_layer: "napari.layer
         if not hasattr(labels_layer, "properties"):
             labels_layer.properties = {}
     elif isinstance(labels_layer, napari.layers.Points):
-        # Table shape must match number of points, so truncate if necessary
-        edited_reg_props = edited_reg_props.iloc[:labels_layer.data.shape[0],:]
+        # Table shape must match number of points
+        if edited_reg_props.shape[0] < labels_layer.data.shape[0]:
+            # fill in missing rows with NaNs
+            show_warning("Number of rows in CSV file is less than number of points in the layer. Filling in missing rows with NaNs.")
+            edited_reg_props = pd.concat([edited_reg_props, pd.DataFrame(np.nan, index=range(labels_layer.data.shape[0] - edited_reg_props.shape[0]), columns=edited_reg_props.columns)]).reset_index(drop=True)
+        elif edited_reg_props.shape[0] > labels_layer.data.shape[0]:
+            # truncate if necessary
+            show_warning("Number of rows in CSV file is greater than number of points in the layer. Truncating to match number of points.")
+            edited_reg_props = edited_reg_props.iloc[:labels_layer.data.shape[0],:]
     if hasattr(labels_layer, "properties"):
         labels_layer.properties = edited_reg_props.to_dict(orient="list")
     if hasattr(labels_layer, "features"):
