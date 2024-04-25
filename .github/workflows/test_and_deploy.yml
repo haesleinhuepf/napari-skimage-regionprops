@@ -19,8 +19,13 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ubuntu-20.04, windows-latest] #, macos-latest]
+        platform: [ubuntu-20.04, windows-latest, macos-13, macos-14]
         python-version: ['3.8', '3.9', '3.10']
+        exclude:
+          - python-version: "3.8"
+            platform: macos-14
+          - python-version: "3.9"
+            platform: macos-14
 
     steps:
       - uses: actions/checkout@v3
