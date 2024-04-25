@@ -34,12 +34,16 @@ class TableWidget(QWidget):
             # Check if features and properties are already defined
             if not hasattr(layer, "features"):
                 layer.features = {}
+            else:
+                # Mirror properties to features
+                layer.properties = layer.features.to_dict(orient="list")
             if not hasattr(layer, "properties"):
                 layer.properties = {}
+            else:
+                # Mirror features to properties
+                layer.features = pd.DataFrame(layer.properties)
         if hasattr(layer, "properties"):
             self.set_content(layer.properties)
-        elif hasattr(layer, "features"):
-            self.set_content(layer.features.to_dict(orient="list"))
         else:
             self.set_content({})
 
