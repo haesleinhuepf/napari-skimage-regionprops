@@ -193,7 +193,7 @@ def ellipsoid_axis_lengths(table):
     S = np.asarray([[sxx, sxy, sxz], [sxy, syy, syz], [sxz, syz, szz]])
     # determine eigenvalues in descending order
     eigvals = np.sort(np.linalg.eigvalsh(S))[::-1]
-    return tuple([math.sqrt(20.0 * e) for e in eigvals])
+    return tuple([math.sqrt(20.0 * np.clip(e, a_min=0, a_max=None)) for e in eigvals])
 
 regionprops_table_all_frames = analyze_all_frames(regionprops_table)
 register_function(regionprops_table_all_frames, menu="Measurement tables > Regionprops of all frames (nsr)")
