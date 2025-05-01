@@ -134,6 +134,8 @@ You can install `napari-skimage-regionprops` via [pip]:
 
     pip install napari-skimage-regionprops
 
+Note: This plugin is not compatible with napari 0.6.0 or later.
+
 Or if you plan to develop it:
 
     git clone https://github.com/haesleinhuepf/napari-skimage-regionprops
