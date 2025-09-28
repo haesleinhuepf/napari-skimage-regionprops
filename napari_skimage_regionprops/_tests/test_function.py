@@ -1,4 +1,40 @@
 # from napari_skimage_regionprops import threshold, image_arithmetic
+def generate_sphere_mesh(radius, segments):
+    """
+    Generate vertices and faces for a sphere mesh.
+
+    Parameters:
+    radius (float): Radius of the sphere.
+    segments (int): Number of segments used to generate the sphere, higher means finer mesh.
+
+    Returns:
+    tuple: vertices (N, 3 array), faces (M, 3 array)
+    """
+    import numpy as np
+    theta = np.linspace(0, np.pi, segments)
+    phi = np.linspace(0, 2 * np.pi, segments)
+    theta, phi = np.meshgrid(theta, phi)
+
+    x = radius * np.sin(theta) * np.cos(phi)
+    y = radius * np.sin(theta) * np.sin(phi)
+    z = radius * np.cos(theta)
+
+    vertices = np.column_stack((x.ravel(), y.ravel(), z.ravel()))
+
+    # Generate faces (indices of vertices that make up each triangle)
+    faces = []
+    for i in range(len(theta) - 1):
+        for j in range(len(phi) - 1):
+            v0 = i * len(phi) + j
+            v1 = v0 + 1
+            v2 = v0 + len(phi)
+            v3 = v2 + 1
+            faces.append([v0, v1, v2])
+            faces.append([v1, v3, v2])
+
+    faces = np.array(faces)
+
+    return vertices, faces
 
 # add your tests here...
 def test_regionprops(make_napari_viewer):
@@ -90,6 +126,17 @@ def test_regionprops(make_napari_viewer):
     load_csv("test.csv", labels_layer)
     load_csv("test.csv", labels_layer, viewer)
 
+    points_layer = viewer.add_points(np.array([[2, 1], [2, 5], [5, 3], [6, 6]]))
+    vertices, faces = generate_sphere_mesh(1, 50)
+    surface_layer = viewer.add_surface((vertices, faces))
+
+    # test loading csv to points
+    load_csv("test.csv", points_layer)
+    load_csv("test.csv", points_layer, viewer)
+
+    # test loading csv to surface
+    load_csv("test.csv", surface_layer)
+    load_csv("test.csv", surface_layer, viewer)
 
     # empty table
     table_widget.set_content(None)

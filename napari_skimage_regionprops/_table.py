@@ -29,6 +29,19 @@ class TableWidget(QWidget):
 
         self._view = QTableWidget()
         self._view.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        # Add 'properties' and 'features' attributes if layer is Surface
+        if isinstance(layer, napari.layers.Surface):
+            # Check if features and properties are already defined
+            if not hasattr(layer, "features"):
+                layer.features = {}
+            else:
+                # Mirror properties to features
+                layer.properties = layer.features.to_dict(orient="list")
+            if not hasattr(layer, "properties"):
+                layer.properties = {}
+            else:
+                # Mirror features to properties
+                layer.features = pd.DataFrame(layer.properties)
         if hasattr(layer, "properties"):
             self.set_content(layer.properties)
         else:
