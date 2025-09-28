@@ -3,6 +3,88 @@ from napari_tools_menu import register_function
 import numpy
 from deprecated import deprecated
 
+
+def create_feature_map(layer: "napari.layers.Layer",
+                       selected_column: str,
+                       colormap: str = 'jet'
+                       ) -> "napari.layers.Layer":
+    """
+    Create feature map from layer and column name.
+
+    Parameters
+    ----------
+    layer : "napari.layers.Layer"
+        Layer to create feature map from.
+    column_name : str
+        Column name to create feature map from.
+
+    Returns
+    -------
+    "napari.layers.Layer"
+        Feature map.
+    """
+    # Label layers
+    from napari.layers import Layer, Labels, Points, Vectors, Surface
+    properties = {}
+    if isinstance(layer, Labels):
+        if "label" not in layer.properties.keys():
+            raise ValueError("Layer does not have a 'label' property.")
+        if selected_column is None:
+            return None
+
+        print("Selected column", selected_column)
+
+        data = map_measurements_on_labels(
+            layer, selected_column)
+
+        properties['contrast_limits'] = [np.min(layer.features[selected_column]),
+                                         np.max(layer.features[selected_column])]
+        properties['colormap'] = colormap
+        properties['interpolation'] = 'nearest'
+        layertype = 'image'
+
+    elif isinstance(layer, Points):
+        data = layer.data
+        properties['face_color'] = selected_column
+        properties['face_colormap'] = colormap
+        properties['features'] = {selected_column: layer.features[selected_column].values}
+        layertype = 'points'
+
+    elif isinstance(layer, Vectors):
+        data = layer.data
+        properties['features'] = {selected_column: layer.features[selected_column].values}
+        properties['edge_color'] = selected_column
+        properties['edge_colormap'] = colormap
+        layertype = 'vectors'
+
+    # Surface layer
+    elif isinstance(layer, Surface):
+        data = list(layer.data)
+
+        # We may have stored features in the metadata to avoid napari complaining
+        if not hasattr(layer, "features") and 'features' not in layer.metadata.keys():
+            raise ValueError("Layer does not have a 'features' property.")
+
+        if not hasattr(layer, "features") and "features" in layer.metadata.keys():
+            layer.features = layer.metadata["features"]
+            layer.metadata.pop("features")
+
+        data[2] = np.asarray(layer.features[selected_column].values)
+
+        properties['colormap'] = colormap
+        properties['contrast_limits'] = [np.min(layer.features[selected_column]),
+                                         np.max(layer.features[selected_column])]
+        if "annotation" in selected_column or "CLUSTER_ID" in selected_column:
+            properties.colormap = "hsv"
+        layertype = 'surface'
+
+    properties['affine'] = layer.affine
+    properties['scale'] = layer.scale
+    properties['rotate'] = layer.rotate
+
+    return Layer.create(data, properties, layertype)
+
+
 @register_function(menu="Measurement maps > Measurements on labels (nsr)")
 @register_function(menu="Visualization > Measurements on labels (nsr)")
 def map_measurements_on_labels(labels_layer:"napari.layers.Labels", column:str = "label", viewer:"napari.Viewer" = None) -> "napari.types.ImageData":
