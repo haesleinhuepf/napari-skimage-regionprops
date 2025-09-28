@@ -15,9 +15,11 @@ A [napari] plugin for measuring properties of labeled objects based on [scikit-i
 
 ## Usage: measure region properties
 
-From the menu `Tools > Measurement > Regionprops (nsr)` you can open a dialog where you can choose an intensity image, a corresponding label image and the features you want to measure:
+From the menu `Tools > Measurement tables > Regionprops (nsr)` you can open a dialog where you can choose an intensity image, a corresponding label image and the features you want to measure:
 
 ![img.png](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/dialog.png)
+
+Note that perimeter measurements are only supported for 2D images.
 
 If you want to interface with the labels and see which table row corresponds to which labeled object, use the label picker and
 activate the `show selected` checkbox.
@@ -25,9 +27,9 @@ activate the `show selected` checkbox.
 ![](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/interactive.png)
 
 If you closed a table and want to reopen it, you can use the menu `Tools > Measurements > Show table (nsr)` to reopen it. 
-You just need to select the labels layer the properties are associated with.
+You just need to select the labels layer on the basis of which the table was generated for the first time.
 
-For visualizing measurements with different grey values, as parametric images, you can double-click table headers.
+For visualizing measurements with different grey values as parametric images, you can double-click table headers.
 
 ![img.png](https://github.com/haesleinhuepf/napari-skimage-regionprops/raw/master/images/label_value_visualization.gif)
 
@@ -42,23 +44,21 @@ Also these measurements can be visualized by double-clicking table headers:
 
 ## Working with time-lapse and tracking data
 
-Note that tables for time-lapse data should include a column named "frame", which indicates which slice in
-time the given row refers to. If you want to import your own csv files for time-lapse data make sure to include this column.
+You can also derive measurements from a timelapse dataset by selecting `Tools > Measurement tables > Regionprops of all frames (nsr)`. If you do so, a "frame" column will be introduced. This column indicates which slice in
+time the given row refers to.
+If you want to import your own csv files for time-lapse data make sure to include this "frame" column as well.
 If you have tracking data where each column specifies measurements for a track instead of a label at a specific time point,
 this column must not be added.
 
 In case you have 2D time-lapse data you need to convert it into a suitable shape using the function: `Tools > Utilities > Convert 3D stack to 2D time-lapse (time-slicer)`,
 which can be found in the [napari time slicer](https://www.napari-hub.org/plugins/napari-time-slicer).
 
-Last but not least, make sure that in case of time-lapse data the label image has labels that are subsquently labeled per timepoint.
-E.g. a dataset where label 5 is missing at timepoint 4 may be visualized incorrectly.
-
 ## Usage: multichannel or multi-label data
 
 If you want to relate objects from one channels to objects from another channel, you can use `Tools > Measurement tables > Object Features/Properties (scikit-image, nsr)`. 
-This plugin module allos you to answer questions like:
-  - how many objects I have inside other objects?
-  - what is the average intensity of the objects inside other objects?
+This plugin module allows you to answer questions like:
+  - How many objects I have inside other objects?
+  - What is the average intensity of the objects inside other objects?
 For that, you need at least two labeled images in napari. You can relate objects along with their features. 
 If intensity features are also wanted, then you also need to provide two intensity images. 
 Below, there is a small example on how to use it. 
